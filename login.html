@@ -39,14 +39,13 @@
 
       document.querySelector('.login-button').onclick = function() {
         firebase.auth().signInWithPopup(provider)
-          .then((result) => {
+          .then(async (result) => {
             const email = result.user.email;
             if (email.endsWith('@scioskola.cz')) {
-              alert("Logged in as: " + result.user.displayName);
-              // Proceed with your app logic here
+              window.location.href = "index.html"; // Redirect to main page
             } else {
               firebase.auth().signOut();
-              alert("Please log-in with a scioškola account.");
+              alert("Only @scioskola.cz accounts are allowed.");
             }
           })
           .catch((error) => {
