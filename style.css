@@ -1,3 +1,9 @@
+@font-face {
+    font-family: 'Scio';
+    src: url(/Fonts/gothamrnd_medium.otf);
+}
+
+
 body{
     background-color: #f5f5dc;
     margin: 0;
@@ -28,4 +34,17 @@ nav img{
     position: fixed;
     right: 0;
     bottom: 0;
+    font-size: 50px;
+    font-family: "Scio";
+    border-radius: 20px 0 0 0;
+    background-color: #009BDE;
+    color: white;
+    border: 5px solid black;
+    cursor: pointer;
+    transition: 0.1s;
+}
+
+.logout:hover{
+    transform: scale(1.05);
+    background-color: black;
 }
