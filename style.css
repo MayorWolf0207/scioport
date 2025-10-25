@@ -23,3 +23,9 @@ nav img{
     height: auto;
     width: 4vw;
 }
+
+.logout{
+    position: fixed;
+    right: 0;
+    bottom: 0;
+}
