@@ -1,0 +1,25 @@
+body{
+    background-color: #f5f5dc;
+    margin: 0;
+    padding: 0;
+}
+
+main{
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    min-height: 100vh;
+}
+
+nav{
+    grid-area: 1 / 1 / 10 / 2;
+    justify-items: center;
+    display: grid;
+    background-color: #ffff90;
+    border: 3px solid #000000;
+}
+
+nav img{
+    height: auto;
+    width: 4vw;
+}

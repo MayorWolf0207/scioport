@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with google</title>
+    <link rel="stylesheet" href="Style/login.css">
+    <!-- Add Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <main>
+        <div class="login">
+            <h1>Please Log in below</h1>
+            <button class="login-button">
+                <span>Sign-in with ScioŠkola</span>
+            </button>
+        </div>
+    </main>
+
+    <script>
+      // Your Firebase config (replace with your own from Firebase Console)
+      const firebaseConfig = {
+        apiKey: "AIzaSyBYQPQwKYJLxcdjHHMv8w1KbLIIX-HKaQA",
+        authDomain: "scioport.firebaseapp.com",
+        projectId: "scioport",
+        storageBucket: "scioport.appspot.com",
+        messagingSenderId: "612919891675",
+        appId: "1:612919891675:web:3adef562f38e26c80e5efe",
+        measurementId: "G-7BW8NQ1VKC"
+      };
+      firebase.initializeApp(firebaseConfig);
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+
+      document.querySelector('.login-button').onclick = function() {
+        firebase.auth().signInWithPopup(provider)
+          .then((result) => {
+            const email = result.user.email;
+            if (email.endsWith('@scioskola.cz')) {
+              alert("Logged in as: " + result.user.displayName);
+              // Proceed with your app logic here
+            } else {
+              firebase.auth().signOut();
+              alert("Only @scioskola.cz accounts are allowed.");
+            }
+          })
+          .catch((error) => {
+            alert("Login failed: " + error.message);
+          });
+      };
+    </script>
+</body>
+</html>
