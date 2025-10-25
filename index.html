@@ -35,11 +35,11 @@
       };
       firebase.initializeApp(firebaseConfig);
 
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (!user) {
-          window.location.href = "/login";
-        }
-      });
+      // firebase.auth().onAuthStateChanged(function(user) {
+      //   if (!user) {
+      //     window.location.href = "login";
+      //   }
+      // });
     </script>
 </body>
 </html>
