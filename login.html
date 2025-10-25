@@ -42,8 +42,24 @@
               alert("Logged in as: " + result.user.displayName);
               // Proceed with your app logic here
             } else {
-              firebase.auth().signOut();
-              alert("Only @scioskola.cz accounts are allowed.");
+              firebase.auth().signOut().then(() => {
+                alert("Please log-in with a scioškola account.");
+                // Re-open the login popup so they can choose another account
+                firebase.auth().signInWithPopup(provider)
+                  .then((result) => {
+                    const email = result.user.email;
+                    if (email.endsWith('@scioskola.cz')) {
+                      alert("Logged in as: " + result.user.displayName);
+                      // Proceed with your app logic here
+                    } else {
+                      firebase.auth().signOut();
+                      alert("Still not a scioškola account. Please try again.");
+                    }
+                  })
+                  .catch((error) => {
+                    alert("Login failed: " + error.message);
+                  });
+              });
             }
           })
           .catch((error) => {
