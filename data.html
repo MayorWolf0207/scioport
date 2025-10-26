@@ -26,11 +26,14 @@
 
     firebase.auth().onAuthStateChanged(async function(user) {
       if (user) {
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists) {
-          document.getElementById('user-email').textContent = doc.data().email;
-          document.getElementById('user-data').textContent = doc.data().data;
-        }
+        document.getElementById('user-email').textContent = user.email;
+        const dataRef = db.collection('users').doc(user.uid).collection('data');
+        const snapshot = await dataRef.orderBy('timestamp', 'desc').get();
+        let dataHtml = '';
+        snapshot.forEach(doc => {
+          dataHtml += `<div>${doc.data().value}</div>`;
+        });
+        document.getElementById('user-data').innerHTML = dataHtml;
       } else {
         window.location.href = "login";
       }

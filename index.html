@@ -55,10 +55,13 @@
         const user = firebase.auth().currentUser;
         const inputValue = document.getElementById('input').value;
         if (user && inputValue) {
-          await db.collection('users').doc(user.uid).set({
-            email: 'tobiasjanpokorny@gmail.com',
-            data: inputValue
-          });
+          await db.collection('users')
+            .doc(user.uid)
+            .collection('data')
+            .add({
+              value: inputValue,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
           alert('Data saved!');
         } else {
           alert('You must be logged in and input cannot be empty.');
