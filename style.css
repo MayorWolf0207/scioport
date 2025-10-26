@@ -63,3 +63,47 @@ header h1{
     margin: 0;
     padding: 0;
 }
+
+.input{
+    grid-column: span 6 / span 6;
+    grid-column-start: 4;
+    grid-row-start: 8;
+    background-color: #F6F6F6;
+    border: 10px solid #D7D7D7;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+.input img{
+    width: 85px;
+    height: auto;
+}
+
+
+.send{
+    background-color: transparent;
+    border: none;
+    transition: 0.2s;
+}
+
+.send:hover{
+transform: scale(1.1);
+}
+
+.send:active{
+    transform: scale(0.9);
+}
+
+#input{
+    flex: 1;
+    font-size: 3rem; 
+    border: none;    
+    background: transparent; 
+    padding: 10px 20px;      
+}
+
+#input:focus{
+    outline: none;
+}
