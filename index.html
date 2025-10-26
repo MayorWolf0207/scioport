@@ -21,6 +21,7 @@
             <h1>ScioPort</h1>
         </header>
         <div class="input">
+            <input type="file" id="fileInput" style="display:none;">
             <button class="send" id="upload">
                 <img src="Media/icons/upload.svg" alt="">
             </button>
@@ -36,6 +37,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
     <script>
 
       const firebaseConfig = {
@@ -50,6 +52,7 @@
       firebase.initializeApp(firebaseConfig);
 
       const db = firebase.firestore();
+      const storage = firebase.storage();
 
       document.getElementById('send').onclick = async function() {
         const user = firebase.auth().currentUser;
@@ -64,15 +67,53 @@
             });
           alert('Data saved!');
         } else {
-          alert('You must be logged in and input cannot be empty.');
+          alert('input cannot be empty.');
         }
       };
 
-       firebase.auth().onAuthStateChanged(function(user) {
-         if (!user) {
-           window.location.href = "login";
-         }
-       });
+      // File upload logic
+      document.getElementById('upload').onclick = function() {
+        document.getElementById('fileInput').click();
+      };
+
+      document.getElementById('fileInput').onchange = async function(event) {
+        const user = firebase.auth().currentUser;
+        const file = event.target.files[0];
+        if (!user) {
+          alert('You must be logged in.');
+          return;
+        }
+        if (!file) {
+          alert('No file selected.');
+          return;
+        }
+        if (file.size > 50 * 1024 * 1024) { // 50MB
+          alert('File is too large (max 50MB).');
+          return;
+        }
+        const storageRef = storage.ref(`users/${user.uid}/files/${Date.now()}_${file.name}`);
+        try {
+          const snapshot = await storageRef.put(file);
+          const url = await snapshot.ref.getDownloadURL();
+          await db.collection('users')
+            .doc(user.uid)
+            .collection('files')
+            .add({
+              name: file.name,
+              url: url,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          alert('File uploaded!');
+        } catch (error) {
+          alert('Upload failed: ' + error.message);
+        }
+      };
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "login";
+        }
+      });
     </script>
 </body>
 </html>
