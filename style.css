@@ -14,7 +14,7 @@ main{
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     grid-template-rows: repeat(10, 1fr);
-    min-height: 100vh;
+    height: 100vh;
 }
 
 nav{
