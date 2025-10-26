@@ -71,15 +71,15 @@
         }
 
         firebase.auth().onAuthStateChanged(async function(user) {
-        if (user) {
-            await db.collection('users').doc(user.uid).set({
-            email: user.email
-            }, { merge: true });
-            await renderData();
-        } else {
-            window.location.href = "login";
-        }
-        });
+  if (user) {
+    await db.collection('users').doc(user.uid).set({
+      email: user.email
+    }, { merge: true });
+    await renderData();
+  } else {
+    window.location.href = "/login";
+  }
+});
     </script>
   </body>
 </html>
