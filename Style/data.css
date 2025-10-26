@@ -1,7 +1,21 @@
 #admin{
-    border: none;
+    border: 5px solid gray;
     background-color: black;
     color: greenyellow;
     border-radius: 50px;
-    font-size: 3vw;
+    font-size: 2vw;
+    transition: 0.1s;
+}
+
+#admin:hover{
+    transform: scale(0.1);
+    background-color: white;
+    border: 5px solid black;
+    color: black;
+}
+
+#admin:active{
+    transform: scale(0.9);
+    background-color: blue;
+    color: white;
 }
