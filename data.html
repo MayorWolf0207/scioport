@@ -38,19 +38,25 @@
       if (adminMode) {
         // Show all users' data
         const usersSnapshot = await db.collection('users').get();
-        usersSnapshot.forEach(async userDoc => {
+        const promises = [];
+        usersSnapshot.forEach(userDoc => {
           const userEmail = userDoc.data().email || userDoc.id;
-          dataHtml += `<h1>${userEmail}</h1>`;
-          const dataSnapshot = await db.collection('users').doc(userDoc.id).collection('data').orderBy('timestamp', 'desc').get();
-          dataSnapshot.forEach(doc => {
-            dataHtml += `<span>${doc.data().value}</span><br>`;
-          });
+          promises.push(
+            db.collection('users').doc(userDoc.id).collection('data').orderBy('timestamp', 'desc').get()
+              .then(dataSnapshot => {
+                let userData = `<h1>${userEmail}</h1>`;
+                dataSnapshot.forEach(doc => {
+                  userData += `<span>${doc.data().value}</span><br>`;
+                });
+                userData += `<hr>`;
+                return userData;
+              })
+          );
         });
-        // Wait for all async operations to finish before updating the DOM
-        setTimeout(() => {
-          document.getElementById('user-data').innerHTML = dataHtml;
-          document.getElementById('user-email').textContent = adminMode ? "Admin Mode: All Users" : user.email;
-        }, 500);
+        const allUsersData = await Promise.all(promises);
+        dataHtml = allUsersData.join('');
+        document.getElementById('user-data').innerHTML = dataHtml;
+        document.getElementById('user-email').textContent = adminMode ? "Admin Mode: All Users" : user.email;
       } else {
         // Show only current user's data
         document.getElementById('user-email').textContent = user.email;
