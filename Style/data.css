@@ -8,7 +8,7 @@
 }
 
 #admin:hover{
-    transform: scale(0.1);
+    transform: scale(1.1);
     background-color: white;
     border: 5px solid black;
     color: black;
