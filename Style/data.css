@@ -5,6 +5,7 @@
     border-radius: 50px;
     font-size: 2vw;
     transition: 0.1s;
+    margin-left: 50px;
 }
 
 #admin:hover{
