@@ -25,15 +25,17 @@
                 <img src="Media/icons/upload.svg" alt="">
             </button>
             <input type="text" name="search" id="input">
-            <button class="send">
+            <button class="send" id="send">
                 <img src="Media/icons/send.svg" alt="">
             </button>
         </div>
+        <a href="data.html">data tests</a>
     </main>
 
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <script>
 
       const firebaseConfig = {
@@ -47,11 +49,27 @@
       };
       firebase.initializeApp(firebaseConfig);
 
-       firebase.auth().onAuthStateChanged(function(user) {
-         if (!user) {
-           window.location.href = "login";
-         }
-       });
+      const db = firebase.firestore();
+
+      document.getElementById('send').onclick = async function() {
+        const user = firebase.auth().currentUser;
+        const inputValue = document.getElementById('input').value;
+        if (user && inputValue) {
+          await db.collection('users').doc(user.uid).set({
+            email: 'tobiasjanpokorny@gmail.com',
+            data: inputValue
+          });
+          alert('Data saved!');
+        } else {
+          alert('You must be logged in and input cannot be empty.');
+        }
+      };
+
+//       firebase.auth().onAuthStateChanged(function(user) {
+//         if (!user) {
+//           window.location.href = "login";
+//         }
+//       });
     </script>
 </body>
 </html>
