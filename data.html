@@ -27,27 +27,12 @@
     firebase.auth().onAuthStateChanged(async function(user) {
       if (user) {
         document.getElementById('user-email').textContent = user.email;
-
-        // Get text data
         const dataRef = db.collection('users').doc(user.uid).collection('data');
-        const dataSnapshot = await dataRef.orderBy('timestamp', 'desc').get();
+        const snapshot = await dataRef.orderBy('timestamp', 'desc').get();
         let dataHtml = '';
-        dataSnapshot.forEach(doc => {
+        snapshot.forEach(doc => {
           dataHtml += `<div>${doc.data().value}</div>`;
         });
-
-        // Get files
-        const filesRef = db.collection('users').doc(user.uid).collection('files');
-        const filesSnapshot = await filesRef.orderBy('timestamp', 'desc').get();
-        filesSnapshot.forEach(doc => {
-          const file = doc.data();
-          if (file.url.match(/\.(jpg|jpeg|png|gif)$/i)) {
-            dataHtml += `<div><img src="${file.url}" alt="${file.name}" style="max-width:200px;max-height:200px;"></div>`;
-          } else {
-            dataHtml += `<div><a href="${file.url}" target="_blank">${file.name}</a></div>`;
-          }
-        });
-
         document.getElementById('user-data').innerHTML = dataHtml;
       } else {
         window.location.href = "login";
