@@ -36,7 +36,7 @@
       const user = firebase.auth().currentUser;
       let dataHtml = '';
       if (adminMode) {
-        // Show all users' data
+        // Show all users' data, even if empty
         const usersSnapshot = await db.collection('users').get();
         const promises = [];
         usersSnapshot.forEach(userDoc => {
@@ -45,9 +45,13 @@
             db.collection('users').doc(userDoc.id).collection('data').orderBy('timestamp', 'desc').get()
               .then(dataSnapshot => {
                 let userData = `<h1>${userEmail}</h1>`;
-                dataSnapshot.forEach(doc => {
-                  userData += `<span>${doc.data().value}</span><br>`;
-                });
+                if (dataSnapshot.empty) {
+                  userData += `<span style="color:gray;">No data</span>`;
+                } else {
+                  dataSnapshot.forEach(doc => {
+                    userData += `<span>${doc.data().value}</span><br>`;
+                  });
+                }
                 userData += `<hr>`;
                 return userData;
               })
