@@ -41,7 +41,12 @@
         firebase.auth().signInWithPopup(provider)
           .then(async (result) => {
             const email = result.user.email;
-            window.location.href = "/";
+            if (email.endsWith('@scioskola.cz')) {
+              window.location.href = "/";
+            } else {
+              firebase.auth().signOut();
+              alert("Please login with your ScioŠkola account");
+            }
           })
           .catch((error) => {
             alert("Login failed: " + error.message);
