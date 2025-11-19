@@ -74,6 +74,10 @@
         });
       alert('Data saved!'); // Notify the user that data was saved
       console.log('Data successfully saved!'); // Debug: Confirm data was saved
+
+      // Update the user-data span with the new value
+      const userDataSpan = document.getElementById('user-data');
+      userDataSpan.innerHTML += `<span>${inputValue}</span><br>`;
     } catch (error) {
       console.error('Error saving data:', error); // Debug: Log any errors
       alert('Failed to save data. Please try again.'); // Notify the user of the error
