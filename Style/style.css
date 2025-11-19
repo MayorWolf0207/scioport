@@ -116,7 +116,7 @@ transform: scale(1.1);
     grid-column-start: 4;
     grid-row-start: 3;
     background-color: rgb(255, 255, 255);
-    border: solid 5pc gray;
+    border: solid 5px gray;
     border-radius: 20px;
     display: flex;
     justify-content: center;
