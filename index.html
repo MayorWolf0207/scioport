@@ -94,15 +94,11 @@
               value: inputValue,
               timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            alert('Data saved!');
             await renderData(); // Refresh the displayed data after saving
             document.getElementById('input').value = ''; // Clear the input field
           } catch (error) {
             console.error('Error saving data:', error);
-            alert('Failed to save data. Please try again.');
           }
-        } else {
-          alert('Input cannot be empty or user is not authenticated.');
         }
       };
     </script>
