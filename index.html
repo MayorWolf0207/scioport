@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chango&display=swap" rel="stylesheet">
@@ -35,12 +34,11 @@
         <a href="data.html">data tests</a>
     </main>
 
-
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <script>
-
+      // Initialize Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBYQPQwKYJLxcdjHHMv8w1KbLIIX-HKaQA",
         authDomain: "scioport.firebaseapp.com",
@@ -50,61 +48,63 @@
         appId: "1:612919891675:web:3adef562f38e26c80e5efe",
         measurementId: "G-7BW8NQ1VKC"
       };
-      firebase.initializeApp(firebaseConfig); // Initialize Firebase with your configuration
+      firebase.initializeApp(firebaseConfig);
 
-      const db = firebase.firestore(); // Get Firestore database instance
+      const db = firebase.firestore();
 
-      document.getElementById('send').onclick = async function() { // Set click handler for send button
-        const user = firebase.auth().currentUser; // Get currently authenticated user
-        const inputValue = document.getElementById('input').value; // Get the input field value
+      // Function to render data with a maximum of 3 messages
+      async function renderData() {
+        const user = firebase.auth().currentUser; // Get the currently authenticated user
+        const userDataSpan = document.getElementById('user-data'); // Get the span element for displaying data
+        userDataSpan.innerHTML = ''; // Clear existing content
 
-        console.log(`Input value: ${inputValue}`); // Debug: Log input value
-        console.log(`User: ${user ? user.email : 'No user'}`); // Debug: Log user email or no user
-
-        if (user && inputValue) { // Check if user is authenticated and input is not empty
-          try { // Try to save data
-            await db.collection('users') // Access users collection
-              .doc(user.uid) // Access user document by UID
-              .collection('data') // Access data subcollection
-              .add({ // Add new document
-                value: inputValue, // Store the input value
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Store server timestamp
-              });
-            alert('Data saved!'); // Notify user data was saved
-            console.log('Data successfully saved!'); // Debug: Log success
-
-            const userDataSpan = document.getElementById('user-data'); // Get the user-data display element
-            userDataSpan.innerHTML = `<span>${inputValue}</span><br>` + userDataSpan.innerHTML; // Prepend new data to top
-            
-            document.getElementById('input').value = ''; // Clear input field
-          } catch (error) { // Catch any errors
-            console.error('Error saving data:', error); // Debug: Log error
-            alert('Failed to save data. Please try again.'); // Notify user of error
-          }
-        } else { // User not authenticated or input empty
-          alert('Input cannot be empty or user is not authenticated.'); // Notify user
-        }
-      };
-
-      firebase.auth().onAuthStateChanged(async function(user) { // Listen for authentication state changes
-        if (!user) { // Check if user is not logged in
-          window.location.href = "login"; // Redirect to login page
-        } else { // User is logged in
-          const userDataSpan = document.getElementById('user-data'); // Get the user-data display element
-          userDataSpan.innerHTML = ''; // Clear existing content
-          
+        if (user) {
           const dataRef = db.collection('users').doc(user.uid).collection('data'); // Reference to user's data collection
-          const snapshot = await dataRef.orderBy('timestamp', 'desc').get(); // Get user's data sorted by timestamp descending
-          
-          if (snapshot.empty) { // Check if user has no data
-            userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>'; // Display "No data" message
-          } else { // User has data
-            snapshot.forEach(doc => { // Loop through each data entry
-              userDataSpan.innerHTML += `<span>${doc.data().value}</span><br>`; // Add data value with line break
+          const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(3).get(); // Fetch the latest 3 messages
+
+          if (snapshot.empty) {
+            userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>'; // Display "No data" message if empty
+          } else {
+            snapshot.forEach(doc => {
+              userDataSpan.innerHTML += `<span>${doc.data().value}</span><br>`; // Add each message to the span
             });
           }
+        } else {
+          userDataSpan.innerHTML = '<span style="color:gray;">User not authenticated</span>'; // Display error if no user
+        }
+      }
+
+      // Listen for authentication state changes and render data
+      firebase.auth().onAuthStateChanged(async function(user) {
+        if (user) {
+          await renderData(); // Render data when user is authenticated
+        } else {
+          window.location.href = "/login"; // Redirect to login page if not authenticated
         }
       });
+
+      // Send button functionality
+      document.getElementById('send').onclick = async function() {
+        const user = firebase.auth().currentUser; // Get the currently authenticated user
+        const inputValue = document.getElementById('input').value; // Get the input field value
+
+        if (user && inputValue) {
+          try {
+            await db.collection('users').doc(user.uid).collection('data').add({
+              value: inputValue,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('Data saved!');
+            await renderData(); // Refresh the displayed data after saving
+            document.getElementById('input').value = ''; // Clear the input field
+          } catch (error) {
+            console.error('Error saving data:', error);
+            alert('Failed to save data. Please try again.');
+          }
+        } else {
+          alert('Input cannot be empty or user is not authenticated.');
+        }
+      };
     </script>
 </body>
 </html>
