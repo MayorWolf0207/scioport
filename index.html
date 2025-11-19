@@ -30,8 +30,9 @@
             </button>
         </div>
         <div class="info">
-          
+          <span id="user-data"></span>
         </div>
+        <script src="data.js"></script>
         <a href="data.html">data tests</a>
     </main>
 
@@ -55,21 +56,32 @@
       const db = firebase.firestore();
 
       document.getElementById('send').onclick = async function() {
-        const user = firebase.auth().currentUser;
-        const inputValue = document.getElementById('input').value;
-        if (user && inputValue) {
-          await db.collection('users')
-            .doc(user.uid)
-            .collection('data')
-            .add({
-              value: inputValue,
-              timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          alert('Data saved!');
-        } else {
-          alert('input cannot be empty.');
-        }
-      };
+  const user = firebase.auth().currentUser; // Get the currently authenticated user
+  const inputValue = document.getElementById('input').value; // Get the input value
+
+  console.log(`Input value: ${inputValue}`); // Debug: Log the input value
+  console.log(`User: ${user ? user.email : 'No user'}`); // Debug: Log the user authentication status
+
+  if (user && inputValue) {
+    try {
+      // Add the input value to Firestore under the user's data collection
+      await db.collection('users')
+        .doc(user.uid)
+        .collection('data')
+        .add({
+          value: inputValue,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      alert('Data saved!'); // Notify the user that data was saved
+      console.log('Data successfully saved!'); // Debug: Confirm data was saved
+    } catch (error) {
+      console.error('Error saving data:', error); // Debug: Log any errors
+      alert('Failed to save data. Please try again.'); // Notify the user of the error
+    }
+  } else {
+    alert('Input cannot be empty or user is not authenticated.'); // Notify the user of invalid input
+  }
+};
 
        firebase.auth().onAuthStateChanged(function(user) {
          if (!user) {
