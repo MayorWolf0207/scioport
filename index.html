@@ -50,48 +50,61 @@
         appId: "1:612919891675:web:3adef562f38e26c80e5efe",
         measurementId: "G-7BW8NQ1VKC"
       };
-      firebase.initializeApp(firebaseConfig);
+      firebase.initializeApp(firebaseConfig); // Initialize Firebase with your configuration
 
-      const db = firebase.firestore();
+      const db = firebase.firestore(); // Get Firestore database instance
 
-      document.getElementById('send').onclick = async function() {
-  const user = firebase.auth().currentUser;
-  const inputValue = document.getElementById('input').value;
+      document.getElementById('send').onclick = async function() { // Set click handler for send button
+        const user = firebase.auth().currentUser; // Get currently authenticated user
+        const inputValue = document.getElementById('input').value; // Get the input field value
 
-  console.log(`Input value: ${inputValue}`);
-  console.log(`User: ${user ? user.email : 'No user'}`);
+        console.log(`Input value: ${inputValue}`); // Debug: Log input value
+        console.log(`User: ${user ? user.email : 'No user'}`); // Debug: Log user email or no user
 
-  if (user && inputValue) {
-    try {
-      await db.collection('users')
-        .doc(user.uid)
-        .collection('data')
-        .add({
-          value: inputValue,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      alert('Data saved!');
-      console.log('Data successfully saved!');
+        if (user && inputValue) { // Check if user is authenticated and input is not empty
+          try { // Try to save data
+            await db.collection('users') // Access users collection
+              .doc(user.uid) // Access user document by UID
+              .collection('data') // Access data subcollection
+              .add({ // Add new document
+                value: inputValue, // Store the input value
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Store server timestamp
+              });
+            alert('Data saved!'); // Notify user data was saved
+            console.log('Data successfully saved!'); // Debug: Log success
 
-      const userDataSpan = document.getElementById('user-data');
-      userDataSpan.innerHTML += `<span>${inputValue}</span><br>`;
-      
-      document.getElementById('input').value = '';
-    } catch (error) {
-      console.error('Error saving data:', error);
-      alert('Failed to save data. Please try again.');
-    }
-  } else {
-    alert('Input cannot be empty or user is not authenticated.');
-  }
-};
+            const userDataSpan = document.getElementById('user-data'); // Get the user-data display element
+            userDataSpan.innerHTML = `<span>${inputValue}</span><br>` + userDataSpan.innerHTML; // Prepend new data to top
+            
+            document.getElementById('input').value = ''; // Clear input field
+          } catch (error) { // Catch any errors
+            console.error('Error saving data:', error); // Debug: Log error
+            alert('Failed to save data. Please try again.'); // Notify user of error
+          }
+        } else { // User not authenticated or input empty
+          alert('Input cannot be empty or user is not authenticated.'); // Notify user
+        }
+      };
 
-       firebase.auth().onAuthStateChanged(function(user) {
-         if (!user) {
-           window.location.href = "login";
-         }
-       });
+      firebase.auth().onAuthStateChanged(async function(user) { // Listen for authentication state changes
+        if (!user) { // Check if user is not logged in
+          window.location.href = "login"; // Redirect to login page
+        } else { // User is logged in
+          const userDataSpan = document.getElementById('user-data'); // Get the user-data display element
+          userDataSpan.innerHTML = ''; // Clear existing content
+          
+          const dataRef = db.collection('users').doc(user.uid).collection('data'); // Reference to user's data collection
+          const snapshot = await dataRef.orderBy('timestamp', 'desc').get(); // Get user's data sorted by timestamp descending
+          
+          if (snapshot.empty) { // Check if user has no data
+            userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>'; // Display "No data" message
+          } else { // User has data
+            snapshot.forEach(doc => { // Loop through each data entry
+              userDataSpan.innerHTML += `<span>${doc.data().value}</span><br>`; // Add data value with line break
+            });
+          }
+        }
+      });
     </script>
-    <script src="data.js"></script>
 </body>
 </html>
