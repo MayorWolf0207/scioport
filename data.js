@@ -8,18 +8,23 @@ const firebaseConfig = {
     measurementId: "G-7BW8NQ1VKC"
 };
 firebase.initializeApp(firebaseConfig);
+
+// Use the already initialized Firebase instance
 const db = firebase.firestore();
 
 let adminMode = false;
 
+// Toggle admin mode and render data
 document.getElementById('admin').onclick = async function() {
   adminMode = !adminMode;
   await renderData();
 };
 
+// Render data based on admin mode
 async function renderData() {
   const user = firebase.auth().currentUser;
   let dataHtml = '';
+
   if (adminMode) {
     // Admin mode: Show all users' data
     const usersSnapshot = await db.collection('users').get();
@@ -55,13 +60,14 @@ async function renderData() {
   }
 }
 
+// Monitor authentication state and render data
 firebase.auth().onAuthStateChanged(async function(user) {
-    if (user) {
-        await db.collection('users').doc(user.uid).set({
-            email: user.email
-        }, { merge: true });
-        await renderData();
-    } else {
-        window.location.href = "/login";
-    }
+  if (user) {
+    await db.collection('users').doc(user.uid).set({
+      email: user.email
+    }, { merge: true });
+    await renderData();
+  } else {
+    window.location.href = "/login";
+  }
 });
