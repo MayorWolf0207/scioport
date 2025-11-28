@@ -103,7 +103,10 @@ transform: scale(1.1);
     border: none;    
     background: transparent; 
     padding: 10px 20px;    
-    width: 40vw;  
+    width: 40%; /* Make the input field responsive */
+    max-width: 60vw; /* Limit maximum width */
+    min-width: 20vw; /* Limit minimum width */
+    transition: width 0.3s ease; /* Smooth resizing */
 }
 
 #input:focus{
@@ -127,4 +130,58 @@ transform: scale(1.1);
     font-family: "Scio";
     font-size: 4rem;
     text-align: center;
+}
+
+.select {
+    grid-column: span 4 / span 4;
+    grid-row: span 2 / span 2;
+    grid-column-start: 4;
+    grid-row-start: 9;
+    background-color: #F6F6F6;
+    border: 10px solid #979797;
+    border-radius: 50px;
+    display: grid; /* Keep the display property as grid */
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    opacity: 0; /* Start with invisible */
+    visibility: hidden; /* Prevent interaction when invisible */
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
+}
+
+.select.visible {
+    opacity: 1; /* Make it visible */
+    visibility: visible; /* Allow interaction */
+}
+
+#select-1 p{
+    color: blue;
+}
+#select-2 p{
+    color: orange;
+
+}
+#select-3 p{
+    color: red;
+
+}
+#select-4 p{
+    color: green;
+}
+.select span{
+    /*center the text to the middle of the grid space*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 5px solid rgb(179, 179, 179);
+    background-color: rgb(211, 211, 211);
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.select span p{
+    font-family: "Scio";
+    font-size: 2.5vw;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
 }
