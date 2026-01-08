@@ -3,7 +3,6 @@
     src: url(/Fonts/gothamrnd_medium.otf);
 }
 
-
 body{
     background-color: #f5f5dc;
     margin: 0;
@@ -82,7 +81,6 @@ header h1{
     height: auto;
 }
 
-
 .send{
     background-color: transparent;
     border: none;
@@ -103,10 +101,10 @@ transform: scale(1.1);
     border: none;    
     background: transparent; 
     padding: 10px 20px;    
-    width: 40%; /* Make the input field responsive */
-    max-width: 60vw; /* Limit maximum width */
-    min-width: 20vw; /* Limit minimum width */
-    transition: width 0.3s ease; /* Smooth resizing */
+    width: 40%; 
+    max-width: 60vw; 
+    min-width: 20vw; 
+    transition: width 0.3s ease; 
 }
 
 #input:focus{
@@ -140,17 +138,17 @@ transform: scale(1.1);
     background-color: #F6F6F6;
     border: 10px solid #979797;
     border-radius: 50px;
-    display: grid; /* Keep the display property as grid */
+    display: grid; 
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    opacity: 0; /* Start with invisible */
-    visibility: hidden; /* Prevent interaction when invisible */
-    transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
+    opacity: 0; 
+    visibility: hidden; 
+    transition: opacity 0.3s ease, visibility 0.3s ease; 
 }
 
 .select.visible {
-    opacity: 1; /* Make it visible */
-    visibility: visible; /* Allow interaction */
+    opacity: 1; 
+    visibility: visible; 
 }
 
 #select-1 p{
@@ -168,7 +166,7 @@ transform: scale(1.1);
     color: green;
 }
 .select span{
-    /*center the text to the middle of the grid space*/
+    
     display: flex;
     justify-content: center;
     align-items: center;
