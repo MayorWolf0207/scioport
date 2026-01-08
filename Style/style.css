@@ -20,6 +20,10 @@ nav{
     grid-row: span 10 / span 10;
     justify-items: center;
     display: grid;
+    position: relative;
+    align-content: start;
+    gap: 20px;
+    padding-top: 20px;
     background-color: #ffff90;
     border: 3px solid #000000;
 }
@@ -27,6 +31,59 @@ nav{
 nav img{
     height: auto;
     width: 4vw;
+    min-width: 36px;
+    display: block;
+}
+
+.menu-toggle{
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.menu-panel{
+    position: absolute;
+    top: 90px;
+    left: 10px;
+    width: 200px;
+    background-color: #ffffff;
+    border: 4px solid #000000;
+    border-radius: 16px;
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    z-index: 10;
+}
+
+.menu-panel.open{
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.menu-item{
+    font-family: "Scio";
+    font-size: 1.3rem;
+    background-color: #F6F6F6;
+    border: 3px solid #000000;
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    color: #000000;
+    transition: transform 0.1s ease;
+}
+
+.menu-item:hover{
+    transform: translateX(2px);
 }
 
 .logout{
@@ -61,6 +118,29 @@ header h1{
     font-size: 75px;
     margin: 0;
     padding: 0;
+}
+
+.subject{
+    grid-column: span 6 / span 6;
+    grid-column-start: 4;
+    grid-row-start: 7;
+    display: grid;
+    gap: 10px;
+    width: 60vw;
+}
+
+.subject label{
+    font-family: "Scio";
+    font-size: 2rem;
+}
+
+.subject select{
+    font-family: "Scio";
+    font-size: 2rem;
+    border: 5px solid #000000;
+    border-radius: 16px;
+    padding: 10px 16px;
+    background-color: #F6F6F6;
 }
 
 .input{
@@ -130,56 +210,112 @@ transform: scale(1.1);
     text-align: center;
 }
 
-.select {
-    grid-column: span 4 / span 4;
-    grid-row: span 2 / span 2;
-    grid-column-start: 4;
-    grid-row-start: 9;
-    background-color: #F6F6F6;
-    border: 10px solid #979797;
-    border-radius: 50px;
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    opacity: 0; 
-    visibility: hidden; 
-    transition: opacity 0.3s ease, visibility 0.3s ease; 
+
+.template-panel{
+    position: fixed;
+    right: 3vw;
+    bottom: 120px;
+    width: min(520px, 92vw);
+    max-height: 70vh;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 6px solid #000000;
+    border-radius: 26px;
+    padding: 24px;
+    box-shadow: 8px 8px 0 #000000;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    z-index: 15;
 }
 
-.select.visible {
-    opacity: 1; 
-    visibility: visible; 
+.template-panel.open{
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
 }
 
-#select-1 p{
-    color: blue;
-}
-#select-2 p{
-    color: orange;
-
-}
-#select-3 p{
-    color: red;
-
-}
-#select-4 p{
-    color: green;
-}
-.select span{
-    
+.template-header{
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    border: 5px solid rgb(179, 179, 179);
-    background-color: rgb(211, 211, 211);
-    border-radius: 20px;
-    transition: all 0.2s;
+    gap: 12px;
 }
 
-.select span p{
+.template-header h2{
     font-family: "Scio";
-    font-size: 2.5vw;
     margin: 0;
-    padding: 0;
+    font-size: 2rem;
+}
+
+.template-close{
+    font-family: "Scio";
+    font-size: 1.2rem;
+    background-color: #ffec99;
+    border: 3px solid #000000;
+    border-radius: 12px;
+    padding: 6px 12px;
     cursor: pointer;
+}
+
+.template-hint{
+    font-family: "Scio";
+    margin: 10px 0 18px;
+    font-size: 1rem;
+}
+
+.template-field{
+    display: grid;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.template-field label{
+    font-family: "Scio";
+    font-size: 1.1rem;
+}
+
+.template-field input,
+.template-field textarea,
+.template-field select{
+    font-family: "Scio";
+    font-size: 1.1rem;
+    border: 3px solid #000000;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background-color: #F6F6F6;
+}
+
+.template-actions{
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.template-actions .secondary,
+.template-actions .primary{
+    font-family: "Scio";
+    font-size: 1.1rem;
+    border: 3px solid #000000;
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+}
+
+.template-actions .secondary{
+    background-color: #ffffff;
+}
+
+.template-actions .primary{
+    background-color: #009BDE;
+    color: #ffffff;
+}
+
+.template-actions .primary:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
 }

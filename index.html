@@ -14,11 +14,26 @@
     <main>
         <button class="logout" onclick="firebase.auth().signOut()"><span>Log-out</span></button>
         <nav>
-            <img src="Media/icons/menu.svg" alt="Menu">
+            <button class="menu-toggle" id="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="menu-panel">
+                <img src="Media/icons/menu.svg" alt="">
+            </button>
+            <div class="menu-panel" id="menu-panel">
+                <button class="menu-item" id="menu-templates" type="button">Šablony</button>
+                <a class="menu-item" href="data.html">Data tests</a>
+            </div>
         </nav>
         <header>
             <h1>ScioPort</h1>
         </header>
+        <div class="subject">
+            <label for="subject-select">Předmět</label>
+            <select id="subject-select">
+                <option value="@matematika">@matematika</option>
+                <option value="@čeština">@čeština</option>
+                <option value="@angličtina">@angličtina</option>
+                <option value="@samorost">@samorost</option>
+            </select>
+        </div>
         <div class="input">
             <button class="send" id="upload">
                 <img src="Media/icons/upload.svg" alt="Upload">
@@ -35,12 +50,43 @@
             <span id="user-data"></span>
         </div>
         <a href="data.html">data tests</a>
-        <div class="select">
-            <span id="select-1"><p>@matematika</p></span>
-            <span id="select-2"><p>@čeština</p></span>
-            <span id="select-3"><p>@angličtina</p></span>
-            <span id="select-4"><p>@samorost</p></span>
-        </div>
+        <section class="template-panel" id="template-panel" aria-hidden="true">
+            <div class="template-header">
+                <h2>Nová šablona</h2>
+                <button class="template-close" id="template-close" type="button">Zavřít</button>
+            </div>
+            <p class="template-hint">Předvyplněné zadání pro studenta (zatím jen náhled).</p>
+            <div class="template-field">
+                <label for="template-title">Název šablony</label>
+                <input type="text" id="template-title" placeholder="Čtenářská dílna">
+            </div>
+            <div class="template-field">
+                <label for="template-subject">Předmět</label>
+                <select id="template-subject">
+                    <option value="@matematika">@matematika</option>
+                    <option value="@čeština">@čeština</option>
+                    <option value="@angličtina">@angličtina</option>
+                    <option value="@samorost">@samorost</option>
+                </select>
+            </div>
+            <div class="template-field">
+                <label for="template-instructions">Instrukce pro studenta</label>
+                <textarea id="template-instructions" rows="4" placeholder="Nahraj sem screenshot z knih, které jsi četl."></textarea>
+            </div>
+            <div class="template-field">
+                <label for="template-proof">Požadovaný důkaz</label>
+                <select id="template-proof">
+                    <option>Soubor</option>
+                    <option>Text</option>
+                    <option>Odkaz</option>
+                    <option>Fotka</option>
+                </select>
+            </div>
+            <div class="template-actions">
+                <button class="secondary" type="button">Náhled</button>
+                <button class="primary" type="button" disabled>Uložit šablonu (brzy)</button>
+            </div>
+        </section>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -97,18 +143,23 @@
 
 
 
+          const inputField = document.getElementById('input');
+          const subjectSelect = document.getElementById('subject-select');
+
           async function sendMessage() {
             const user = firebase.auth().currentUser;
-            const inputValue = document.getElementById('input').value.trim();
+            const inputValue = inputField.value.trim();
+            const subjectValue = subjectSelect ? subjectSelect.value : '';
+            const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
 
-            if (user && inputValue) {
+            if (user && cleanedValue && subjectValue) {
               try {
                 await db.collection('users').doc(user.uid).collection('data').add({
-                  value: inputValue,
+                  value: `${subjectValue} ${cleanedValue}`,
                   timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 await renderData();
-                document.getElementById('input').value = '';
+                inputField.value = '';
               } catch (error) {
                 console.error('Error saving data:', error);
               }
@@ -119,39 +170,42 @@
           document.getElementById('send').onclick = sendMessage;
 
 
-          document.getElementById('input').addEventListener('keydown', function(event) {
+          inputField.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
               sendMessage();
             }
           });
 
-          const selectDiv = document.querySelector('.select');
-          const inputField = document.getElementById('input');
-          const subjectPattern = /^@\S+\s*/;
-
           document.getElementById('select').onclick = function() {
-            if (selectDiv.classList.contains('visible')) {
-                selectDiv.classList.remove('visible');
-            } else {
-                selectDiv.classList.add('visible');
+            if (subjectSelect) {
+              subjectSelect.focus();
+              if (subjectSelect.showPicker) {
+                subjectSelect.showPicker();
+              }
             }
           };
 
-          document.querySelectorAll('.select span').forEach(subject => {
-            subject.addEventListener('click', () => {
-              const subjectText = subject.textContent.trim();
-              const currentValue = inputField.value;
+          const menuToggle = document.getElementById('menu-toggle');
+          const menuPanel = document.getElementById('menu-panel');
+          const templatePanel = document.getElementById('template-panel');
+          const menuTemplates = document.getElementById('menu-templates');
+          const templateClose = document.getElementById('template-close');
 
-              if (subjectPattern.test(currentValue)) {
-                inputField.value = currentValue.replace(subjectPattern, `${subjectText} `);
-              } else {
-                const trimmed = currentValue.trimStart();
-                inputField.value = trimmed ? `${subjectText} ${trimmed}` : `${subjectText} `;
-              }
+          menuToggle.addEventListener('click', () => {
+            const isOpen = menuPanel.classList.toggle('open');
+            menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          });
 
-              inputField.focus();
-              selectDiv.classList.remove('visible');
-            });
+          menuTemplates.addEventListener('click', () => {
+            templatePanel.classList.add('open');
+            templatePanel.setAttribute('aria-hidden', 'false');
+            menuPanel.classList.remove('open');
+            menuToggle.setAttribute('aria-expanded', 'false');
+          });
+
+          templateClose.addEventListener('click', () => {
+            templatePanel.classList.remove('open');
+            templatePanel.setAttribute('aria-hidden', 'true');
           });
     </script>
 </body>
