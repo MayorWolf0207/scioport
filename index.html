@@ -32,14 +32,14 @@
             </button>
         </div>
         <div class="info">
-          <span id="user-data"></span>
+            <span id="user-data"></span>
         </div>
         <a href="data.html">data tests</a>
         <div class="select">
-          <span id="select-1"><p>@matematika</p></span>
-          <span id="select-2"><p>@čeština</p></span>
-          <span id="select-3"><p>@angličtina</p></span>
-          <span id="select-4"><p>@samorost</p></span>
+            <span id="select-1"><p>@matematika</p></span>
+            <span id="select-2"><p>@čeština</p></span>
+            <span id="select-3"><p>@angličtina</p></span>
+            <span id="select-4"><p>@samorost</p></span>
         </div>
     </main>
 
@@ -48,90 +48,91 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <script>
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyBYQPQwKYJLxcdjHHMv8w1KbLIIX-HKaQA",
-        authDomain: "scioport.firebaseapp.com",
-        projectId: "scioport",
-        storageBucket: "scioport.appspot.com",
-        messagingSenderId: "612919891675",
-        appId: "1:612919891675:web:3adef562f38e26c80e5efe",
-        measurementId: "G-7BW8NQ1VKC"
-      };
-      firebase.initializeApp(firebaseConfig);
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYQPQwKYJLxcdjHHMv8w1KbLIIX-HKaQA",
+            authDomain: "scioport.firebaseapp.com",
+            projectId: "scioport",
+            storageBucket: "scioport.appspot.com",
+            messagingSenderId: "612919891675",
+            appId: "1:612919891675:web:3adef562f38e26c80e5efe",
+            measurementId: "G-7BW8NQ1VKC"
+        };
+        firebase.initializeApp(firebaseConfig);
 
-      const db = firebase.firestore();
+        const db = firebase.firestore();
+        const loginUrl = new URL('login/index.html', window.location.href).toString();
 
 
-      async function renderData() {
-        const user = firebase.auth().currentUser;
-        const userDataSpan = document.getElementById('user-data');
-        userDataSpan.innerHTML = '';
+        async function renderData() {
+            const user = firebase.auth().currentUser;
+            const userDataSpan = document.getElementById('user-data');
+            userDataSpan.innerHTML = '';
 
-        if (user) {
-          const dataRef = db.collection('users').doc(user.uid).collection('data');
-          const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(4).get();
+            if (user) {
+                const dataRef = db.collection('users').doc(user.uid).collection('data');
+                const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(4).get();
 
-          if (snapshot.empty) {
-            userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>';
-          } else {
-            snapshot.forEach(doc => {
-              userDataSpan.innerHTML += `<span>${doc.data().value}</span><br>`;
-            });
+                if (snapshot.empty) {
+                    userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>';
+                } else {
+                    snapshot.forEach(doc => {
+                        userDataSpan.innerHTML += <span>${doc.data().value}</span><br>;
+                });
+              }
+            } else {
+              userDataSpan.innerHTML = '<span style="color:gray;">User not authenticated</span>';
+            }
           }
-        } else {
-          userDataSpan.innerHTML = '<span style="color:gray;">User not authenticated</span>';
-        }
-      }
-
-      
-      firebase.auth().onAuthStateChanged(async function(user) {
-        if (!user) {
-
-          window.location.replace("/login/index.html");
-          return;
-        } else {
-          await renderData();
-        }
-      });
-      
 
 
-      async function sendMessage() {
-        const user = firebase.auth().currentUser;
-        const inputValue = document.getElementById('input').value;
+          firebase.auth().onAuthStateChanged(async function(user) {
+            if (!user) {
 
-        if (user && inputValue) {
-          try {
-            await db.collection('users').doc(user.uid).collection('data').add({
-              value: inputValue,
-              timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            await renderData();
-            document.getElementById('input').value = '';
-          } catch (error) {
-            console.error('Error saving data:', error);
+              window.location.replace(loginUrl);
+              return;
+            } else {
+              await renderData();
+            }
+          });
+
+
+
+          async function sendMessage() {
+            const user = firebase.auth().currentUser;
+            const inputValue = document.getElementById('input').value;
+
+            if (user && inputValue) {
+              try {
+                await db.collection('users').doc(user.uid).collection('data').add({
+                  value: inputValue,
+                  timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await renderData();
+                document.getElementById('input').value = '';
+              } catch (error) {
+                console.error('Error saving data:', error);
+              }
+            }
           }
-        }
-      }
 
 
-      document.getElementById('send').onclick = sendMessage;
+          document.getElementById('send').onclick = sendMessage;
 
 
-      document.getElementById('input').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-          sendMessage();
-        }
-      });
+          document.getElementById('input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+              sendMessage();
+            }
+          });
 
-      document.getElementById('select').onclick = function() {
-        const selectDiv = document.querySelector('.select');
-        if (selectDiv.classList.contains('visible')) {
-            selectDiv.classList.remove('visible');
-        } else {
-            selectDiv.classList.add('visible');
-        }
-      };
+          document.getElementById('select').onclick = function() {
+            const selectDiv = document.querySelector('.select');
+            if (selectDiv.classList.contains('visible')) {
+                selectDiv.classList.remove('visible');
+            } else {
+                selectDiv.classList.add('visible');
+            }
+          };
     </script>
 </body>
 </html>
