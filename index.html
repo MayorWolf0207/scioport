@@ -69,7 +69,7 @@
 
         if (user) {
           const dataRef = db.collection('users').doc(user.uid).collection('data'); // Reference to user's data collection
-          const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(3).get(); // Fetch the latest 3 messages
+          const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(4).get(); // Fetch the latest 3 messages
 
           if (snapshot.empty) {
             userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>'; // Display "No data" message if empty
@@ -83,16 +83,18 @@
         }
       }
 
-      // Temporarily comment out the login requirement
-      /*
+
+      
       firebase.auth().onAuthStateChanged(async function(user) {
         if (!user) {
-          window.location.href = "/login"; // Redirect to login page
+          // Redirect to login page and stop further execution
+          window.location.replace("/login/index.html");
+          return;
         } else {
           await renderData(); // Render data when user is authenticated
         }
       });
-      */
+      
 
       // Send button functionality
       async function sendMessage() {
