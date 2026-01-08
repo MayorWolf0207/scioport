@@ -76,9 +76,9 @@
                     userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>';
                 } else {
                     snapshot.forEach(doc => {
-                        userDataSpan.innerHTML += <span>${doc.data().value}</span><br>;
-                });
-              }
+                        userDataSpan.innerHTML += `<span>${doc.data().value}</span><br>`;
+                    });
+                }
             } else {
               userDataSpan.innerHTML = '<span style="color:gray;">User not authenticated</span>';
             }
@@ -99,7 +99,7 @@
 
           async function sendMessage() {
             const user = firebase.auth().currentUser;
-            const inputValue = document.getElementById('input').value;
+            const inputValue = document.getElementById('input').value.trim();
 
             if (user && inputValue) {
               try {
@@ -125,14 +125,34 @@
             }
           });
 
+          const selectDiv = document.querySelector('.select');
+          const inputField = document.getElementById('input');
+          const subjectPattern = /^@\S+\s*/;
+
           document.getElementById('select').onclick = function() {
-            const selectDiv = document.querySelector('.select');
             if (selectDiv.classList.contains('visible')) {
                 selectDiv.classList.remove('visible');
             } else {
                 selectDiv.classList.add('visible');
             }
           };
+
+          document.querySelectorAll('.select span').forEach(subject => {
+            subject.addEventListener('click', () => {
+              const subjectText = subject.textContent.trim();
+              const currentValue = inputField.value;
+
+              if (subjectPattern.test(currentValue)) {
+                inputField.value = currentValue.replace(subjectPattern, `${subjectText} `);
+              } else {
+                const trimmed = currentValue.trimStart();
+                inputField.value = trimmed ? `${subjectText} ${trimmed}` : `${subjectText} `;
+              }
+
+              inputField.focus();
+              selectDiv.classList.remove('visible');
+            });
+          });
     </script>
 </body>
 </html>
