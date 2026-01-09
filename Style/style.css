@@ -319,3 +319,37 @@ transform: scale(1.1);
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+.subject-list{
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.subject-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: "Scio";
+    font-size: 1.1rem;
+    border: 3px solid #000000;
+    border-radius: 12px;
+    padding: 8px 12px;
+    background-color: #F6F6F6;
+}
+
+.subject-remove{
+    font-family: "Scio";
+    font-size: 0.95rem;
+    border: 3px solid #000000;
+    border-radius: 10px;
+    padding: 6px 10px;
+    background-color: #ffec99;
+    cursor: pointer;
+}
+
+.subject-remove:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
+}

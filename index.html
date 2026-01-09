@@ -18,6 +18,7 @@
                 <img src="Media/icons/menu.svg" alt="">
             </button>
             <div class="menu-panel" id="menu-panel">
+                <button class="menu-item" id="menu-subjects" type="button">Předměty</button>
                 <button class="menu-item" id="menu-templates" type="button">Šablony</button>
                 <a class="menu-item" href="data.html">Data tests</a>
             </div>
@@ -87,6 +88,21 @@
                 <button class="primary" type="button" disabled>Uložit šablonu (brzy)</button>
             </div>
         </section>
+        <section class="template-panel" id="subject-panel" aria-hidden="true">
+            <div class="template-header">
+                <h2>Předměty</h2>
+                <button class="template-close" id="subject-close" type="button">Zavřít</button>
+            </div>
+            <p class="template-hint">Přidej nebo odeber předměty pro školu.</p>
+            <div class="template-field">
+                <label for="subject-new">Nový předmět</label>
+                <input type="text" id="subject-new" placeholder="Matematika">
+            </div>
+            <div class="template-actions">
+                <button class="primary" id="subject-add" type="button">Přidat předmět</button>
+            </div>
+            <div class="subject-list" id="subject-list"></div>
+        </section>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -109,6 +125,8 @@
 
         const db = firebase.firestore();
         const loginUrl = new URL('login/index.html', window.location.href).toString();
+        const subjectsRef = db.collection('subjects');
+        let subjectsUnsubscribe = null;
         const GOOGLE_CLIENT_ID = '257273111535-dob05jm6ope9mnh6fmc70rpng7n6uqls.apps.googleusercontent.com';
         const GOOGLE_API_KEY = 'AIzaSyAuqQ4Zxy_JdUDS8lycIl_4SIbowcsw0Cg';
         const GOOGLE_APP_ID = 'zaznamy-zrhomazdeni';
@@ -269,6 +287,204 @@
             });
         }
 
+        function getDefaultSubjects(selectEl) {
+            if (!selectEl) {
+                return [];
+            }
+
+            return Array.from(selectEl.options)
+                .map(option => ({
+                    name: option.textContent.trim(),
+                    value: option.value || option.textContent.trim()
+                }))
+                .filter(subject => subject.name);
+        }
+
+        function normalizeSubjectInput(value) {
+            const trimmed = (value || '').trim();
+            if (!trimmed) {
+                return null;
+            }
+
+            const cleaned = trimmed.replace(/^@+/, '');
+            if (!cleaned) {
+                return null;
+            }
+
+            const label = `@${cleaned}`;
+            return {
+                name: label,
+                value: label,
+                nameLower: label.toLowerCase()
+            };
+        }
+
+        function getSubjectLabel(subject) {
+            return subject.name || subject.label || subject.value || '';
+        }
+
+        function getSubjectValue(subject) {
+            return subject.value || subject.name || subject.label || '';
+        }
+
+        function renderSubjectOptions(subjects) {
+            const items = subjects && subjects.length ? subjects : defaultSubjectOptions;
+            [subjectSelect, templateSubjectSelect].forEach(select => {
+                if (!select) {
+                    return;
+                }
+
+                select.innerHTML = '';
+                items.forEach(subject => {
+                    const label = getSubjectLabel(subject);
+                    const value = getSubjectValue(subject);
+                    if (!label) {
+                        return;
+                    }
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function renderSubjectList(subjects) {
+            if (!subjectList) {
+                return;
+            }
+
+            const items = subjects && subjects.length ? subjects : defaultSubjectOptions;
+            subjectList.innerHTML = '';
+
+            items.forEach(subject => {
+                const label = getSubjectLabel(subject);
+                if (!label) {
+                    return;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'subject-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = label;
+
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'subject-remove';
+                removeButton.textContent = 'Odebrat';
+                if (subject.id) {
+                    removeButton.dataset.action = 'remove-subject';
+                    removeButton.dataset.id = subject.id;
+                } else {
+                    removeButton.disabled = true;
+                }
+
+                item.appendChild(nameSpan);
+                item.appendChild(removeButton);
+                subjectList.appendChild(item);
+            });
+        }
+
+        async function seedSubjects(defaultSubjects) {
+            if (!defaultSubjects.length) {
+                return;
+            }
+
+            const batch = db.batch();
+            defaultSubjects.forEach(subject => {
+                const label = getSubjectLabel(subject);
+                if (!label) {
+                    return;
+                }
+                const docRef = subjectsRef.doc();
+                batch.set(docRef, {
+                    name: label,
+                    value: subject.value || label,
+                    nameLower: label.toLowerCase(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+            await batch.commit();
+        }
+
+        async function initSubjects() {
+            if (subjectsUnsubscribe) {
+                subjectsUnsubscribe();
+                subjectsUnsubscribe = null;
+            }
+
+            try {
+                const snapshot = await subjectsRef.limit(1).get();
+                if (snapshot.empty && defaultSubjectOptions.length) {
+                    try {
+                        await seedSubjects(defaultSubjectOptions);
+                    } catch (error) {
+                        console.warn('Unable to seed subjects:', error);
+                    }
+                }
+            } catch (error) {
+                console.warn('Subject preload failed:', error);
+            }
+
+            subjectsUnsubscribe = subjectsRef.orderBy('nameLower').onSnapshot(snapshot => {
+                const subjects = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data() || {};
+                    subjects.push({
+                        id: doc.id,
+                        name: data.name || data.value || '',
+                        value: data.value || data.name || '',
+                        nameLower: data.nameLower || ''
+                    });
+                });
+                renderSubjectOptions(subjects);
+                renderSubjectList(subjects);
+            }, error => {
+                console.error('Subject listener error:', error);
+                renderSubjectOptions(defaultSubjectOptions);
+                renderSubjectList(defaultSubjectOptions);
+            });
+        }
+
+        async function addSubject() {
+            if (!subjectInput) {
+                return;
+            }
+
+            const normalized = normalizeSubjectInput(subjectInput.value);
+            if (!normalized) {
+                return;
+            }
+
+            const existing = await subjectsRef.where('nameLower', '==', normalized.nameLower).limit(1).get();
+            if (!existing.empty) {
+                alert('Předmět už existuje.');
+                return;
+            }
+
+            await subjectsRef.add({
+                name: normalized.name,
+                value: normalized.value,
+                nameLower: normalized.nameLower,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            subjectInput.value = '';
+        }
+
+        async function removeSubject(subjectId) {
+            if (!subjectId) {
+                return;
+            }
+
+            const confirmDelete = confirm('Odebrat tento předmět?');
+            if (!confirmDelete) {
+                return;
+            }
+
+            await subjectsRef.doc(subjectId).delete();
+        }
+
 
         async function renderData() {
             const user = firebase.auth().currentUser;
@@ -299,6 +515,7 @@
               return;
             } else {
               await renderData();
+              await initSubjects();
             }
           });
 
@@ -306,10 +523,57 @@
 
           const inputField = document.getElementById('input');
           const subjectSelect = document.getElementById('subject-select');
+          const templateSubjectSelect = document.getElementById('template-subject');
+          const subjectInput = document.getElementById('subject-new');
+          const subjectAddButton = document.getElementById('subject-add');
+          const subjectList = document.getElementById('subject-list');
+          const defaultSubjectOptions = getDefaultSubjects(subjectSelect);
           const uploadButton = document.getElementById('upload');
+
+          renderSubjectOptions(defaultSubjectOptions);
+          renderSubjectList(defaultSubjectOptions);
 
           if (uploadButton) {
             uploadButton.addEventListener('click', handleDriveButton);
+          }
+
+          if (subjectAddButton) {
+            subjectAddButton.addEventListener('click', addSubject);
+          }
+
+          if (subjectInput) {
+            subjectInput.addEventListener('focus', function() {
+              if (!subjectInput.value) {
+                subjectInput.value = '@';
+                subjectInput.setSelectionRange(subjectInput.value.length, subjectInput.value.length);
+              }
+            });
+
+            subjectInput.addEventListener('input', function() {
+              const value = subjectInput.value;
+              if (!value) {
+                return;
+              }
+              if (!value.startsWith('@')) {
+                subjectInput.value = `@${value.replace(/^@+/, '')}`;
+                subjectInput.setSelectionRange(subjectInput.value.length, subjectInput.value.length);
+              }
+            });
+
+            subjectInput.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter') {
+                addSubject();
+              }
+            });
+          }
+
+          if (subjectList) {
+            subjectList.addEventListener('click', function(event) {
+              const target = event.target;
+              if (target && target.dataset && target.dataset.action === 'remove-subject') {
+                removeSubject(target.dataset.id);
+              }
+            });
           }
 
           async function sendMessage() {
@@ -354,8 +618,11 @@
           const menuToggle = document.getElementById('menu-toggle');
           const menuPanel = document.getElementById('menu-panel');
           const templatePanel = document.getElementById('template-panel');
+          const subjectPanel = document.getElementById('subject-panel');
           const menuTemplates = document.getElementById('menu-templates');
+          const menuSubjects = document.getElementById('menu-subjects');
           const templateClose = document.getElementById('template-close');
+          const subjectClose = document.getElementById('subject-close');
 
           menuToggle.addEventListener('click', () => {
             const isOpen = menuPanel.classList.toggle('open');
@@ -365,6 +632,10 @@
           menuTemplates.addEventListener('click', () => {
             templatePanel.classList.add('open');
             templatePanel.setAttribute('aria-hidden', 'false');
+            if (subjectPanel) {
+              subjectPanel.classList.remove('open');
+              subjectPanel.setAttribute('aria-hidden', 'true');
+            }
             menuPanel.classList.remove('open');
             menuToggle.setAttribute('aria-expanded', 'false');
           });
@@ -373,6 +644,30 @@
             templatePanel.classList.remove('open');
             templatePanel.setAttribute('aria-hidden', 'true');
           });
+
+          if (menuSubjects) {
+            menuSubjects.addEventListener('click', () => {
+              if (!subjectPanel) {
+                return;
+              }
+              subjectPanel.classList.add('open');
+              subjectPanel.setAttribute('aria-hidden', 'false');
+              templatePanel.classList.remove('open');
+              templatePanel.setAttribute('aria-hidden', 'true');
+              menuPanel.classList.remove('open');
+              menuToggle.setAttribute('aria-expanded', 'false');
+            });
+          }
+
+          if (subjectClose) {
+            subjectClose.addEventListener('click', () => {
+              if (!subjectPanel) {
+                return;
+              }
+              subjectPanel.classList.remove('open');
+              subjectPanel.setAttribute('aria-hidden', 'true');
+            });
+          }
 
           initGooglePicker();
           window.addEventListener('load', initGoogleAuth);
