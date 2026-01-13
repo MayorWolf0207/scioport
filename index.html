@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projekt P.</title>
-    <link rel="stylesheet" href="Style/style.css?v=2026-08">
+    <link rel="stylesheet" href="Style/style.css?v=2026-10">
 </head>
 <body>
     <main>
@@ -21,8 +21,10 @@
                 <img src="Media/icons/theme.svg" alt="">
             </button>
             <div class="menu-panel" id="menu-panel">
+                <button class="menu-item" id="menu-fill-template" type="button">Vyplnit sablonu</button>
                 <button class="menu-item" id="menu-subjects" type="button">Předměty</button>
                 <button class="menu-item" id="menu-templates" type="button">Šablony</button>
+                <button class="menu-item" id="menu-sent-templates" type="button">Odeslane sablony</button>
                 <a class="menu-item" id="menu-data-tests" href="data.html">Data tests</a>
             </div>
         </nav>
@@ -74,6 +76,17 @@
                 </select>
             </div>
             <div class="template-field">
+                <label for="template-recipient-type">Komu odeslat</label>
+                <select id="template-recipient-type">
+                    <option value="student">Zak</option>
+                    <option value="class">Trida</option>
+                </select>
+            </div>
+            <div class="template-field">
+                <label for="template-recipient-value" id="template-recipient-label">Email zaka</label>
+                <input type="text" id="template-recipient-value" placeholder="zak@scioskola.cz">
+            </div>
+            <div class="template-field">
                 <label for="template-instructions">Instrukce pro studenta</label>
                 <textarea id="template-instructions" rows="4" placeholder="Nahraj sem screenshot z knih, které jsi četl."></textarea>
             </div>
@@ -88,8 +101,33 @@
             </div>
             <div class="template-actions">
                 <button class="secondary" type="button">Náhled</button>
-                <button class="primary" type="button" disabled>Uložit šablonu (brzy)</button>
+                <button class="primary" id="template-save" type="button" disabled>Ulozit sablonu</button>
             </div>
+        </section>
+        <section class="template-panel" id="template-fill-panel" aria-hidden="true">
+            <div class="template-header">
+                <h2>Vyplnit sablonu</h2>
+                <button class="template-close" id="template-fill-close" type="button">Zavrit</button>
+            </div>
+            <p class="template-hint">Sablony prirazene tobe nebo tve tride.</p>
+            <div class="template-field">
+                <label for="student-class">Moje trida</label>
+                <div class="template-inline">
+                    <input type="text" id="student-class" placeholder="8.A">
+                    <button class="secondary" id="student-class-save" type="button">Ulozit tridu</button>
+                </div>
+            </div>
+            <div class="template-list" id="template-fill-list"></div>
+            <p class="template-empty" id="template-fill-empty">Zatim zadne sablony.</p>
+        </section>
+        <section class="template-panel" id="sent-templates-panel" aria-hidden="true">
+            <div class="template-header">
+                <h2>Odeslane sablony</h2>
+                <button class="template-close" id="sent-templates-close" type="button">Zavrit</button>
+            </div>
+            <p class="template-hint">Prehled sablon, ktere jsi odeslal.</p>
+            <div class="template-list" id="sent-templates-list"></div>
+            <p class="template-empty" id="sent-templates-empty">Zatim zadne odeslane sablony.</p>
         </section>
         <section class="template-panel" id="subject-panel" aria-hidden="true">
             <div class="template-header">
@@ -129,6 +167,7 @@
         const db = firebase.firestore();
         const loginUrl = new URL('login/index.html', window.location.href).toString();
         const subjectsRef = db.collection('subjects');
+        const templatesRef = db.collection('templates');
         let subjectsUnsubscribe = null;
         const GOOGLE_CLIENT_ID = '257273111535-dob05jm6ope9mnh6fmc70rpng7n6uqls.apps.googleusercontent.com';
         const GOOGLE_API_KEY = 'AIzaSyAuqQ4Zxy_JdUDS8lycIl_4SIbowcsw0Cg';
@@ -141,6 +180,8 @@
         let pickerReady = false;
         let gisReady = false;
         let isAdmin = false;
+        let currentUser = null;
+        let userProfile = { className: '' };
 
         function isAdminUser(user) {
             const email = user && user.email ? user.email.toLowerCase() : '';
@@ -153,6 +194,8 @@
             const subjectPanel = document.getElementById('subject-panel');
             const menuTemplates = document.getElementById('menu-templates');
             const templatePanel = document.getElementById('template-panel');
+            const menuSentTemplates = document.getElementById('menu-sent-templates');
+            const sentTemplatesPanel = document.getElementById('sent-templates-panel');
             const menuDataTests = document.getElementById('menu-data-tests');
             const dataTestsLink = document.getElementById('data-tests-link');
             const subjectAddButton = document.getElementById('subject-add');
@@ -180,6 +223,18 @@
                     templatePanel.setAttribute('aria-hidden', 'true');
                 }
                 templatePanel.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (menuSentTemplates) {
+                menuSentTemplates.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (sentTemplatesPanel) {
+                if (!canManageSubjects) {
+                    sentTemplatesPanel.classList.remove('open');
+                    sentTemplatesPanel.setAttribute('aria-hidden', 'true');
+                }
+                sentTemplatesPanel.style.display = canManageSubjects ? '' : 'none';
             }
 
             if (menuDataTests) {
@@ -590,8 +645,11 @@
               window.location.replace(loginUrl);
               return;
             } else {
+              currentUser = user;
+              await loadUserProfile(user);
               isAdmin = isAdminUser(user);
               applyAdminUi();
+              updateTemplateSaveState();
               await renderData();
               await initSubjects();
             }
@@ -602,6 +660,25 @@
           const inputField = document.getElementById('input');
           const subjectSelect = document.getElementById('subject-select');
           const templateSubjectSelect = document.getElementById('template-subject');
+          const templateRecipientType = document.getElementById('template-recipient-type');
+          const templateRecipientValue = document.getElementById('template-recipient-value');
+          const templateRecipientLabel = document.getElementById('template-recipient-label');
+          const templateTitleInput = document.getElementById('template-title');
+          const templateInstructionsInput = document.getElementById('template-instructions');
+          const templateProofSelect = document.getElementById('template-proof');
+          const templateSaveButton = document.getElementById('template-save');
+          const templateFillPanel = document.getElementById('template-fill-panel');
+          const templateFillList = document.getElementById('template-fill-list');
+          const templateFillEmpty = document.getElementById('template-fill-empty');
+          const menuFillTemplate = document.getElementById('menu-fill-template');
+          const templateFillClose = document.getElementById('template-fill-close');
+          const menuSentTemplates = document.getElementById('menu-sent-templates');
+          const sentTemplatesPanel = document.getElementById('sent-templates-panel');
+          const sentTemplatesList = document.getElementById('sent-templates-list');
+          const sentTemplatesEmpty = document.getElementById('sent-templates-empty');
+          const sentTemplatesClose = document.getElementById('sent-templates-close');
+          const studentClassInput = document.getElementById('student-class');
+          const studentClassSave = document.getElementById('student-class-save');
           const subjectInput = document.getElementById('subject-new');
           const subjectAddButton = document.getElementById('subject-add');
           const subjectList = document.getElementById('subject-list');
@@ -635,18 +712,556 @@
           const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           setTheme(savedTheme ? savedTheme === 'dark' : prefersDark);
 
+          function updateTemplateRecipient() {
+            if (!templateRecipientType || !templateRecipientValue || !templateRecipientLabel) {
+              return;
+            }
+
+            if (templateRecipientType.value === 'class') {
+              templateRecipientLabel.textContent = 'Nazev tridy';
+              templateRecipientValue.placeholder = '8.A';
+              templateRecipientValue.type = 'text';
+            } else {
+              templateRecipientLabel.textContent = 'Email zaka';
+              templateRecipientValue.placeholder = 'zak@scioskola.cz';
+              templateRecipientValue.type = 'email';
+            }
+            updateTemplateSaveState();
+          }
+
+          function getTemplateProofPlaceholder(proofType) {
+            const normalized = (proofType || '').toLowerCase();
+            if (normalized === 'text') {
+              return 'Napis odpoved';
+            }
+            if (normalized === 'odkaz') {
+              return 'Vloz odkaz';
+            }
+            if (normalized === 'soubor') {
+              return 'Vloz odkaz na soubor';
+            }
+            if (normalized === 'fotka') {
+              return 'Vloz odkaz na fotku';
+            }
+            return 'Vloz odpoved';
+          }
+
+          function validateTemplateForm() {
+            if (!templateTitleInput || !templateInstructionsInput || !templateSubjectSelect || !templateProofSelect || !templateRecipientType || !templateRecipientValue) {
+              return { valid: false, message: 'Formular neni pripraveny.' };
+            }
+
+            const title = templateTitleInput.value.trim();
+            const subject = templateSubjectSelect.value || '';
+            const instructions = templateInstructionsInput.value.trim();
+            const proofType = templateProofSelect.value || '';
+            const recipientType = templateRecipientType.value || 'student';
+            const recipientValue = templateRecipientValue.value.trim();
+
+            if (!title) {
+              return { valid: false, message: 'Zadej nazev sablony.' };
+            }
+            if (!instructions) {
+              return { valid: false, message: 'Zadej instrukce.' };
+            }
+            if (!recipientValue) {
+              return { valid: false, message: 'Zadej email nebo tridu.' };
+            }
+            if (recipientType === 'student' && !recipientValue.includes('@')) {
+              return { valid: false, message: 'Zadej email zaka.' };
+            }
+
+            return {
+              valid: true,
+              data: {
+                title,
+                subject,
+                instructions,
+                proofType,
+                recipientType,
+                recipientValue
+              }
+            };
+          }
+
+          function updateTemplateSaveState() {
+            if (!templateSaveButton) {
+              return;
+            }
+            const isValid = validateTemplateForm().valid;
+            templateSaveButton.disabled = !isAdmin || !isValid;
+          }
+
+          async function saveTemplate() {
+            if (!isAdmin) {
+              alert('Tuto akci muze delat jen pruvodce.');
+              return;
+            }
+
+            const result = validateTemplateForm();
+            if (!result.valid) {
+              alert(result.message);
+              return;
+            }
+
+            const user = currentUser || firebase.auth().currentUser;
+            if (!user) {
+              return;
+            }
+
+            const payload = {
+              title: result.data.title,
+              subject: result.data.subject,
+              instructions: result.data.instructions,
+              proofType: result.data.proofType,
+              recipientType: result.data.recipientType,
+              recipientValue: result.data.recipientValue,
+              recipientValueLower: result.data.recipientValue.toLowerCase(),
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              createdBy: user.uid,
+              createdByEmail: user.email || ''
+            };
+
+            await templatesRef.add(payload);
+            templateTitleInput.value = '';
+            templateInstructionsInput.value = '';
+            templateRecipientValue.value = '';
+            updateTemplateSaveState();
+            if (sentTemplatesPanel && sentTemplatesPanel.classList.contains('open')) {
+              await loadSentTemplates();
+            }
+            alert('Sablona ulozena.');
+          }
+
+          async function loadUserProfile(user) {
+            if (!user) {
+              return;
+            }
+
+            const userRef = db.collection('users').doc(user.uid);
+            await userRef.set({ email: user.email || '' }, { merge: true });
+            const snapshot = await userRef.get();
+            const data = snapshot.data() || {};
+            userProfile = {
+              className: data.className || ''
+            };
+
+            if (studentClassInput) {
+              studentClassInput.value = userProfile.className || '';
+            }
+          }
+
+          async function saveStudentClass() {
+            if (!currentUser || !studentClassInput) {
+              return;
+            }
+
+            const className = studentClassInput.value.trim();
+            if (!className) {
+              alert('Zadej tridu.');
+              return;
+            }
+
+            await db.collection('users').doc(currentUser.uid).set({
+              className,
+              classNameLower: className.toLowerCase(),
+              email: currentUser.email || ''
+            }, { merge: true });
+
+            userProfile.className = className;
+            await loadAssignedTemplates();
+          }
+
+          async function loadTemplateResponses(user) {
+            const map = new Map();
+            if (!user) {
+              return map;
+            }
+
+            const snapshot = await db.collection('users').doc(user.uid).collection('templateResponses').get();
+            snapshot.forEach(doc => {
+              map.set(doc.id, doc.data());
+            });
+            return map;
+          }
+
+          async function loadAssignedTemplates() {
+            if (!currentUser || !templateFillList) {
+              return;
+            }
+
+            const queries = [];
+            const email = currentUser.email ? currentUser.email.toLowerCase() : '';
+            const className = userProfile.className ? userProfile.className.toLowerCase() : '';
+
+            if (email) {
+              queries.push(
+                templatesRef
+                  .where('recipientType', '==', 'student')
+                  .where('recipientValueLower', '==', email)
+              );
+            }
+
+            if (className) {
+              queries.push(
+                templatesRef
+                  .where('recipientType', '==', 'class')
+                  .where('recipientValueLower', '==', className)
+              );
+            }
+
+            if (!queries.length) {
+              renderTemplateFillList([], new Map());
+              return;
+            }
+
+            const snapshots = await Promise.all(queries.map(query => query.get()));
+            const templateMap = new Map();
+            snapshots.forEach(snapshot => {
+              snapshot.forEach(doc => {
+                templateMap.set(doc.id, { id: doc.id, ...doc.data() });
+              });
+            });
+
+            const templates = Array.from(templateMap.values());
+            templates.sort((a, b) => {
+              const aTime = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+              const bTime = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+              return bTime - aTime;
+            });
+
+            const responses = await loadTemplateResponses(currentUser);
+            renderTemplateFillList(templates, responses);
+          }
+
+          function getTemplateRecipientSummary(template) {
+            const recipientType = (template.recipientType || '').toLowerCase();
+            const recipientValue = template.recipientValue || '';
+            if (recipientType === 'class') {
+              return recipientValue ? `Trida ${recipientValue}` : 'Trida';
+            }
+            if (recipientType === 'student') {
+              return recipientValue ? `Zak ${recipientValue}` : 'Zak';
+            }
+            return recipientValue || 'Neurceno';
+          }
+
+          function formatTemplateDate(timestamp) {
+            if (!timestamp || typeof timestamp.toDate !== 'function') {
+              return '';
+            }
+            const date = timestamp.toDate();
+            if (Number.isNaN(date.getTime())) {
+              return '';
+            }
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+          }
+
+          async function loadSentTemplates() {
+            if (!currentUser || !sentTemplatesList || !isAdmin) {
+              return;
+            }
+
+            const snapshot = await templatesRef.where('createdBy', '==', currentUser.uid).get();
+            const templates = [];
+            snapshot.forEach(doc => {
+              templates.push({ id: doc.id, ...doc.data() });
+            });
+
+            templates.sort((a, b) => {
+              const aTime = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+              const bTime = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+              return bTime - aTime;
+            });
+
+            renderSentTemplatesList(templates);
+          }
+
+          function renderSentTemplatesList(templates) {
+            if (!sentTemplatesList) {
+              return;
+            }
+
+            sentTemplatesList.innerHTML = '';
+            const hasTemplates = templates && templates.length > 0;
+            if (sentTemplatesEmpty) {
+              sentTemplatesEmpty.style.display = hasTemplates ? 'none' : '';
+            }
+
+            if (!hasTemplates) {
+              return;
+            }
+
+            templates.forEach(template => {
+              const card = document.createElement('div');
+              card.className = 'template-card';
+
+              const header = document.createElement('div');
+              header.className = 'template-card-header';
+
+              const titleWrap = document.createElement('div');
+              const title = document.createElement('h3');
+              title.className = 'template-card-title';
+              title.textContent = template.title || 'Sablona';
+              titleWrap.appendChild(title);
+
+              const meta = document.createElement('div');
+              meta.className = 'template-card-meta';
+              const metaParts = [];
+              if (template.subject) {
+                metaParts.push(template.subject);
+              }
+              if (template.proofType) {
+                metaParts.push(template.proofType);
+              }
+              meta.textContent = metaParts.join(' - ');
+              titleWrap.appendChild(meta);
+
+              const recipientSummary = getTemplateRecipientSummary(template);
+              if (recipientSummary) {
+                const recipientMeta = document.createElement('div');
+                recipientMeta.className = 'template-card-meta';
+                recipientMeta.textContent = `Komu: ${recipientSummary}`;
+                titleWrap.appendChild(recipientMeta);
+              }
+
+              const actions = document.createElement('div');
+              actions.className = 'template-card-actions';
+
+              const status = document.createElement('span');
+              status.className = 'template-status done';
+              status.textContent = 'Odeslano';
+              actions.appendChild(status);
+
+              const toggleButton = document.createElement('button');
+              toggleButton.type = 'button';
+              toggleButton.className = 'template-open';
+              toggleButton.textContent = 'Detail';
+              actions.appendChild(toggleButton);
+
+              header.appendChild(titleWrap);
+              header.appendChild(actions);
+              card.appendChild(header);
+
+              const details = document.createElement('div');
+              details.className = 'template-details';
+
+              if (template.instructions) {
+                const instructions = document.createElement('p');
+                instructions.className = 'template-instructions-text';
+                instructions.textContent = template.instructions;
+                details.appendChild(instructions);
+              }
+
+              const sentDate = formatTemplateDate(template.createdAt);
+              if (sentDate) {
+                const sentInfo = document.createElement('p');
+                sentInfo.className = 'template-instructions-text';
+                sentInfo.textContent = `Odeslano: ${sentDate}`;
+                details.appendChild(sentInfo);
+              }
+
+              card.appendChild(details);
+
+              toggleButton.addEventListener('click', () => {
+                const isOpen = card.classList.toggle('open');
+                toggleButton.textContent = isOpen ? 'Skryt' : 'Detail';
+              });
+
+              sentTemplatesList.appendChild(card);
+            });
+          }
+
+          function createTemplateResponseField(template, value) {
+            const proofType = (template.proofType || '').toLowerCase();
+            const isLongText = proofType === 'text';
+            const field = document.createElement(isLongText ? 'textarea' : 'input');
+            field.className = 'template-response-input';
+            field.placeholder = getTemplateProofPlaceholder(template.proofType);
+            if (!isLongText) {
+              field.type = 'text';
+            } else {
+              field.rows = 3;
+            }
+            field.value = value || '';
+            return field;
+          }
+
+          async function saveTemplateResponse(template, responseValue) {
+            if (!currentUser) {
+              return;
+            }
+
+            await db.collection('users').doc(currentUser.uid).collection('templateResponses').doc(template.id).set({
+              templateId: template.id,
+              templateTitle: template.title || '',
+              subject: template.subject || '',
+              proofType: template.proofType || '',
+              response: responseValue,
+              recipientType: template.recipientType || '',
+              recipientValue: template.recipientValue || '',
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+          }
+
+          function renderTemplateFillList(templates, responses) {
+            if (!templateFillList) {
+              return;
+            }
+
+            templateFillList.innerHTML = '';
+            const hasTemplates = templates && templates.length > 0;
+            if (templateFillEmpty) {
+              templateFillEmpty.style.display = hasTemplates ? 'none' : '';
+            }
+
+            if (!hasTemplates) {
+              return;
+            }
+
+            templates.forEach(template => {
+              const card = document.createElement('div');
+              card.className = 'template-card';
+
+              const header = document.createElement('div');
+              header.className = 'template-card-header';
+
+              const titleWrap = document.createElement('div');
+              const title = document.createElement('h3');
+              title.className = 'template-card-title';
+              title.textContent = template.title || 'Sablona';
+              titleWrap.appendChild(title);
+
+              const meta = document.createElement('div');
+              meta.className = 'template-card-meta';
+              const metaParts = [];
+              if (template.subject) {
+                metaParts.push(template.subject);
+              }
+              if (template.proofType) {
+                metaParts.push(template.proofType);
+              }
+              meta.textContent = metaParts.join(' • ');
+              titleWrap.appendChild(meta);
+
+              const actions = document.createElement('div');
+              actions.className = 'template-card-actions';
+
+              const responseData = responses ? responses.get(template.id) : null;
+              const hasResponse = Boolean(responseData && responseData.response);
+
+              const status = document.createElement('span');
+              status.className = 'template-status';
+              if (hasResponse) {
+                status.classList.add('done');
+                status.textContent = 'Odeslano';
+              } else {
+                status.textContent = 'K vyplneni';
+              }
+
+              const toggleButton = document.createElement('button');
+              toggleButton.type = 'button';
+              toggleButton.className = 'template-open';
+              toggleButton.textContent = hasResponse ? 'Zobrazit' : 'Vyplnit';
+
+              actions.appendChild(status);
+              actions.appendChild(toggleButton);
+
+              header.appendChild(titleWrap);
+              header.appendChild(actions);
+              card.appendChild(header);
+
+              const details = document.createElement('div');
+              details.className = 'template-details';
+
+              if (template.instructions) {
+                const instructions = document.createElement('p');
+                instructions.className = 'template-instructions-text';
+                instructions.textContent = template.instructions;
+                details.appendChild(instructions);
+              }
+
+              const responseLabel = document.createElement('label');
+              responseLabel.className = 'template-response-label';
+              responseLabel.textContent = 'Odpoved';
+              details.appendChild(responseLabel);
+
+              const responseField = createTemplateResponseField(template, responseData ? responseData.response : '');
+              details.appendChild(responseField);
+
+              const submitButton = document.createElement('button');
+              submitButton.type = 'button';
+              submitButton.className = 'template-submit';
+              submitButton.textContent = hasResponse ? 'Ulozit zmeny' : 'Odeslat';
+
+              submitButton.addEventListener('click', async () => {
+                const value = responseField.value.trim();
+                if (!value) {
+                  alert('Dopln odpoved.');
+                  return;
+                }
+                await saveTemplateResponse(template, value);
+                await loadAssignedTemplates();
+              });
+
+              details.appendChild(submitButton);
+              card.appendChild(details);
+
+              toggleButton.addEventListener('click', () => {
+                const isOpen = card.classList.toggle('open');
+                toggleButton.textContent = isOpen ? 'Skryt' : (hasResponse ? 'Zobrazit' : 'Vyplnit');
+              });
+
+              templateFillList.appendChild(card);
+            });
+          }
+
           renderSubjectOptions(defaultSubjectOptions);
           renderSubjectList(defaultSubjectOptions);
           applyAdminUi();
+          updateTemplateRecipient();
+          updateTemplateSaveState();
 
           if (uploadButton) {
             uploadButton.addEventListener('click', handleDriveButton);
+          }
+
+          if (templateRecipientType) {
+            templateRecipientType.addEventListener('change', updateTemplateRecipient);
+          }
+
+          const templateInputs = [
+            templateTitleInput,
+            templateSubjectSelect,
+            templateRecipientType,
+            templateRecipientValue,
+            templateInstructionsInput,
+            templateProofSelect
+          ];
+
+          templateInputs.forEach(input => {
+            if (!input) {
+              return;
+            }
+            input.addEventListener('input', updateTemplateSaveState);
+            input.addEventListener('change', updateTemplateSaveState);
+          });
+
+          if (templateSaveButton) {
+            templateSaveButton.addEventListener('click', saveTemplate);
           }
 
           if (themeToggle) {
             themeToggle.addEventListener('click', () => {
               setTheme(!document.body.classList.contains('theme-dark'));
             });
+          }
+
+          if (studentClassSave) {
+            studentClassSave.addEventListener('click', saveStudentClass);
           }
 
           if (subjectAddButton) {
@@ -748,6 +1363,14 @@
               subjectPanel.classList.remove('open');
               subjectPanel.setAttribute('aria-hidden', 'true');
             }
+            if (templateFillPanel) {
+              templateFillPanel.classList.remove('open');
+              templateFillPanel.setAttribute('aria-hidden', 'true');
+            }
+            if (sentTemplatesPanel) {
+              sentTemplatesPanel.classList.remove('open');
+              sentTemplatesPanel.setAttribute('aria-hidden', 'true');
+            }
             menuPanel.classList.remove('open');
             menuToggle.setAttribute('aria-expanded', 'false');
           });
@@ -756,6 +1379,41 @@
             templatePanel.classList.remove('open');
             templatePanel.setAttribute('aria-hidden', 'true');
           });
+
+          if (menuFillTemplate) {
+            menuFillTemplate.addEventListener('click', async () => {
+              if (!templateFillPanel) {
+                return;
+              }
+              templateFillPanel.classList.add('open');
+              templateFillPanel.setAttribute('aria-hidden', 'false');
+              if (templatePanel) {
+                templatePanel.classList.remove('open');
+                templatePanel.setAttribute('aria-hidden', 'true');
+              }
+              if (subjectPanel) {
+                subjectPanel.classList.remove('open');
+                subjectPanel.setAttribute('aria-hidden', 'true');
+              }
+              if (sentTemplatesPanel) {
+                sentTemplatesPanel.classList.remove('open');
+                sentTemplatesPanel.setAttribute('aria-hidden', 'true');
+              }
+              menuPanel.classList.remove('open');
+              menuToggle.setAttribute('aria-expanded', 'false');
+              await loadAssignedTemplates();
+            });
+          }
+
+          if (templateFillClose) {
+            templateFillClose.addEventListener('click', () => {
+              if (!templateFillPanel) {
+                return;
+              }
+              templateFillPanel.classList.remove('open');
+              templateFillPanel.setAttribute('aria-hidden', 'true');
+            });
+          }
 
           if (menuSubjects) {
             menuSubjects.addEventListener('click', () => {
@@ -766,8 +1424,51 @@
               subjectPanel.setAttribute('aria-hidden', 'false');
               templatePanel.classList.remove('open');
               templatePanel.setAttribute('aria-hidden', 'true');
+              if (templateFillPanel) {
+                templateFillPanel.classList.remove('open');
+                templateFillPanel.setAttribute('aria-hidden', 'true');
+              }
+              if (sentTemplatesPanel) {
+                sentTemplatesPanel.classList.remove('open');
+                sentTemplatesPanel.setAttribute('aria-hidden', 'true');
+              }
               menuPanel.classList.remove('open');
               menuToggle.setAttribute('aria-expanded', 'false');
+            });
+          }
+
+          if (menuSentTemplates) {
+            menuSentTemplates.addEventListener('click', async () => {
+              if (!sentTemplatesPanel) {
+                return;
+              }
+              sentTemplatesPanel.classList.add('open');
+              sentTemplatesPanel.setAttribute('aria-hidden', 'false');
+              if (templatePanel) {
+                templatePanel.classList.remove('open');
+                templatePanel.setAttribute('aria-hidden', 'true');
+              }
+              if (templateFillPanel) {
+                templateFillPanel.classList.remove('open');
+                templateFillPanel.setAttribute('aria-hidden', 'true');
+              }
+              if (subjectPanel) {
+                subjectPanel.classList.remove('open');
+                subjectPanel.setAttribute('aria-hidden', 'true');
+              }
+              menuPanel.classList.remove('open');
+              menuToggle.setAttribute('aria-expanded', 'false');
+              await loadSentTemplates();
+            });
+          }
+
+          if (sentTemplatesClose) {
+            sentTemplatesClose.addEventListener('click', () => {
+              if (!sentTemplatesPanel) {
+                return;
+              }
+              sentTemplatesPanel.classList.remove('open');
+              sentTemplatesPanel.setAttribute('aria-hidden', 'true');
             });
           }
 

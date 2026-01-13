@@ -553,6 +553,146 @@ a:hover {
     cursor: not-allowed;
 }
 
+.template-inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.template-inline input {
+    flex: 1;
+}
+
+.template-inline .secondary {
+    font-family: 'Scio', sans-serif;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    background-color: var(--surface-strong);
+    color: var(--text);
+}
+
+.template-list {
+    display: grid;
+    gap: 12px;
+}
+
+.template-empty {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.template-card {
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: 10px;
+}
+
+.template-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.template-card-title {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.template-card-meta {
+    margin-top: 4px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.template-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.template-status {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.template-status.done {
+    background: rgba(63, 188, 166, 0.2);
+    color: var(--accent-2);
+    border-color: rgba(63, 188, 166, 0.4);
+}
+
+.template-open,
+.template-submit {
+    font-family: 'Scio', sans-serif;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    background: linear-gradient(135deg, var(--accent-2), #5ae4c8);
+    color: var(--text);
+}
+
+.template-open {
+    background: linear-gradient(135deg, var(--accent-3), #ffe7a6);
+}
+
+.template-details {
+    display: none;
+    gap: 10px;
+}
+
+.template-card.open .template-details {
+    display: grid;
+}
+
+.template-instructions-text {
+    margin: 0;
+    color: var(--text);
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+.template-response-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.template-response-input {
+    font-family: 'Scio', sans-serif;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background-color: var(--surface-strong);
+    color: var(--text);
+    width: 100%;
+    resize: vertical;
+}
+
+.template-response-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(63, 188, 166, 0.2);
+}
+
 .subject-list {
     display: grid;
     gap: 10px;
@@ -626,6 +766,16 @@ a:hover {
     .input {
         flex-wrap: wrap;
         padding: 10px 12px;
+    }
+
+    .template-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .template-card-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .send {
