@@ -693,6 +693,38 @@ a:hover {
     box-shadow: 0 0 0 3px rgba(63, 188, 166, 0.2);
 }
 
+.template-response-list {
+    display: grid;
+    gap: 10px;
+}
+
+.template-response-item {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    background-color: var(--surface);
+    display: grid;
+    gap: 6px;
+}
+
+.template-response-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.template-response-value {
+    font-size: 0.95rem;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.template-response-empty {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
 .subject-list {
     display: grid;
     gap: 10px;
