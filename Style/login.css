@@ -3,62 +3,144 @@
     src: url(../Fonts/gothamrnd_medium.otf);
 }
 
-body{
-    margin: 0;
-    padding: 0;
-    background-color: #FFF7DD;
+:root {
+    color-scheme: light;
+    --bg-1: #fdf7ef;
+    --bg-2: #f3e7dc;
+    --bg-3: #d7eef2;
+    --surface: rgba(255, 255, 255, 0.76);
+    --surface-strong: rgba(255, 255, 255, 0.96);
+    --text: #1a1b1f;
+    --text-muted: rgba(26, 27, 31, 0.55);
+    --accent: #f06a3d;
+    --accent-2: #1fb59c;
+    --accent-3: #ffcf8b;
+    --border: rgba(26, 27, 31, 0.14);
+    --shadow-lg: 0 24px 60px rgba(21, 28, 45, 0.18), 0 8px 20px rgba(21, 28, 45, 0.1);
+    --shadow-sm: 0 12px 28px rgba(21, 28, 45, 0.12);
+    --radius-xl: 26px;
+    --radius-md: 14px;
 }
 
-main{
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    grid-template-rows: repeat(10, 1fr);
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
     min-height: 100vh;
-    overflow: hidden;
+    font-family: 'Scio', sans-serif;
+    color: var(--text);
+    background: radial-gradient(900px 600px at 12% -10%, rgba(255, 207, 139, 0.55), transparent 60%),
+        radial-gradient(800px 600px at 88% 8%, rgba(31, 181, 156, 0.22), transparent 60%),
+        linear-gradient(140deg, var(--bg-1), var(--bg-2) 48%, var(--bg-3));
+    overflow-x: hidden;
 }
 
-.login{
-    grid-area: 4 / 3 / 8 / 9;
-    background-color: #C2E2FA;
-    border: 2px solid black;
-    border-radius: 25px;
-    display: grid;
-    grid-template-columns: repeat(10, auto);
-    grid-template-rows: repeat(10, auto);
-    height: 100%;
-    width: 100%;
-}
-
-.login button{
-    padding: 0;
-    margin: 0;
-    grid-area: 8 / 4 / 10 / 8;
-    border: 2px solid black;
-    background-color: white;
-    max-height: 100px;
-    font-family: "Scio";
-    font-size: 35px;
-    transition: 0.1s;
-}
-
-.login button:hover{
-    transform: scale(1.05);
-    cursor: pointer;
-}
-
-.login button:active{
-    background-color: black;
-    color: white;
-    border: 2px solid rgb(94, 35, 255);
-}
-
-h1{
+body::before {
+    content: '';
     position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 0;
-    margin-top: 70px;
-    color: #687FE5;
-    font-family: "Scio";
-    font-size: 50px;
+    width: 360px;
+    height: 360px;
+    top: -140px;
+    right: -120px;
+    background: radial-gradient(circle, rgba(240, 106, 61, 0.22), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    width: 480px;
+    height: 480px;
+    bottom: -220px;
+    left: -180px;
+    background: radial-gradient(circle, rgba(31, 181, 156, 0.18), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+main {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.login {
+    width: min(560px, 92vw);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 36px;
+    display: grid;
+    gap: 24px;
+    text-align: center;
+    backdrop-filter: blur(16px);
+    animation: float-in 0.6s ease both;
+}
+
+.login h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+}
+
+.login button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), #ffb36b);
+    color: var(--text);
+    font-family: 'Scio', sans-serif;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.login button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(11, 22, 37, 0.18);
+}
+
+.login button:active {
+    transform: translateY(0);
+}
+
+@keyframes float-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .login {
+        padding: 28px;
+        gap: 18px;
+    }
+
+    .login button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
 }

@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projekt P.</title>
-    <link rel="stylesheet" href="Style/style.css">
+    <link rel="stylesheet" href="Style/style.css?v=2026-08">
 </head>
 <body>
     <main>
@@ -16,6 +16,9 @@
         <nav>
             <button class="menu-toggle" id="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="menu-panel">
                 <img src="Media/icons/menu.svg" alt="">
+            </button>
+            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+                <img src="Media/icons/theme.svg" alt="">
             </button>
             <div class="menu-panel" id="menu-panel">
                 <button class="menu-item" id="menu-subjects" type="button">Předměty</button>
@@ -42,7 +45,7 @@
             <button class="send" id="select">
                 <img src="Media/icons/select.svg" alt="Select">
             </button>
-            <input type="text" name="search" id="input" maxlength="21" placeholder="Type here..." style="font-family: 'Scio';">
+            <input type="text" name="search" id="input" maxlength="21" placeholder="Type here...">
             <button class="send" id="send">
                 <img src="Media/icons/send.svg" alt="Send">
             </button>
@@ -569,14 +572,14 @@
                 const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(4).get();
 
                 if (snapshot.empty) {
-                    userDataSpan.innerHTML = '<span style="color:gray;">No data yet</span>';
+                    userDataSpan.innerHTML = '<span class="muted">No data yet</span>';
                 } else {
                     snapshot.forEach(doc => {
                         userDataSpan.innerHTML += `<span>${doc.data().value}</span><br>`;
                     });
                 }
             } else {
-              userDataSpan.innerHTML = '<span style="color:gray;">User not authenticated</span>';
+              userDataSpan.innerHTML = '<span class="muted">User not authenticated</span>';
             }
           }
 
@@ -604,6 +607,33 @@
           const subjectList = document.getElementById('subject-list');
           const defaultSubjectOptions = getDefaultSubjects(subjectSelect);
           const uploadButton = document.getElementById('upload');
+          const themeToggle = document.getElementById('theme-toggle');
+
+          function getStoredTheme() {
+            try {
+              return localStorage.getItem('theme');
+            } catch (error) {
+              return null;
+            }
+          }
+
+          function setTheme(isDark) {
+            document.body.classList.toggle('theme-dark', isDark);
+            if (themeToggle) {
+              themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+              themeToggle.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+              themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+            }
+            try {
+              localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            } catch (error) {
+              // ignore storage failures
+            }
+          }
+
+          const savedTheme = getStoredTheme();
+          const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          setTheme(savedTheme ? savedTheme === 'dark' : prefersDark);
 
           renderSubjectOptions(defaultSubjectOptions);
           renderSubjectList(defaultSubjectOptions);
@@ -611,6 +641,12 @@
 
           if (uploadButton) {
             uploadButton.addEventListener('click', handleDriveButton);
+          }
+
+          if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+              setTheme(!document.body.classList.contains('theme-dark'));
+            });
           }
 
           if (subjectAddButton) {
