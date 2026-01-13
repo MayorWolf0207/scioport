@@ -31,30 +31,120 @@
         <header>
             <h1>ScioPort</h1>
         </header>
-        <div class="subject">
-            <label for="subject-select">Předmět</label>
-            <select id="subject-select">
-                <option value="@matematika">@matematika</option>
-                <option value="@čeština">@čeština</option>
-                <option value="@angličtina">@angličtina</option>
-                <option value="@samorost">@samorost</option>
-            </select>
-        </div>
-        <div class="input">
-            <button class="send" id="upload">
-                <img src="Media/icons/upload.svg" alt="Upload">
-            </button>
-            <button class="send" id="select">
-                <img src="Media/icons/select.svg" alt="Select">
-            </button>
-            <input type="text" name="search" id="input" maxlength="21" placeholder="Type here...">
-            <button class="send" id="send">
-                <img src="Media/icons/send.svg" alt="Send">
-            </button>
-        </div>
-        <div class="info">
-            <span id="user-data"></span>
-        </div>
+        <section class="student-work" id="student-work">
+            <div class="student-work-header">
+                <h2>Prace zaka</h2>
+                <p>Vyber praci a otevri formular k vyplneni.</p>
+            </div>
+            <div class="student-work-stage" id="student-work-stage">
+                <div class="student-work-track">
+                    <div class="student-work-panel student-work-panel--buttons">
+                        <div class="student-work-orbit">
+                            <div class="student-work-stack student-work-stack--left">
+                                <button class="student-work-button is-green" type="button" data-action="add-entry" data-title="Pridat zaznam" aria-label="Pridat zaznam">
+                                    <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M12 5v14M5 12h14"></path>
+                                    </svg>
+                                </button>
+                                <button class="student-work-button is-green-2" type="button" data-title="Prace 2" aria-label="Prace 2">
+                                    <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M6 12l4 4 8-8"></path>
+                                    </svg>
+                                </button>
+                                <button class="student-work-button is-green-3" type="button" data-title="Prace 3" aria-label="Prace 3">
+                                    <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M9 21h6M10 17h4"></path>
+                                        <path d="M6.5 10a5.5 5.5 0 1 1 11 0c0 2-1.1 3.3-2.4 4.4-.6.5-1 1.1-1 1.8H9.9c0-.7-.4-1.3-1-1.8C7.6 13.3 6.5 12 6.5 10z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="student-work-center" aria-hidden="true">
+                                <svg class="student-work-illustration" viewBox="0 0 300 230" aria-hidden="true" focusable="false">
+                                    <ellipse class="student-blob" cx="150" cy="110" rx="120" ry="85"></ellipse>
+                                    <ellipse class="student-hair" cx="150" cy="105" rx="78" ry="82"></ellipse>
+                                    <ellipse class="student-face" cx="150" cy="125" rx="56" ry="62"></ellipse>
+                                    <rect class="student-neck" x="130" y="175" width="40" height="30" rx="14"></rect>
+                                    <path class="student-shirt" d="M105 205c20-15 70-15 90 0v20H105z"></path>
+                                    <circle class="student-eye" cx="130" cy="125" r="4"></circle>
+                                    <circle class="student-eye" cx="170" cy="125" r="4"></circle>
+                                    <circle class="student-blush" cx="110" cy="140" r="6"></circle>
+                                    <circle class="student-blush" cx="190" cy="140" r="6"></circle>
+                                    <path class="student-mouth" d="M140 150c4 6 16 6 20 0"></path>
+                                    <circle class="student-glasses" cx="130" cy="125" r="18"></circle>
+                                    <circle class="student-glasses" cx="170" cy="125" r="18"></circle>
+                                    <path class="student-glasses-bridge" d="M148 125h4"></path>
+                                </svg>
+                            </div>
+                            <div class="student-work-stack student-work-stack--right">
+                                <button class="student-work-button is-blue" type="button" data-title="Prace 4" aria-label="Prace 4">
+                                    <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4"></path>
+                                        <circle cx="12" cy="18" r="1.4"></circle>
+                                    </svg>
+                                </button>
+                                <button class="student-work-button is-blue-2" type="button" data-title="Prace 5" aria-label="Prace 5">
+                                    <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M7 10h10a4 4 0 0 1 4 4v2a3 3 0 0 1-3 3h-3l-2-2h-2l-2 2H6a3 3 0 0 1-3-3v-2a4 4 0 0 1 4-4z"></path>
+                                        <path d="M9 13h2M10 12v2M15 13h.01"></path>
+                                    </svg>
+                                </button>
+                                <button class="student-work-button is-purple" type="button" data-title="Prace 6" aria-label="Prace 6">
+                                    <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M6 6h2l2.5 9h7.5l2-6H9"></path>
+                                        <circle cx="12" cy="19" r="1.4"></circle>
+                                        <circle cx="18" cy="19" r="1.4"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="student-work-panel student-work-panel--form">
+                        <div class="student-work-form">
+                            <div class="student-work-form-header">
+                                <div>
+                                    <h3 id="student-work-form-title">Pridat zaznam</h3>
+                                    <p class="student-work-form-subtitle">Formular pro pridani zaznamu.</p>
+                                </div>
+                                <button class="student-work-back" id="student-work-back" type="button">Zpet</button>
+                            </div>
+                            <div class="student-work-form-body">
+                                <div class="data-log student-work-log" id="student-work-log"></div>
+                                <div class="student-work-field">
+                                    <span class="student-work-label">Predmet</span>
+                                    <div class="student-work-select">
+                                        <select id="student-work-subject">
+                                            <option value="@anglictina">@anglictina</option>
+                                            <option value="@matematika">@matematika</option>
+                                            <option value="@cestina">@cestina</option>
+                                            <option value="@samorost">@samorost</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="student-work-input">
+                                    <button class="student-work-icon-btn" type="button" aria-label="Nahrat">
+                                        <svg class="student-work-input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                            <path d="M12 16V6"></path>
+                                            <path d="M8 10l4-4 4 4"></path>
+                                            <path d="M4 18h16"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="student-work-icon-btn" type="button" aria-label="Zminit">
+                                        <span class="student-work-at">@</span>
+                                    </button>
+                                    <input type="text" id="student-work-input" placeholder="Type here...">
+                                    <button class="student-work-icon-btn is-send" type="button" aria-label="Odeslat">
+                                        <svg class="student-work-input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                            <path d="M5 12h14"></path>
+                                            <path d="M13 6l6 6-6 6"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
         <a id="data-tests-link" href="data.html">data tests</a>
         <section class="template-panel" id="template-panel" aria-hidden="true">
             <div class="template-header">
@@ -621,21 +711,166 @@
         async function renderData() {
             const user = firebase.auth().currentUser;
             const userDataSpan = document.getElementById('user-data');
-            userDataSpan.innerHTML = '';
+            const studentWorkLog = document.getElementById('student-work-log');
+            const targets = [userDataSpan, studentWorkLog].filter(Boolean);
+
+            if (!targets.length) {
+                return;
+            }
+
+            const fileExtensions = ['pdf', 'doc', 'docx', 'txt', 'xlsx', 'xls', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'gif'];
+
+            function decodeHtml(value) {
+                return String(value || '')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'");
+            }
+
+            function getTokenCore(token) {
+                if (!token) {
+                    return '';
+                }
+                const match = token.match(/^(.+?)([.,!?]+)?$/);
+                return match ? match[1] : token;
+            }
+
+            function isFileToken(token) {
+                const core = getTokenCore(token);
+                if (!core) {
+                    return false;
+                }
+                const lower = core.toLowerCase();
+                return fileExtensions.some(ext => lower.endsWith(`.${ext}`));
+            }
+
+            function appendToken(container, token) {
+                if (!token) {
+                    return;
+                }
+                const match = token.match(/^(.+?)([.,!?]+)?$/);
+                const core = match ? match[1] : token;
+                const trailing = match && match[2] ? match[2] : '';
+                const span = document.createElement('span');
+                span.className = isFileToken(core) ? 'data-file' : 'data-text';
+                span.textContent = core;
+                container.appendChild(span);
+                if (trailing) {
+                    container.appendChild(document.createTextNode(trailing));
+                }
+            }
+
+            function parseSegments(text) {
+                if (!text) {
+                    return [];
+                }
+                const segments = [];
+                const linkRegex = /<a\s+[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gi;
+                let lastIndex = 0;
+                let match = null;
+                while ((match = linkRegex.exec(text)) !== null) {
+                    if (match.index > lastIndex) {
+                        segments.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+                    }
+                    segments.push({ type: 'link', href: match[1], text: match[2] });
+                    lastIndex = linkRegex.lastIndex;
+                }
+                if (lastIndex < text.length) {
+                    segments.push({ type: 'text', value: text.slice(lastIndex) });
+                }
+                return segments;
+            }
+
+            function buildEntry(value) {
+                const trimmed = (value || '').trim();
+                if (!trimmed) {
+                    return null;
+                }
+                let subject = '';
+                let rest = trimmed;
+                if (trimmed.startsWith('@')) {
+                    const firstSpace = trimmed.search(/\s/);
+                    if (firstSpace === -1) {
+                        subject = trimmed;
+                        rest = '';
+                    } else {
+                        subject = trimmed.slice(0, firstSpace);
+                        rest = trimmed.slice(firstSpace).trim();
+                    }
+                }
+
+                const entry = document.createElement('div');
+                entry.className = 'data-entry';
+                let needsSpace = false;
+
+                if (subject) {
+                    const subjectSpan = document.createElement('span');
+                    subjectSpan.className = 'data-subject';
+                    subjectSpan.textContent = subject;
+                    entry.appendChild(subjectSpan);
+                    needsSpace = rest.length > 0;
+                }
+
+                const segments = parseSegments(rest);
+                segments.forEach(segment => {
+                    if (segment.type === 'link') {
+                        const link = document.createElement('a');
+                        link.href = segment.href;
+                        link.target = '_blank';
+                        link.rel = 'noopener';
+                        const label = decodeHtml(segment.text);
+                        link.textContent = label;
+                        link.className = isFileToken(label) ? 'data-file' : 'data-link';
+                        if (needsSpace) {
+                            entry.appendChild(document.createTextNode(' '));
+                        }
+                        entry.appendChild(link);
+                        needsSpace = true;
+                        return;
+                    }
+
+                    const decoded = decodeHtml(segment.value);
+                    const parts = decoded.split(/\s+/).filter(Boolean);
+                    parts.forEach(part => {
+                        if (needsSpace) {
+                            entry.appendChild(document.createTextNode(' '));
+                        }
+                        appendToken(entry, part);
+                        needsSpace = true;
+                    });
+                });
+                return entry;
+            }
+
+            function renderList(values, emptyMessage) {
+                targets.forEach(target => {
+                    target.innerHTML = '';
+                    if (!values.length) {
+                        const empty = document.createElement('div');
+                        empty.className = 'data-empty';
+                        empty.textContent = emptyMessage;
+                        target.appendChild(empty);
+                        return;
+                    }
+                    values.forEach(value => {
+                        const entry = buildEntry(value);
+                        if (entry) {
+                            target.appendChild(entry);
+                        }
+                    });
+                });
+            }
 
             if (user) {
                 const dataRef = db.collection('users').doc(user.uid).collection('data');
                 const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(4).get();
 
-                if (snapshot.empty) {
-                    userDataSpan.innerHTML = '<span class="muted">No data yet</span>';
-                } else {
-                    snapshot.forEach(doc => {
-                        userDataSpan.innerHTML += `<span>${doc.data().value}</span><br>`;
-                    });
-                }
+                const values = snapshot.docs.map(doc => doc.data().value).filter(Boolean);
+                renderList(values, 'Zatim zadna data.');
             } else {
-              userDataSpan.innerHTML = '<span class="muted">User not authenticated</span>';
+              renderList([], 'User not authenticated');
             }
           }
 
@@ -683,9 +918,16 @@
           const subjectInput = document.getElementById('subject-new');
           const subjectAddButton = document.getElementById('subject-add');
           const subjectList = document.getElementById('subject-list');
-          const defaultSubjectOptions = getDefaultSubjects(subjectSelect);
+          const defaultSubjectOptions = getDefaultSubjects(subjectSelect || templateSubjectSelect);
           const uploadButton = document.getElementById('upload');
           const themeToggle = document.getElementById('theme-toggle');
+          const studentWorkStage = document.getElementById('student-work-stage');
+          const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
+          const studentWorkBack = document.getElementById('student-work-back');
+          const studentWorkFormTitle = document.getElementById('student-work-form-title');
+          const studentWorkInput = document.getElementById('student-work-input');
+          const studentWorkSubject = document.getElementById('student-work-subject');
+          const studentWorkSendButton = document.querySelector('#student-work .student-work-icon-btn.is-send');
 
           function getStoredTheme() {
             try {
@@ -708,6 +950,52 @@
               // ignore storage failures
             }
           }
+
+          function openStudentWork(title) {
+            if (!studentWorkStage) {
+              return;
+            }
+            studentWorkStage.classList.add('is-active');
+            studentWorkStage.classList.add('is-add-active');
+            if (studentWorkFormTitle) {
+              studentWorkFormTitle.textContent = title || 'Prace';
+            }
+          }
+
+          function closeStudentWork() {
+            if (!studentWorkStage) {
+              return;
+            }
+            studentWorkStage.classList.remove('is-active');
+            studentWorkStage.classList.remove('is-add-active');
+          }
+
+          async function sendStudentWorkMessage() {
+            const user = firebase.auth().currentUser;
+            if (!user || !studentWorkInput || !studentWorkSubject) {
+              return;
+            }
+
+            const inputValue = studentWorkInput.value.trim();
+            const subjectValue = studentWorkSubject.value || '';
+            const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
+
+            if (!cleanedValue || !subjectValue) {
+              return;
+            }
+
+            try {
+              await db.collection('users').doc(user.uid).collection('data').add({
+                value: `${subjectValue} ${cleanedValue}`,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+              });
+              await renderData();
+              studentWorkInput.value = '';
+            } catch (error) {
+              console.error('Error saving data:', error);
+            }
+          }
+
 
           const savedTheme = getStoredTheme();
           const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1398,6 +1686,29 @@
             });
           }
 
+          if (studentWorkAddButton) {
+            studentWorkAddButton.addEventListener('click', () => {
+              const title = studentWorkAddButton.getAttribute('data-title') || 'Prace';
+              openStudentWork(title);
+            });
+          }
+
+          if (studentWorkBack) {
+            studentWorkBack.addEventListener('click', closeStudentWork);
+          }
+
+          if (studentWorkSendButton) {
+            studentWorkSendButton.addEventListener('click', sendStudentWorkMessage);
+          }
+
+          if (studentWorkInput) {
+            studentWorkInput.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter') {
+                sendStudentWorkMessage();
+              }
+            });
+          }
+
           if (studentClassSave) {
             studentClassSave.addEventListener('click', saveStudentClass);
           }
@@ -1443,8 +1754,11 @@
 
           async function sendMessage() {
             const user = firebase.auth().currentUser;
+            if (!inputField || !subjectSelect) {
+              return;
+            }
             const inputValue = inputField.value.trim();
-            const subjectValue = subjectSelect ? subjectSelect.value : '';
+            const subjectValue = subjectSelect.value || '';
             const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
 
             if (user && cleanedValue && subjectValue) {
@@ -1461,24 +1775,30 @@
             }
           }
 
+          const sendButton = document.getElementById('send');
+          if (sendButton) {
+            sendButton.addEventListener('click', sendMessage);
+          }
 
-          document.getElementById('send').onclick = sendMessage;
-
-
-          inputField.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-              sendMessage();
-            }
-          });
-
-          document.getElementById('select').onclick = function() {
-            if (subjectSelect) {
-              subjectSelect.focus();
-              if (subjectSelect.showPicker) {
-                subjectSelect.showPicker();
+          if (inputField) {
+            inputField.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter') {
+                sendMessage();
               }
-            }
-          };
+            });
+          }
+
+          const selectButton = document.getElementById('select');
+          if (selectButton) {
+            selectButton.addEventListener('click', function() {
+              if (subjectSelect) {
+                subjectSelect.focus();
+                if (subjectSelect.showPicker) {
+                  subjectSelect.showPicker();
+                }
+              }
+            });
+          }
 
           const menuToggle = document.getElementById('menu-toggle');
           const menuPanel = document.getElementById('menu-panel');
