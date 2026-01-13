@@ -20,7 +20,7 @@
             <div class="menu-panel" id="menu-panel">
                 <button class="menu-item" id="menu-subjects" type="button">Předměty</button>
                 <button class="menu-item" id="menu-templates" type="button">Šablony</button>
-                <a class="menu-item" href="data.html">Data tests</a>
+                <a class="menu-item" id="menu-data-tests" href="data.html">Data tests</a>
             </div>
         </nav>
         <header>
@@ -50,7 +50,7 @@
         <div class="info">
             <span id="user-data"></span>
         </div>
-        <a href="data.html">data tests</a>
+        <a id="data-tests-link" href="data.html">data tests</a>
         <section class="template-panel" id="template-panel" aria-hidden="true">
             <div class="template-header">
                 <h2>Nová šablona</h2>
@@ -131,11 +131,70 @@
         const GOOGLE_API_KEY = 'AIzaSyAuqQ4Zxy_JdUDS8lycIl_4SIbowcsw0Cg';
         const GOOGLE_APP_ID = 'zaznamy-zrhomazdeni';
         const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
+        const ADMIN_EMAILS = ['oliver.bocko@scioskola.cz'];
 
         let accessToken = '';
         let tokenClient = null;
         let pickerReady = false;
         let gisReady = false;
+        let isAdmin = false;
+
+        function isAdminUser(user) {
+            const email = user && user.email ? user.email.toLowerCase() : '';
+            return ADMIN_EMAILS.includes(email);
+        }
+
+        function applyAdminUi() {
+            const canManageSubjects = isAdmin;
+            const menuSubjects = document.getElementById('menu-subjects');
+            const subjectPanel = document.getElementById('subject-panel');
+            const menuTemplates = document.getElementById('menu-templates');
+            const templatePanel = document.getElementById('template-panel');
+            const menuDataTests = document.getElementById('menu-data-tests');
+            const dataTestsLink = document.getElementById('data-tests-link');
+            const subjectAddButton = document.getElementById('subject-add');
+            const subjectInput = document.getElementById('subject-new');
+
+            if (menuSubjects) {
+                menuSubjects.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (subjectPanel) {
+                if (!canManageSubjects) {
+                    subjectPanel.classList.remove('open');
+                    subjectPanel.setAttribute('aria-hidden', 'true');
+                }
+                subjectPanel.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (menuTemplates) {
+                menuTemplates.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (templatePanel) {
+                if (!canManageSubjects) {
+                    templatePanel.classList.remove('open');
+                    templatePanel.setAttribute('aria-hidden', 'true');
+                }
+                templatePanel.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (menuDataTests) {
+                menuDataTests.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (dataTestsLink) {
+                dataTestsLink.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (subjectAddButton) {
+                subjectAddButton.disabled = !canManageSubjects;
+            }
+
+            if (subjectInput) {
+                subjectInput.disabled = !canManageSubjects;
+            }
+        }
 
         function initGooglePicker() {
             if (!window.gapi) {
@@ -379,6 +438,9 @@
                 } else {
                     removeButton.disabled = true;
                 }
+                if (!isAdmin) {
+                    removeButton.disabled = true;
+                }
 
                 item.appendChild(nameSpan);
                 item.appendChild(removeButton);
@@ -387,6 +449,9 @@
         }
 
         async function seedSubjects(defaultSubjects) {
+            if (!isAdmin) {
+                return;
+            }
             if (!defaultSubjects.length) {
                 return;
             }
@@ -416,7 +481,7 @@
 
             try {
                 const snapshot = await subjectsRef.limit(1).get();
-                if (snapshot.empty && defaultSubjectOptions.length) {
+                if (snapshot.empty && defaultSubjectOptions.length && isAdmin) {
                     try {
                         await seedSubjects(defaultSubjectOptions);
                     } catch (error) {
@@ -448,6 +513,10 @@
         }
 
         async function addSubject() {
+            if (!isAdmin) {
+                alert('Tuto akci muze delat jen pruvodce.');
+                return;
+            }
             if (!subjectInput) {
                 return;
             }
@@ -473,6 +542,10 @@
         }
 
         async function removeSubject(subjectId) {
+            if (!isAdmin) {
+                alert('Tuto akci muze delat jen pruvodce.');
+                return;
+            }
             if (!subjectId) {
                 return;
             }
@@ -514,6 +587,8 @@
               window.location.replace(loginUrl);
               return;
             } else {
+              isAdmin = isAdminUser(user);
+              applyAdminUi();
               await renderData();
               await initSubjects();
             }
@@ -532,6 +607,7 @@
 
           renderSubjectOptions(defaultSubjectOptions);
           renderSubjectList(defaultSubjectOptions);
+          applyAdminUi();
 
           if (uploadButton) {
             uploadButton.addEventListener('click', handleDriveButton);
