@@ -779,22 +779,6 @@
                 return fileExtensions.some(ext => lower.endsWith(`.${ext}`));
             }
 
-            function appendToken(container, token) {
-                if (!token) {
-                    return;
-                }
-                const match = token.match(/^(.+?)([.,!?]+)?$/);
-                const core = match ? match[1] : token;
-                const trailing = match && match[2] ? match[2] : '';
-                const span = document.createElement('span');
-                span.className = isFileToken(core) ? 'data-file' : 'data-text';
-                span.textContent = core;
-                container.appendChild(span);
-                if (trailing) {
-                    container.appendChild(document.createTextNode(trailing));
-                }
-            }
-
             function parseSegments(text) {
                 if (!text) {
                     return [];
@@ -814,6 +798,221 @@
                     segments.push({ type: 'text', value: text.slice(lastIndex) });
                 }
                 return segments;
+            }
+
+            function buildSegments(text) {
+                return parseSegments(text).map(segment => {
+                    if (segment.type === 'link') {
+                        return { type: 'link', href: segment.href, text: decodeHtml(segment.text) };
+                    }
+                    return { type: 'text', text: decodeHtml(segment.value) };
+                });
+            }
+
+            function segmentsToText(segments) {
+                return segments.map(segment => segment.text).join('');
+            }
+
+            function trimSegments(segments) {
+                if (!segments.length) {
+                    return [];
+                }
+                const trimmed = segments.map(segment => ({ ...segment }));
+                const first = trimmed[0];
+                if (first && first.type === 'text') {
+                    first.text = first.text.replace(/^\s+/, '');
+                }
+                const lastIndex = trimmed.length - 1;
+                const last = trimmed[lastIndex];
+                if (last && last.type === 'text') {
+                    last.text = last.text.replace(/\s+$/, '');
+                }
+                return trimmed.filter(segment => segment.text.length > 0);
+            }
+
+            function trimLeadingSeparator(segments) {
+                if (!segments.length) {
+                    return [];
+                }
+                const trimmed = segments.map(segment => ({ ...segment }));
+                const first = trimmed[0];
+                if (first && first.type === 'text') {
+                    first.text = first.text.replace(/^[\s\-:]+/, '');
+                }
+                return trimmed.filter(segment => segment.text.length > 0);
+            }
+
+            function splitSegments(segments, splitIndex) {
+                const titleSegments = [];
+                const descSegments = [];
+                let count = 0;
+
+                segments.forEach(segment => {
+                    const length = segment.text.length;
+                    const nextCount = count + length;
+
+                    if (segment.type === 'link') {
+                        if (nextCount <= splitIndex) {
+                            titleSegments.push(segment);
+                        } else {
+                            descSegments.push(segment);
+                        }
+                        count = nextCount;
+                        return;
+                    }
+
+                    if (nextCount <= splitIndex) {
+                        titleSegments.push(segment);
+                    } else if (count >= splitIndex) {
+                        descSegments.push(segment);
+                    } else {
+                        const splitAt = splitIndex - count;
+                        const beforeText = segment.text.slice(0, splitAt);
+                        const afterText = segment.text.slice(splitAt);
+                        if (beforeText) {
+                            titleSegments.push({ type: 'text', text: beforeText });
+                        }
+                        if (afterText) {
+                            descSegments.push({ type: 'text', text: afterText });
+                        }
+                    }
+
+                    count = nextCount;
+                });
+
+                return { titleSegments, descSegments };
+            }
+
+            function findSplitIndex(text) {
+                if (!text) {
+                    return -1;
+                }
+                const newlineMatch = /\r?\n+/.exec(text);
+                if (newlineMatch) {
+                    const title = text.slice(0, newlineMatch.index).trim();
+                    const desc = text.slice(newlineMatch.index).trim();
+                    return title && desc ? newlineMatch.index : -1;
+                }
+                const separatorMatch = /\s*[-:]\s+/.exec(text);
+                if (separatorMatch) {
+                    const title = text.slice(0, separatorMatch.index).trim();
+                    const desc = text.slice(separatorMatch.index + separatorMatch[0].length).trim();
+                    return title && desc ? separatorMatch.index : -1;
+                }
+                const sentenceMatch = /^(.+?[.!?])\s+/.exec(text);
+                if (sentenceMatch) {
+                    const title = sentenceMatch[1].trim();
+                    const desc = text.slice(sentenceMatch[0].length).trim();
+                    return title && desc ? sentenceMatch[1].length : -1;
+                }
+                return -1;
+            }
+
+            function splitEntrySegments(segments) {
+                const plainText = segmentsToText(segments);
+                const leadingMatch = plainText.match(/^\s+/);
+                const leadingOffset = leadingMatch ? leadingMatch[0].length : 0;
+                const trimmedStart = plainText.slice(leadingOffset);
+                const splitIndexTrimmed = findSplitIndex(trimmedStart);
+                if (splitIndexTrimmed < 0) {
+                    return {
+                        titleSegments: trimSegments(segments),
+                        descSegments: []
+                    };
+                }
+                const splitIndex = splitIndexTrimmed + leadingOffset;
+                const split = splitSegments(segments, splitIndex);
+                const titleSegments = trimSegments(split.titleSegments);
+                const descSegments = trimLeadingSeparator(trimSegments(split.descSegments));
+                if (!segmentsToText(descSegments).trim()) {
+                    return {
+                        titleSegments: trimSegments(segments),
+                        descSegments: []
+                    };
+                }
+                return { titleSegments, descSegments };
+            }
+
+            function appendSegments(container, segments) {
+                segments.forEach(segment => {
+                    if (segment.type === 'link') {
+                        const link = document.createElement('a');
+                        link.href = segment.href;
+                        link.target = '_blank';
+                        link.rel = 'noopener';
+                        link.textContent = segment.text;
+                        link.className = isFileToken(segment.text) ? 'data-file' : 'data-link';
+                        container.appendChild(link);
+                        return;
+                    }
+                    container.appendChild(document.createTextNode(segment.text));
+                });
+            }
+
+            function slugify(value) {
+                return String(value || '')
+                    .trim()
+                    .replace(/^@+/, '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+
+            function getPillarTagStyles(label) {
+                const slug = slugify(label);
+                if (slug === 'pilir-1') {
+                    return { color: '#7c3aed', bg: '#ede9fe', accent: '#a78bfa' };
+                }
+                if (slug === 'pilir-2') {
+                    return { color: '#15803d', bg: '#dcfce7', accent: '#4ade80' };
+                }
+                if (slug === 'pilir-3') {
+                    return { color: '#0369a1', bg: '#e0f2fe', accent: '#38bdf8' };
+                }
+                return { color: '#6b7280', bg: '#f3f4f6', accent: '#d1d5db' };
+            }
+
+            function getSubjectTagStyles(label) {
+                const slug = slugify(label);
+                if (!slug) {
+                    return { color: '#6b7280', bg: '#f3f4f6', accent: '#d1d5db' };
+                }
+                let hash = 0;
+                for (let i = 0; i < slug.length; i += 1) {
+                    hash = slug.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const hue = Math.abs(hash) % 360;
+                return {
+                    color: `hsl(${hue} 55% 35%)`,
+                    bg: `hsl(${hue} 80% 92%)`,
+                    accent: `hsl(${hue} 70% 60%)`
+                };
+            }
+
+            function applyTagStyles(tag, styles) {
+                if (!styles) {
+                    return;
+                }
+                if (styles.color) {
+                    tag.style.setProperty('--tag-color', styles.color);
+                }
+                if (styles.bg) {
+                    tag.style.setProperty('--tag-bg', styles.bg);
+                }
+                if (styles.border) {
+                    tag.style.setProperty('--tag-border', styles.border);
+                }
+            }
+
+            function createTag(label, type) {
+                const tag = document.createElement('span');
+                tag.className = `data-tag data-tag--${type}`;
+                tag.textContent = label;
+                const styles = type === 'pillar' ? getPillarTagStyles(label) : getSubjectTagStyles(label);
+                applyTagStyles(tag, styles);
+                return { tag, styles };
             }
 
             function buildEntry(entryData) {
@@ -842,59 +1041,58 @@
                     }
                 }
 
-                const entry = document.createElement('div');
+                const entry = document.createElement('article');
                 entry.className = 'data-entry';
-                let needsSpace = false;
                 const pillarLabel = String(pillar || '').trim();
-                const hasPillar = Boolean(pillarLabel);
+                const subjectLabel = subject ? subject.replace(/^@+/, '').trim() : '';
+                const segments = buildSegments(rest);
+                const split = splitEntrySegments(segments);
+                const fallbackText = segmentsToText(trimSegments(segments)).trim();
+                const titleText = segmentsToText(split.titleSegments).trim() || fallbackText || subjectLabel || pillarLabel;
 
-                if (subject) {
-                    const subjectSpan = document.createElement('span');
-                    subjectSpan.className = 'data-subject';
-                    subjectSpan.textContent = subject;
-                    entry.appendChild(subjectSpan);
-                    needsSpace = hasPillar || rest.length > 0;
+                if (!titleText) {
+                    return null;
                 }
 
-                if (hasPillar) {
-                    if (needsSpace) {
-                        entry.appendChild(document.createTextNode(' '));
-                    }
-                    const pillarSpan = document.createElement('span');
-                    pillarSpan.className = 'data-pillar';
-                    pillarSpan.textContent = pillarLabel;
-                    entry.appendChild(pillarSpan);
-                    needsSpace = rest.length > 0;
+                const titleEl = document.createElement('h4');
+                titleEl.className = 'data-title';
+                titleEl.textContent = titleText;
+                entry.appendChild(titleEl);
+
+                if (split.descSegments.length) {
+                    const descEl = document.createElement('p');
+                    descEl.className = 'data-description';
+                    appendSegments(descEl, split.descSegments);
+                    entry.appendChild(descEl);
                 }
 
-                const segments = parseSegments(rest);
-                segments.forEach(segment => {
-                    if (segment.type === 'link') {
-                        const link = document.createElement('a');
-                        link.href = segment.href;
-                        link.target = '_blank';
-                        link.rel = 'noopener';
-                        const label = decodeHtml(segment.text);
-                        link.textContent = label;
-                        link.className = isFileToken(label) ? 'data-file' : 'data-link';
-                        if (needsSpace) {
-                            entry.appendChild(document.createTextNode(' '));
-                        }
-                        entry.appendChild(link);
-                        needsSpace = true;
-                        return;
-                    }
+                const tagsEl = document.createElement('div');
+                tagsEl.className = 'data-tags';
+                let hasTags = false;
+                let accent = '';
 
-                    const decoded = decodeHtml(segment.value);
-                    const parts = decoded.split(/\s+/).filter(Boolean);
-                    parts.forEach(part => {
-                        if (needsSpace) {
-                            entry.appendChild(document.createTextNode(' '));
-                        }
-                        appendToken(entry, part);
-                        needsSpace = true;
-                    });
-                });
+                if (pillarLabel) {
+                    const { tag, styles } = createTag(pillarLabel, 'pillar');
+                    tagsEl.appendChild(tag);
+                    hasTags = true;
+                    accent = styles.accent || styles.color || accent;
+                }
+
+                if (subjectLabel) {
+                    const { tag, styles } = createTag(subjectLabel, 'subject');
+                    tagsEl.appendChild(tag);
+                    hasTags = true;
+                    accent = styles.accent || styles.color || accent;
+                }
+
+                if (accent) {
+                    entry.style.setProperty('--card-accent', accent);
+                }
+
+                if (hasTags) {
+                    entry.appendChild(tagsEl);
+                }
+
                 return entry;
             }
 
