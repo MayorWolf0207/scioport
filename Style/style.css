@@ -430,6 +430,11 @@ body.theme-dark .info {
     color: var(--text);
 }
 
+.data-pillar {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
 .data-text {
     font-weight: 500;
     color: var(--text);
@@ -544,6 +549,11 @@ body.theme-dark .student-work {
 
 .student-work-stage.is-add-active .student-work-track {
     transition-delay: 0.12s;
+}
+
+.student-work-stage.is-readonly .student-work-field,
+.student-work-stage.is-readonly .student-work-input {
+    display: none;
 }
 
 .student-work-panel {

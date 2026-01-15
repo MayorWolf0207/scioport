@@ -46,12 +46,12 @@
                                         <path d="M12 5v14M5 12h14"></path>
                                     </svg>
                                 </button>
-                                <button class="student-work-button is-green-2" type="button" data-title="Prace 2" aria-label="Prace 2">
+                                <button class="student-work-button is-green-2" type="button" data-action="filter-pillar-1" data-title="Prace 2" aria-label="Prace 2">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M6 12l4 4 8-8"></path>
                                     </svg>
                                 </button>
-                                <button class="student-work-button is-green-3" type="button" data-title="Prace 3" aria-label="Prace 3">
+                                <button class="student-work-button is-green-3" type="button" data-action="filter-pillar-2" data-title="Prace 3" aria-label="Prace 3">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M9 21h6M10 17h4"></path>
                                         <path d="M6.5 10a5.5 5.5 0 1 1 11 0c0 2-1.1 3.3-2.4 4.4-.6.5-1 1.1-1 1.8H9.9c0-.7-.4-1.3-1-1.8C7.6 13.3 6.5 12 6.5 10z"></path>
@@ -117,6 +117,17 @@
                                             <option value="@matematika">@matematika</option>
                                             <option value="@cestina">@cestina</option>
                                             <option value="@samorost">@samorost</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="student-work-field">
+                                    <span class="student-work-label">Pilir</span>
+                                    <div class="student-work-select">
+                                        <select id="student-work-pillar" required aria-required="true">
+                                            <option value="" disabled selected>Vyber pilir</option>
+                                            <option value="pilir 1">pilir 1</option>
+                                            <option value="pilir 2">pilir 2</option>
+                                            <option value="pilir 3">pilir 3</option>
                                         </select>
                                     </div>
                                 </div>
@@ -272,6 +283,8 @@
         let isAdmin = false;
         let currentUser = null;
         let userProfile = { className: '' };
+        let studentWorkFilterPillar = '';
+        let studentWorkReadOnly = false;
         const userEmailCache = new Map();
 
         function isAdminUser(user) {
@@ -783,7 +796,15 @@
                 return segments;
             }
 
-            function buildEntry(value) {
+            function buildEntry(entryData) {
+                let value = '';
+                let pillar = '';
+                if (typeof entryData === 'string') {
+                    value = entryData;
+                } else if (entryData && typeof entryData === 'object') {
+                    value = entryData.value || '';
+                    pillar = entryData.pillar || '';
+                }
                 const trimmed = (value || '').trim();
                 if (!trimmed) {
                     return null;
@@ -804,12 +825,25 @@
                 const entry = document.createElement('div');
                 entry.className = 'data-entry';
                 let needsSpace = false;
+                const pillarLabel = String(pillar || '').trim();
+                const hasPillar = Boolean(pillarLabel);
 
                 if (subject) {
                     const subjectSpan = document.createElement('span');
                     subjectSpan.className = 'data-subject';
                     subjectSpan.textContent = subject;
                     entry.appendChild(subjectSpan);
+                    needsSpace = hasPillar || rest.length > 0;
+                }
+
+                if (hasPillar) {
+                    if (needsSpace) {
+                        entry.appendChild(document.createTextNode(' '));
+                    }
+                    const pillarSpan = document.createElement('span');
+                    pillarSpan.className = 'data-pillar';
+                    pillarSpan.textContent = pillarLabel;
+                    entry.appendChild(pillarSpan);
                     needsSpace = rest.length > 0;
                 }
 
@@ -867,8 +901,17 @@
                 const dataRef = db.collection('users').doc(user.uid).collection('data');
                 const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(4).get();
 
-                const values = snapshot.docs.map(doc => doc.data().value).filter(Boolean);
-                renderList(values, 'Zatim zadna data.');
+                const values = snapshot.docs.map(doc => {
+                    const data = doc.data() || {};
+                    return {
+                        value: data.value || '',
+                        pillar: data.pillar || ''
+                    };
+                }).filter(item => item.value);
+                const filteredValues = studentWorkFilterPillar
+                    ? values.filter(item => (item.pillar || '').toLowerCase() === studentWorkFilterPillar)
+                    : values;
+                renderList(filteredValues, 'Zatim zadna data.');
             } else {
               renderList([], 'User not authenticated');
             }
@@ -923,10 +966,13 @@
           const themeToggle = document.getElementById('theme-toggle');
           const studentWorkStage = document.getElementById('student-work-stage');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
+          const studentWorkPillarFilterButton = document.querySelector('.student-work-button[data-action="filter-pillar-1"]');
+          const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-button[data-action="filter-pillar-2"]');
           const studentWorkBack = document.getElementById('student-work-back');
           const studentWorkFormTitle = document.getElementById('student-work-form-title');
           const studentWorkInput = document.getElementById('student-work-input');
           const studentWorkSubject = document.getElementById('student-work-subject');
+          const studentWorkPillar = document.getElementById('student-work-pillar');
           const studentWorkSendButton = document.querySelector('#student-work .student-work-icon-btn.is-send');
 
           function getStoredTheme() {
@@ -970,27 +1016,66 @@
             studentWorkStage.classList.remove('is-add-active');
           }
 
+          function setStudentWorkReadOnly(isReadOnly) {
+            studentWorkReadOnly = Boolean(isReadOnly);
+            if (studentWorkStage) {
+              studentWorkStage.classList.toggle('is-readonly', studentWorkReadOnly);
+            }
+            const formFields = document.querySelectorAll('#student-work .student-work-field');
+            const displayValue = studentWorkReadOnly ? 'none' : '';
+            formFields.forEach(field => {
+              field.hidden = studentWorkReadOnly;
+              field.style.display = displayValue;
+            });
+            const inputRow = document.querySelector('#student-work .student-work-input');
+            if (inputRow) {
+              inputRow.hidden = studentWorkReadOnly;
+              inputRow.style.display = displayValue;
+            }
+            if (studentWorkInput) {
+              studentWorkInput.disabled = studentWorkReadOnly;
+            }
+            if (studentWorkSubject) {
+              studentWorkSubject.disabled = studentWorkReadOnly;
+            }
+            if (studentWorkPillar) {
+              studentWorkPillar.disabled = studentWorkReadOnly;
+            }
+            const inputButtons = document.querySelectorAll('#student-work .student-work-input .student-work-icon-btn');
+            inputButtons.forEach(button => {
+              button.disabled = studentWorkReadOnly;
+            });
+          }
+
           async function sendStudentWorkMessage() {
             const user = firebase.auth().currentUser;
             if (!user || !studentWorkInput || !studentWorkSubject) {
               return;
             }
+            if (studentWorkReadOnly) {
+              return;
+            }
 
             const inputValue = studentWorkInput.value.trim();
             const subjectValue = studentWorkSubject.value || '';
+            const pillarValue = studentWorkPillar ? studentWorkPillar.value : '';
             const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
 
-            if (!cleanedValue || !subjectValue) {
+            if (!cleanedValue || !subjectValue || !pillarValue) {
               return;
             }
 
             try {
               await db.collection('users').doc(user.uid).collection('data').add({
                 value: `${subjectValue} ${cleanedValue}`,
+                pillar: pillarValue,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
               });
               await renderData();
               studentWorkInput.value = '';
+              if (studentWorkPillar) {
+                studentWorkPillar.selectedIndex = 0;
+              }
             } catch (error) {
               console.error('Error saving data:', error);
             }
@@ -1687,9 +1772,32 @@
           }
 
           if (studentWorkAddButton) {
-            studentWorkAddButton.addEventListener('click', () => {
+            studentWorkAddButton.addEventListener('click', async () => {
+              studentWorkFilterPillar = '';
+              setStudentWorkReadOnly(false);
               const title = studentWorkAddButton.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
+              await renderData();
+            });
+          }
+
+          if (studentWorkPillarFilterButton) {
+            studentWorkPillarFilterButton.addEventListener('click', async () => {
+              studentWorkFilterPillar = 'pilir 1';
+              setStudentWorkReadOnly(true);
+              const title = studentWorkPillarFilterButton.getAttribute('data-title') || 'Prace';
+              openStudentWork(title);
+              await renderData();
+            });
+          }
+
+          if (studentWorkPillarFilterButtonTwo) {
+            studentWorkPillarFilterButtonTwo.addEventListener('click', async () => {
+              studentWorkFilterPillar = 'pilir 2';
+              setStudentWorkReadOnly(true);
+              const title = studentWorkPillarFilterButtonTwo.getAttribute('data-title') || 'Prace';
+              openStudentWork(title);
+              await renderData();
             });
           }
 
