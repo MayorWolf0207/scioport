@@ -76,7 +76,7 @@
                                 </svg>
                             </div>
                             <div class="student-work-stack student-work-stack--right">
-                                <button class="student-work-button is-blue" type="button" data-title="Prace 4" aria-label="Prace 4">
+                                <button class="student-work-button is-blue" type="button" data-action="filter-pillar-3" data-title="Prace 4" aria-label="Prace 4">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4"></path>
                                         <circle cx="12" cy="18" r="1.4"></circle>
@@ -968,6 +968,7 @@
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
           const studentWorkPillarFilterButton = document.querySelector('.student-work-button[data-action="filter-pillar-1"]');
           const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-button[data-action="filter-pillar-2"]');
+          const studentWorkPillarFilterButtonThree = document.querySelector('.student-work-button[data-action="filter-pillar-3"]');
           const studentWorkBack = document.getElementById('student-work-back');
           const studentWorkFormTitle = document.getElementById('student-work-form-title');
           const studentWorkInput = document.getElementById('student-work-input');
@@ -1796,6 +1797,16 @@
               studentWorkFilterPillar = 'pilir 2';
               setStudentWorkReadOnly(true);
               const title = studentWorkPillarFilterButtonTwo.getAttribute('data-title') || 'Prace';
+              openStudentWork(title);
+              await renderData();
+            });
+          }
+
+          if (studentWorkPillarFilterButtonThree) {
+            studentWorkPillarFilterButtonThree.addEventListener('click', async () => {
+              studentWorkFilterPillar = 'pilir 3';
+              setStudentWorkReadOnly(true);
+              const title = studentWorkPillarFilterButtonThree.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
               await renderData();
             });
