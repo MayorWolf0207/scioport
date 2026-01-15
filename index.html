@@ -111,24 +111,40 @@
                                 <div class="data-log student-work-log" id="student-work-log"></div>
                                 <div class="student-work-field">
                                     <span class="student-work-label">Predmet</span>
-                                    <div class="student-work-select">
-                                        <select id="student-work-subject">
-                                            <option value="@anglictina">@anglictina</option>
-                                            <option value="@matematika">@matematika</option>
-                                            <option value="@cestina">@cestina</option>
-                                            <option value="@samorost">@samorost</option>
-                                        </select>
+                                    <div class="student-work-select student-work-multi" id="student-work-subject" role="group" aria-label="Predmet">
+                                        <label class="student-work-chip">
+                                            <input type="checkbox" value="@anglictina">
+                                            <span>anglictina</span>
+                                        </label>
+                                        <label class="student-work-chip">
+                                            <input type="checkbox" value="@matematika">
+                                            <span>matematika</span>
+                                        </label>
+                                        <label class="student-work-chip">
+                                            <input type="checkbox" value="@cestina">
+                                            <span>cestina</span>
+                                        </label>
+                                        <label class="student-work-chip">
+                                            <input type="checkbox" value="@samorost">
+                                            <span>samorost</span>
+                                        </label>
                                     </div>
                                 </div>
                                 <div class="student-work-field">
                                     <span class="student-work-label">Pilir</span>
-                                    <div class="student-work-select">
-                                        <select id="student-work-pillar" required aria-required="true">
-                                            <option value="" disabled selected>Vyber pilir</option>
-                                            <option value="zvýdavost">zvýdavost</option>
-                                            <option value="morální hodnoty">morální hodnoty</option>
-                                            <option value="samostatnost">samostatnost</option>
-                                        </select>
+                                    <div class="student-work-select student-work-multi" id="student-work-pillar" role="group" aria-label="Pilir">
+                                        <label class="student-work-chip">
+                                            <input type="checkbox" value="zvýdavost">
+                                            <span>zvýdavost</span>
+                                        </label>
+                                        <label class="student-work-chip">
+                                            <input type="checkbox" value="morální hodnoty">
+                                            <span>morální hodnoty</span>
+                                        </label>
+                                        <label class="student-work-chip">
+                                            <input type="checkbox" value="samostatnost">
+                                            <span>samostatnost</span>
+                                        </label>
                                     </div>
                                 </div>
                                 <div class="student-work-input">
@@ -560,12 +576,86 @@
             };
         }
 
+        function formatSubjectLabel(value) {
+            return String(value || '').replace(/^@+/, '').trim();
+        }
+
+        function ensureSubjectPrefix(value) {
+            const trimmed = String(value || '').trim();
+            if (!trimmed) {
+                return '';
+            }
+            return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+        }
+
+        function getCheckedValues(container) {
+            if (!container) {
+                return [];
+            }
+            return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(input => input.value)
+                .filter(Boolean);
+        }
+
+        function setCheckboxGroupDisabled(container, isDisabled) {
+            if (!container) {
+                return;
+            }
+            container.querySelectorAll('input[type="checkbox"]').forEach(input => {
+                input.disabled = isDisabled;
+            });
+        }
+
+        function clearCheckboxGroup(container) {
+            if (!container) {
+                return;
+            }
+            container.querySelectorAll('input[type="checkbox"]').forEach(input => {
+                input.checked = false;
+            });
+        }
+
         function getSubjectLabel(subject) {
             return subject.name || subject.label || subject.value || '';
         }
 
         function getSubjectValue(subject) {
             return subject.value || subject.name || subject.label || '';
+        }
+
+        function renderStudentWorkSubjects(subjects) {
+            if (!studentWorkSubject) {
+                return;
+            }
+
+            const items = subjects && subjects.length ? subjects : defaultSubjectOptions;
+            const selected = new Set(getCheckedValues(studentWorkSubject).map(value => value.toLowerCase()));
+            studentWorkSubject.innerHTML = '';
+
+            items.forEach(subject => {
+                const label = getSubjectLabel(subject);
+                const value = getSubjectValue(subject);
+                if (!label) {
+                    return;
+                }
+                const option = document.createElement('label');
+                option.className = 'student-work-chip';
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.value = value || label;
+                if (selected.has(String(input.value).toLowerCase())) {
+                    input.checked = true;
+                }
+                input.disabled = studentWorkReadOnly;
+
+                const text = document.createElement('span');
+                text.textContent = formatSubjectLabel(label);
+
+                option.appendChild(input);
+                option.appendChild(text);
+                studentWorkSubject.appendChild(option);
+            });
         }
 
         function renderSubjectOptions(subjects) {
@@ -588,6 +678,7 @@
                     select.appendChild(option);
                 });
             });
+            renderStudentWorkSubjects(items);
         }
 
         function renderSubjectList(subjects) {
@@ -949,6 +1040,59 @@
                 });
             }
 
+            function extractSubjectTokens(value) {
+                if (!value) {
+                    return { subjects: [], rest: '' };
+                }
+                const trimmed = String(value).trim();
+                if (!trimmed.startsWith('@')) {
+                    return { subjects: [], rest: trimmed };
+                }
+                const match = trimmed.match(/^(@\S+\s*)+/);
+                if (!match) {
+                    return { subjects: [], rest: trimmed };
+                }
+                const subjectPart = match[0].trim();
+                const subjects = subjectPart ? subjectPart.split(/\s+/) : [];
+                const rest = trimmed.slice(match[0].length).trim();
+                return { subjects, rest };
+            }
+
+            function collectPillars(entryData) {
+                if (!entryData) {
+                    return [];
+                }
+                if (Array.isArray(entryData.pillars) && entryData.pillars.length) {
+                    return entryData.pillars;
+                }
+                if (Array.isArray(entryData.pillar)) {
+                    return entryData.pillar;
+                }
+                if (entryData.pillar) {
+                    return [entryData.pillar];
+                }
+                return [];
+            }
+
+            function getPillarSlugs(entryData) {
+                return collectPillars(entryData)
+                    .map(label => getPillarSlug(label))
+                    .filter(Boolean);
+            }
+
+            function collectSubjects(entryData, parsedSubjects) {
+                if (!entryData) {
+                    return parsedSubjects || [];
+                }
+                if (Array.isArray(entryData.subjects) && entryData.subjects.length) {
+                    return entryData.subjects;
+                }
+                if (entryData.subjects) {
+                    return [entryData.subjects];
+                }
+                return parsedSubjects || [];
+            }
+
             function slugify(value) {
                 return String(value || '')
                     .trim()
@@ -1037,46 +1181,49 @@
             function createTag(label, type) {
                 const tag = document.createElement('span');
                 tag.className = `data-tag data-tag--${type}`;
-                tag.textContent = label;
-                const styles = type === 'pillar' ? getPillarTagStyles(label) : getSubjectTagStyles(label);
+                const displayLabel = type === 'pillar' ? formatPillarLabel(label) : formatSubjectLabel(label);
+                if (!displayLabel) {
+                    return null;
+                }
+                tag.textContent = displayLabel;
+                const styles = type === 'pillar' ? getPillarTagStyles(displayLabel) : getSubjectTagStyles(displayLabel);
                 applyTagStyles(tag, styles);
                 return { tag, styles };
             }
 
             function buildEntry(entryData) {
                 let value = '';
-                let pillar = '';
                 if (typeof entryData === 'string') {
                     value = entryData;
                 } else if (entryData && typeof entryData === 'object') {
                     value = entryData.value || '';
-                    pillar = entryData.pillar || '';
                 }
                 const trimmed = (value || '').trim();
-                if (!trimmed) {
-                    return null;
-                }
-                let subject = '';
-                let rest = trimmed;
-                if (trimmed.startsWith('@')) {
-                    const firstSpace = trimmed.search(/\s/);
-                    if (firstSpace === -1) {
-                        subject = trimmed;
-                        rest = '';
-                    } else {
-                        subject = trimmed.slice(0, firstSpace);
-                        rest = trimmed.slice(firstSpace).trim();
-                    }
-                }
+                const extracted = extractSubjectTokens(trimmed);
+                const rest = extracted.rest;
+                const parsedSubjects = extracted.subjects;
 
                 const entry = document.createElement('article');
                 entry.className = 'data-entry';
-                const pillarLabel = formatPillarLabel(String(pillar || '').trim());
-                const subjectLabel = subject ? subject.replace(/^@+/, '').trim() : '';
+                const pillarLabels = collectPillars(entryData)
+                    .map(label => formatPillarLabel(String(label || '').trim()))
+                    .filter(Boolean);
+                const subjectLabels = collectSubjects(entryData, parsedSubjects)
+                    .map(label => formatSubjectLabel(label))
+                    .filter(Boolean);
+                const uniqueSubjects = Array.from(new Set(subjectLabels.map(label => label.toLowerCase())))
+                    .map(label => subjectLabels.find(item => item.toLowerCase() === label))
+                    .filter(Boolean);
+                const uniquePillars = Array.from(new Set(pillarLabels.map(label => label.toLowerCase())))
+                    .map(label => pillarLabels.find(item => item.toLowerCase() === label))
+                    .filter(Boolean);
                 const segments = buildSegments(rest);
                 const split = splitEntrySegments(segments);
                 const fallbackText = segmentsToText(trimSegments(segments)).trim();
-                const titleText = segmentsToText(split.titleSegments).trim() || fallbackText || subjectLabel || pillarLabel;
+                const titleText = segmentsToText(split.titleSegments).trim()
+                    || fallbackText
+                    || uniqueSubjects[0]
+                    || uniquePillars[0];
 
                 if (!titleText) {
                     return null;
@@ -1099,19 +1246,29 @@
                 let hasTags = false;
                 let accent = '';
 
-                if (pillarLabel) {
-                    const { tag, styles } = createTag(pillarLabel, 'pillar');
-                    tagsEl.appendChild(tag);
+                uniquePillars.forEach(label => {
+                    const tagData = createTag(label, 'pillar');
+                    if (!tagData) {
+                        return;
+                    }
+                    tagsEl.appendChild(tagData.tag);
                     hasTags = true;
-                    accent = styles.accent || styles.color || accent;
-                }
+                    if (!accent) {
+                        accent = tagData.styles.accent || tagData.styles.color || accent;
+                    }
+                });
 
-                if (subjectLabel) {
-                    const { tag, styles } = createTag(subjectLabel, 'subject');
-                    tagsEl.appendChild(tag);
+                uniqueSubjects.forEach(label => {
+                    const tagData = createTag(label, 'subject');
+                    if (!tagData) {
+                        return;
+                    }
+                    tagsEl.appendChild(tagData.tag);
                     hasTags = true;
-                    accent = styles.accent || styles.color || accent;
-                }
+                    if (!accent) {
+                        accent = tagData.styles.accent || tagData.styles.color || accent;
+                    }
+                });
 
                 if (accent) {
                     entry.style.setProperty('--card-accent', accent);
@@ -1149,13 +1306,21 @@
 
                 const values = snapshot.docs.map(doc => {
                     const data = doc.data() || {};
+                    const pillars = Array.isArray(data.pillars)
+                        ? data.pillars
+                        : (data.pillars ? [data.pillars] : []);
+                    const subjects = Array.isArray(data.subjects)
+                        ? data.subjects
+                        : (data.subjects ? [data.subjects] : []);
                     return {
                         value: data.value || '',
-                        pillar: data.pillar || ''
+                        pillar: data.pillar || '',
+                        pillars,
+                        subjects
                     };
-                }).filter(item => item.value);
+                }).filter(item => item.value || item.pillars.length || item.subjects.length);
                 const filteredValues = studentWorkFilterPillar
-                    ? values.filter(item => getPillarSlug(item.pillar) === studentWorkFilterPillar)
+                    ? values.filter(item => getPillarSlugs(item).includes(studentWorkFilterPillar))
                     : values;
                 renderList(filteredValues, 'Zatim zadna data.');
             } else {
@@ -1282,12 +1447,8 @@
             if (studentWorkInput) {
               studentWorkInput.disabled = studentWorkReadOnly;
             }
-            if (studentWorkSubject) {
-              studentWorkSubject.disabled = studentWorkReadOnly;
-            }
-            if (studentWorkPillar) {
-              studentWorkPillar.disabled = studentWorkReadOnly;
-            }
+            setCheckboxGroupDisabled(studentWorkSubject, studentWorkReadOnly);
+            setCheckboxGroupDisabled(studentWorkPillar, studentWorkReadOnly);
             const inputButtons = document.querySelectorAll('#student-work .student-work-input .student-work-icon-btn');
             inputButtons.forEach(button => {
               button.disabled = studentWorkReadOnly;
@@ -1296,7 +1457,7 @@
 
           async function sendStudentWorkMessage() {
             const user = firebase.auth().currentUser;
-            if (!user || !studentWorkInput || !studentWorkSubject) {
+            if (!user || !studentWorkInput || !studentWorkSubject || !studentWorkPillar) {
               return;
             }
             if (studentWorkReadOnly) {
@@ -1304,25 +1465,36 @@
             }
 
             const inputValue = studentWorkInput.value.trim();
-            const subjectValue = studentWorkSubject.value || '';
-            const pillarValue = studentWorkPillar ? studentWorkPillar.value : '';
+            const subjectValues = getCheckedValues(studentWorkSubject);
+            const pillarValues = getCheckedValues(studentWorkPillar);
             const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
+            const subjectTokens = subjectValues.map(ensureSubjectPrefix).filter(Boolean);
+            const subjectLabels = subjectTokens.map(label => formatSubjectLabel(label)).filter(Boolean);
+            const pillarLabels = pillarValues.map(label => String(label || '').trim()).filter(Boolean);
 
-            if (!cleanedValue || !subjectValue || !pillarValue) {
+            if (!cleanedValue || !subjectTokens.length || !pillarLabels.length) {
               return;
             }
 
             try {
+              const valueParts = [];
+              if (subjectTokens.length) {
+                valueParts.push(subjectTokens.join(' '));
+              }
+              valueParts.push(cleanedValue);
+              const value = valueParts.join(' ');
+
               await db.collection('users').doc(user.uid).collection('data').add({
-                value: `${subjectValue} ${cleanedValue}`,
-                pillar: pillarValue,
+                value,
+                pillar: pillarLabels[0] || '',
+                pillars: pillarLabels,
+                subjects: subjectLabels,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
               });
               await renderData();
               studentWorkInput.value = '';
-              if (studentWorkPillar) {
-                studentWorkPillar.selectedIndex = 0;
-              }
+              clearCheckboxGroup(studentWorkSubject);
+              clearCheckboxGroup(studentWorkPillar);
             } catch (error) {
               console.error('Error saving data:', error);
             }
