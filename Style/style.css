@@ -576,6 +576,67 @@ body.theme-dark .student-work {
     gap: 18px;
 }
 
+.student-work-avatar-actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 8px 24px 24px;
+}
+
+.student-work-avatar-button {
+    width: 74px;
+    height: 74px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(160deg, #ffad57, #ff8f2f);
+    box-shadow: 0 10px 0 #e27214, 0 18px 24px rgba(16, 24, 38, 0.18);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-work-avatar-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 0 #e27214, 0 20px 26px rgba(16, 24, 38, 0.2);
+}
+
+.student-work-avatar-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 6px 0 #e27214, 0 12px 18px rgba(16, 24, 38, 0.2);
+}
+
+.student-work-avatar-icon {
+    width: 34px;
+    height: 34px;
+    display: block;
+}
+
+.student-work-avatar-icon-bulb {
+    fill: #ffd27b;
+}
+
+.student-work-avatar-icon-bulb-base {
+    fill: #d7d9dd;
+}
+
+.student-work-avatar-icon-heart {
+    fill: #ff4b77;
+}
+
+.student-work-avatar-icon-arm {
+    fill: #f3cfa6;
+}
+
+.student-work-avatar-icon-arm-detail {
+    fill: none;
+    stroke: #e1ad78;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
 .student-work-stack {
     display: grid;
     gap: 14px;
@@ -1254,6 +1315,21 @@ body.theme-dark .student-work-input {
     .student-work-button {
         width: 56px;
         height: 56px;
+    }
+
+    .student-work-avatar-actions {
+        gap: 14px;
+    }
+
+    .student-work-avatar-button {
+        width: 64px;
+        height: 64px;
+        box-shadow: 0 8px 0 #e27214, 0 14px 20px rgba(16, 24, 38, 0.18);
+    }
+
+    .student-work-avatar-icon {
+        width: 30px;
+        height: 30px;
     }
 
     .student-work-illustration {

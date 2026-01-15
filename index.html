@@ -46,12 +46,12 @@
                                         <path d="M12 5v14M5 12h14"></path>
                                     </svg>
                                 </button>
-                                <button class="student-work-button is-green-2" type="button" data-action="filter-pillar-1" data-title="Prace 2" aria-label="Prace 2">
+                                <button class="student-work-button is-green-2" type="button" data-title="Prace 2" aria-label="Prace 2">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M6 12l4 4 8-8"></path>
                                     </svg>
                                 </button>
-                                <button class="student-work-button is-green-3" type="button" data-action="filter-pillar-2" data-title="Prace 3" aria-label="Prace 3">
+                                <button class="student-work-button is-green-3" type="button" data-title="Prace 3" aria-label="Prace 3">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M9 21h6M10 17h4"></path>
                                         <path d="M6.5 10a5.5 5.5 0 1 1 11 0c0 2-1.1 3.3-2.4 4.4-.6.5-1 1.1-1 1.8H9.9c0-.7-.4-1.3-1-1.8C7.6 13.3 6.5 12 6.5 10z"></path>
@@ -76,7 +76,7 @@
                                 </svg>
                             </div>
                             <div class="student-work-stack student-work-stack--right">
-                                <button class="student-work-button is-blue" type="button" data-action="filter-pillar-3" data-title="Prace 4" aria-label="Prace 4">
+                                <button class="student-work-button is-blue" type="button" data-title="Prace 4" aria-label="Prace 4">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4"></path>
                                         <circle cx="12" cy="18" r="1.4"></circle>
@@ -153,6 +153,26 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="student-work-avatar-actions">
+                    <button class="student-work-avatar-button" type="button" data-action="filter-pillar-1" data-title="Prace 2" aria-label="zarovka">
+                        <svg class="student-work-avatar-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                            <path class="student-work-avatar-icon-bulb" d="M32 10c-10.5 0-19 8.5-19 19 0 7.2 4.1 13.7 10.4 16.8V48c0 2.2 1.8 4 4 4h9.2c2.2 0 4-1.8 4-4v-2.2C46.9 42.7 51 36.2 51 29c0-10.5-8.5-19-19-19z"></path>
+                            <rect class="student-work-avatar-icon-bulb-base" x="25" y="50" width="14" height="6" rx="2"></rect>
+                            <rect class="student-work-avatar-icon-bulb-base" x="23" y="56" width="18" height="4" rx="2"></rect>
+                        </svg>
+                    </button>
+                    <button class="student-work-avatar-button" type="button" data-action="filter-pillar-2" data-title="Prace 3" aria-label="srdce">
+                        <svg class="student-work-avatar-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                            <path class="student-work-avatar-icon-heart" d="M32 51s-14.8-8.7-21-16.4C6.3 29.6 5 25.4 5 21.4 5 14 10.8 8.7 18.4 8.7c5 0 9.4 2.6 11.6 6.7 2.2-4.1 6.6-6.7 11.6-6.7C49.2 8.7 55 14 55 21.4c0 4-1.3 8.2-6 13.2C46.8 42.3 32 51 32 51z"></path>
+                        </svg>
+                    </button>
+                    <button class="student-work-avatar-button" type="button" data-action="filter-pillar-3" data-title="Prace 4" aria-label="sila">
+                        <svg class="student-work-avatar-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                            <path class="student-work-avatar-icon-arm" d="M16 40c-4-2-6-6-6-11 0-6 5-11 11-11 4.4 0 8.2 2.2 10.3 5.7l3.7-6.3c1.3-2.2 3.7-3.4 6.2-3.4 3.7 0 6.7 3 6.7 6.7 0 2.5-1.4 4.9-3.6 6.1l-6.2 3.2 6.1 6.1c2.4 2.4 3.8 5.7 3.8 9.1 0 6-4.9 10.8-10.8 10.8H24.5c-6.3 0-10.5-4.3-10.5-10.5V40z"></path>
+                            <path class="student-work-avatar-icon-arm-detail" d="M30 44c4 2 10 1 13-4"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </section>
@@ -966,9 +986,9 @@
           const themeToggle = document.getElementById('theme-toggle');
           const studentWorkStage = document.getElementById('student-work-stage');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
-          const studentWorkPillarFilterButton = document.querySelector('.student-work-button[data-action="filter-pillar-1"]');
-          const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-button[data-action="filter-pillar-2"]');
-          const studentWorkPillarFilterButtonThree = document.querySelector('.student-work-button[data-action="filter-pillar-3"]');
+          const studentWorkPillarFilterButton = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-1"]');
+          const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-2"]');
+          const studentWorkPillarFilterButtonThree = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-3"]');
           const studentWorkBack = document.getElementById('student-work-back');
           const studentWorkFormTitle = document.getElementById('student-work-form-title');
           const studentWorkInput = document.getElementById('student-work-input');
