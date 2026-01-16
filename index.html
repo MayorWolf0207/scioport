@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projekt P.</title>
-    <link rel="stylesheet" href="Style/style.css?v=2026-10">
+    <link rel="stylesheet" href="Style/style.css?v=2026-10-2">
 </head>
 <body>
     <main>
@@ -292,6 +292,7 @@
             <div class="subject-list" id="subject-list"></div>
         </section>
     </main>
+    <div class="template-toast-stack" id="template-toast-stack" aria-live="polite" aria-atomic="true"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -316,6 +317,11 @@
         const subjectsRef = db.collection('subjects');
         const templatesRef = db.collection('templates');
         let subjectsUnsubscribe = null;
+        let templateNotificationUnsubscribers = [];
+        let templateNotificationSeen = new Set();
+        const activeTemplateNotifications = new Set();
+        const TEMPLATE_TOAST_LIMIT = 3;
+        const TEMPLATE_SEEN_LIMIT = 200;
         const GOOGLE_CLIENT_ID = '257273111535-dob05jm6ope9mnh6fmc70rpng7n6uqls.apps.googleusercontent.com';
         const GOOGLE_API_KEY = 'AIzaSyAuqQ4Zxy_JdUDS8lycIl_4SIbowcsw0Cg';
         const GOOGLE_APP_ID = 'zaznamy-zrhomazdeni';
@@ -1434,16 +1440,19 @@
 
 
           firebase.auth().onAuthStateChanged(async function(user) {
+            stopTemplateNotificationListeners();
             if (!user) {
-
+              initTemplateNotificationState(null);
               window.location.replace(loginUrl);
               return;
             } else {
               currentUser = user;
+              initTemplateNotificationState(user);
               await loadUserProfile(user);
               isAdmin = isAdminUser(user);
               applyAdminUi();
               updateTemplateSaveState();
+              startTemplateNotificationListeners();
               await renderData();
               await initSubjects();
             }
@@ -1471,6 +1480,7 @@
           const sentTemplatesList = document.getElementById('sent-templates-list');
           const sentTemplatesEmpty = document.getElementById('sent-templates-empty');
           const sentTemplatesClose = document.getElementById('sent-templates-close');
+          const templateToastStack = document.getElementById('template-toast-stack');
           const studentClassField = document.getElementById('student-class-field');
           const studentClassInput = document.getElementById('student-class');
           const studentClassNote = document.getElementById('student-class-note');
@@ -1726,7 +1736,17 @@
               createdByEmail: user.email || ''
             };
 
-            await templatesRef.add(payload);
+            const docRef = await templatesRef.add(payload);
+            if (docRef && docRef.id) {
+              const recipientType = (payload.recipientType || '').toLowerCase();
+              const emailLower = user.email ? user.email.toLowerCase() : '';
+              const classLower = userProfile.className ? userProfile.className.toLowerCase() : '';
+              const isForUser = (recipientType === 'student' && payload.recipientValueLower === emailLower)
+                || (recipientType === 'class' && payload.recipientValueLower === classLower);
+              if (isForUser) {
+                showTemplateNotification({ id: docRef.id, ...payload });
+              }
+            }
             templateTitleInput.value = '';
             templateInstructionsInput.value = '';
             templateRecipientValue.value = '';
@@ -1825,6 +1845,7 @@
                   studentClassNote.textContent = `Prirazena trida: ${className}.`;
                 }
                 await loadAssignedTemplates();
+                startTemplateNotificationListeners();
               }
             } catch (error) {
               console.error('Error assigning student class:', error);
@@ -1847,7 +1868,7 @@
 
           async function loadAssignedTemplates() {
             if (!currentUser || !templateFillList) {
-              return;
+              return [];
             }
 
             const queries = [];
@@ -1872,7 +1893,7 @@
 
             if (!queries.length) {
               renderTemplateFillList([], new Map());
-              return;
+              return [];
             }
 
             const snapshots = await Promise.all(queries.map(query => query.get()));
@@ -1892,6 +1913,327 @@
 
             const responses = await loadTemplateResponses(currentUser);
             renderTemplateFillList(templates, responses);
+            return templates;
+          }
+
+          function getTemplateSeenKey(userId) {
+            return userId ? `scioport-template-seen-${userId}` : 'scioport-template-seen';
+          }
+
+          function loadTemplateSeen(userId) {
+            if (!userId) {
+              return new Set();
+            }
+            try {
+              const raw = localStorage.getItem(getTemplateSeenKey(userId));
+              const parsed = raw ? JSON.parse(raw) : [];
+              if (Array.isArray(parsed)) {
+                return new Set(parsed.filter(Boolean));
+              }
+            } catch (error) {
+              // ignore storage failures
+            }
+            return new Set();
+          }
+
+          function trimTemplateSeen() {
+            if (templateNotificationSeen.size <= TEMPLATE_SEEN_LIMIT) {
+              return;
+            }
+            for (const templateId of templateNotificationSeen) {
+              if (templateNotificationSeen.size <= TEMPLATE_SEEN_LIMIT) {
+                break;
+              }
+              templateNotificationSeen.delete(templateId);
+            }
+          }
+
+          function saveTemplateSeen(userId) {
+            if (!userId) {
+              return;
+            }
+            trimTemplateSeen();
+            try {
+              localStorage.setItem(getTemplateSeenKey(userId), JSON.stringify(Array.from(templateNotificationSeen)));
+            } catch (error) {
+              // ignore storage failures
+            }
+          }
+
+          function addTemplateIdsToSeen(ids) {
+            if (!currentUser || !Array.isArray(ids)) {
+              return;
+            }
+            let changed = false;
+            ids.forEach(id => {
+              const normalized = String(id || '').trim();
+              if (!normalized) {
+                return;
+              }
+              if (!templateNotificationSeen.has(normalized)) {
+                templateNotificationSeen.add(normalized);
+                changed = true;
+              }
+            });
+            if (changed) {
+              saveTemplateSeen(currentUser.uid);
+            }
+          }
+
+          function clearTemplateNotifications() {
+            if (!templateToastStack) {
+              return;
+            }
+            Array.from(templateToastStack.children).forEach(child => child.remove());
+            activeTemplateNotifications.clear();
+          }
+
+          function initTemplateNotificationState(user) {
+            templateNotificationSeen = user ? loadTemplateSeen(user.uid) : new Set();
+            clearTemplateNotifications();
+          }
+
+          function removeTemplateToast(toast) {
+            if (!toast) {
+              return;
+            }
+            const templateId = toast.dataset ? toast.dataset.templateId : '';
+            if (templateId) {
+              activeTemplateNotifications.delete(templateId);
+            }
+            toast.remove();
+          }
+
+          function trimTemplateToasts() {
+            if (!templateToastStack) {
+              return;
+            }
+            while (templateToastStack.children.length > TEMPLATE_TOAST_LIMIT) {
+              removeTemplateToast(templateToastStack.firstElementChild);
+            }
+          }
+
+          function createTemplateToast(title, message, templateId) {
+            const toast = document.createElement('div');
+            toast.className = 'template-toast';
+            toast.setAttribute('role', 'button');
+            toast.setAttribute('tabindex', '0');
+            if (templateId) {
+              toast.dataset.templateId = templateId;
+            }
+
+            const header = document.createElement('div');
+            header.className = 'template-toast-header';
+
+            const titleEl = document.createElement('p');
+            titleEl.className = 'template-toast-title';
+            titleEl.textContent = title;
+
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'template-toast-close';
+            closeButton.textContent = 'Zavrit';
+
+            header.appendChild(titleEl);
+            header.appendChild(closeButton);
+
+            const textEl = document.createElement('p');
+            textEl.className = 'template-toast-text';
+            textEl.textContent = message;
+
+            toast.appendChild(header);
+            toast.appendChild(textEl);
+
+            closeButton.addEventListener('click', (event) => {
+              event.stopPropagation();
+              removeTemplateToast(toast);
+            });
+
+            return toast;
+          }
+
+          function showTemplateNotification(template) {
+            if (!templateToastStack || !template || !template.id) {
+              return;
+            }
+            if (templateNotificationSeen.has(template.id) || activeTemplateNotifications.has(template.id)) {
+              return;
+            }
+
+            activeTemplateNotifications.add(template.id);
+            addTemplateIdsToSeen([template.id]);
+
+            const titleText = template.title ? `Nova sablona: ${template.title}` : 'Nova sablona k vyplneni';
+            const messageText = 'Klikni pro vyplneni sablony.';
+            const toast = createTemplateToast(titleText, messageText, template.id);
+
+            const handleOpen = async () => {
+              removeTemplateToast(toast);
+              await openTemplateFillPanel(template.id);
+            };
+
+            toast.addEventListener('click', handleOpen);
+            toast.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleOpen();
+              }
+            });
+
+            templateToastStack.appendChild(toast);
+            trimTemplateToasts();
+          }
+
+          function showTemplateBatchNotification(templates) {
+            if (!templateToastStack || !templates || !templates.length) {
+              return;
+            }
+            const ids = templates.map(item => item.id).filter(Boolean);
+            const unseenIds = ids.filter(id => !templateNotificationSeen.has(id));
+            if (!unseenIds.length) {
+              return;
+            }
+
+            addTemplateIdsToSeen(unseenIds);
+
+            const count = unseenIds.length;
+            const titleText = count === 1 ? 'Nova sablona k vyplneni' : `Mas nove sablony (${count})`;
+            const messageText = 'Klikni pro vyplneni sablony.';
+            const toast = createTemplateToast(titleText, messageText, '');
+
+            const handleOpen = async () => {
+              removeTemplateToast(toast);
+              await openTemplateFillPanel();
+            };
+
+            toast.addEventListener('click', handleOpen);
+            toast.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleOpen();
+              }
+            });
+
+            templateToastStack.appendChild(toast);
+            trimTemplateToasts();
+          }
+
+          function stopTemplateNotificationListeners() {
+            if (!templateNotificationUnsubscribers.length) {
+              return;
+            }
+            templateNotificationUnsubscribers.forEach(unsubscribe => {
+              if (typeof unsubscribe === 'function') {
+                unsubscribe();
+              }
+            });
+            templateNotificationUnsubscribers = [];
+          }
+
+          function createTemplateNotificationListener(recipientType, recipientValue) {
+            let isInitial = true;
+            return templatesRef
+              .where('recipientType', '==', recipientType)
+              .where('recipientValueLower', '==', recipientValue)
+              .onSnapshot(snapshot => {
+                const addedTemplates = snapshot.docChanges()
+                  .filter(change => change.type === 'added')
+                  .map(change => ({ id: change.doc.id, ...change.doc.data() }))
+                  .filter(template => template && template.id);
+
+                if (!addedTemplates.length) {
+                  isInitial = false;
+                  return;
+                }
+
+                if (isInitial && addedTemplates.length > 1) {
+                  showTemplateBatchNotification(addedTemplates);
+                } else {
+                  addedTemplates.forEach(showTemplateNotification);
+                }
+
+                isInitial = false;
+              }, error => {
+                console.error('Template notification listener error:', error);
+              });
+          }
+
+          function startTemplateNotificationListeners() {
+            stopTemplateNotificationListeners();
+            if (!currentUser) {
+              return;
+            }
+            const email = currentUser.email ? currentUser.email.toLowerCase() : '';
+            const className = userProfile.className ? userProfile.className.toLowerCase() : '';
+            if (email) {
+              templateNotificationUnsubscribers.push(createTemplateNotificationListener('student', email));
+            }
+            if (className) {
+              templateNotificationUnsubscribers.push(createTemplateNotificationListener('class', className));
+            }
+          }
+
+          async function openTemplateFillPanel(templateId) {
+            if (!templateFillPanel) {
+              return [];
+            }
+            const templatePanelEl = document.getElementById('template-panel');
+            const subjectPanelEl = document.getElementById('subject-panel');
+            const sentTemplatesPanelEl = document.getElementById('sent-templates-panel');
+            const menuPanelEl = document.getElementById('menu-panel');
+            const menuToggleEl = document.getElementById('menu-toggle');
+            templateFillPanel.classList.add('open');
+            templateFillPanel.setAttribute('aria-hidden', 'false');
+            if (templatePanelEl) {
+              templatePanelEl.classList.remove('open');
+              templatePanelEl.setAttribute('aria-hidden', 'true');
+            }
+            if (subjectPanelEl) {
+              subjectPanelEl.classList.remove('open');
+              subjectPanelEl.setAttribute('aria-hidden', 'true');
+            }
+            if (sentTemplatesPanelEl) {
+              sentTemplatesPanelEl.classList.remove('open');
+              sentTemplatesPanelEl.setAttribute('aria-hidden', 'true');
+            }
+            if (menuPanelEl) {
+              menuPanelEl.classList.remove('open');
+            }
+            if (menuToggleEl) {
+              menuToggleEl.setAttribute('aria-expanded', 'false');
+            }
+
+            const templates = await loadAssignedTemplates();
+            if (Array.isArray(templates) && templates.length) {
+              addTemplateIdsToSeen(templates.map(template => template.id));
+            }
+            if (templateId) {
+              openTemplateCard(templateId);
+            }
+            return templates;
+          }
+
+          function openTemplateCard(templateId) {
+            if (!templateFillList || !templateId) {
+              return false;
+            }
+            const card = templateFillList.querySelector(`[data-template-id="${templateId}"]`);
+            if (!card) {
+              return false;
+            }
+            card.classList.add('open');
+            const toggleButton = card.querySelector('.template-open');
+            const hasResponse = card.dataset && card.dataset.hasResponse === 'true';
+            updateTemplateToggleText(toggleButton, true, hasResponse);
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return true;
+          }
+
+          function updateTemplateToggleText(toggleButton, isOpen, hasResponse) {
+            if (!toggleButton) {
+              return;
+            }
+            toggleButton.textContent = isOpen ? 'Skryt' : (hasResponse ? 'Zobrazit' : 'Vyplnit');
           }
 
           function getTemplateRecipientSummary(template) {
@@ -2333,6 +2675,8 @@
 
               const responseData = responses ? responses.get(template.id) : null;
               const hasResponse = Boolean(responseData && responseData.response);
+              card.dataset.templateId = template.id || '';
+              card.dataset.hasResponse = hasResponse ? 'true' : 'false';
 
               const status = document.createElement('span');
               status.className = 'template-status';
@@ -2346,7 +2690,7 @@
               const toggleButton = document.createElement('button');
               toggleButton.type = 'button';
               toggleButton.className = 'template-open';
-              toggleButton.textContent = hasResponse ? 'Zobrazit' : 'Vyplnit';
+              updateTemplateToggleText(toggleButton, false, hasResponse);
 
               actions.appendChild(status);
               actions.appendChild(toggleButton);
@@ -2422,7 +2766,7 @@
 
               toggleButton.addEventListener('click', () => {
                 const isOpen = card.classList.toggle('open');
-                toggleButton.textContent = isOpen ? 'Skryt' : (hasResponse ? 'Zobrazit' : 'Vyplnit');
+                updateTemplateToggleText(toggleButton, isOpen, hasResponse);
               });
 
               templateFillList.appendChild(card);
@@ -2673,26 +3017,7 @@
 
           if (menuFillTemplate) {
             menuFillTemplate.addEventListener('click', async () => {
-              if (!templateFillPanel) {
-                return;
-              }
-              templateFillPanel.classList.add('open');
-              templateFillPanel.setAttribute('aria-hidden', 'false');
-              if (templatePanel) {
-                templatePanel.classList.remove('open');
-                templatePanel.setAttribute('aria-hidden', 'true');
-              }
-              if (subjectPanel) {
-                subjectPanel.classList.remove('open');
-                subjectPanel.setAttribute('aria-hidden', 'true');
-              }
-              if (sentTemplatesPanel) {
-                sentTemplatesPanel.classList.remove('open');
-                sentTemplatesPanel.setAttribute('aria-hidden', 'true');
-              }
-              menuPanel.classList.remove('open');
-              menuToggle.setAttribute('aria-expanded', 'false');
-              await loadAssignedTemplates();
+              await openTemplateFillPanel();
             });
           }
 
