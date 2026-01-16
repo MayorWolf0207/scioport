@@ -831,6 +831,23 @@
             await subjectsRef.doc(subjectId).delete();
         }
 
+        async function deleteStudentWorkEntry(entryId) {
+            const user = firebase.auth().currentUser;
+            if (!user || !entryId) {
+                return;
+            }
+            const confirmDelete = confirm('Smazat tento prispevek?');
+            if (!confirmDelete) {
+                return;
+            }
+            try {
+                await db.collection('users').doc(user.uid).collection('data').doc(entryId).delete();
+                await renderData();
+            } catch (error) {
+                console.error('Error deleting data entry:', error);
+            }
+        }
+
 
         async function renderData() {
             const user = firebase.auth().currentUser;
@@ -1229,10 +1246,27 @@
                     return null;
                 }
 
+                const headerEl = document.createElement('div');
+                headerEl.className = 'data-entry-header';
+
                 const titleEl = document.createElement('h4');
                 titleEl.className = 'data-title';
                 titleEl.textContent = titleText;
-                entry.appendChild(titleEl);
+                headerEl.appendChild(titleEl);
+
+                if (entryData && typeof entryData === 'object' && entryData.id) {
+                    const deleteButton = document.createElement('button');
+                    deleteButton.type = 'button';
+                    deleteButton.className = 'data-entry-delete';
+                    deleteButton.textContent = 'Smazat';
+                    deleteButton.addEventListener('click', event => {
+                        event.stopPropagation();
+                        deleteStudentWorkEntry(entryData.id);
+                    });
+                    headerEl.appendChild(deleteButton);
+                }
+
+                entry.appendChild(headerEl);
 
                 if (split.descSegments.length) {
                     const descEl = document.createElement('p');
@@ -1313,6 +1347,7 @@
                         ? data.subjects
                         : (data.subjects ? [data.subjects] : []);
                     return {
+                        id: doc.id,
                         value: data.value || '',
                         pillar: data.pillar || '',
                         pillars,
