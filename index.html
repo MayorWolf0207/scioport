@@ -247,12 +247,22 @@
                 <button class="template-close" id="template-fill-close" type="button">Zavrit</button>
             </div>
             <p class="template-hint">Sablony prirazene tobe nebo tve tride.</p>
-            <div class="template-field">
+            <div class="template-field" id="student-class-field">
                 <label for="student-class">Moje trida</label>
+                <input type="text" id="student-class" placeholder="Tridu priradi pruvodce" readonly aria-readonly="true">
+                <p class="template-note" id="student-class-note">Tridu prideluje pruvodce.</p>
+            </div>
+            <div class="template-field" id="admin-class-field">
+                <label for="admin-student-email">Zak (email)</label>
+                <input type="email" id="admin-student-email" placeholder="zak@scioskola.cz">
+            </div>
+            <div class="template-field" id="admin-class-field-class">
+                <label for="admin-student-class">Trida</label>
                 <div class="template-inline">
-                    <input type="text" id="student-class" placeholder="8.A">
-                    <button class="secondary" id="student-class-save" type="button">Ulozit tridu</button>
+                    <input type="text" id="admin-student-class" placeholder="8.A">
+                    <button class="secondary" id="admin-student-class-save" type="button">Ulozit tridu</button>
                 </div>
+                <p class="template-note" id="admin-class-note">Zadej email zaka a tridu, pak uloz.</p>
             </div>
             <div class="template-list" id="template-fill-list"></div>
             <p class="template-empty" id="template-fill-empty">Zatim zadne sablony.</p>
@@ -311,6 +321,7 @@
         const GOOGLE_APP_ID = 'zaznamy-zrhomazdeni';
         const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         const ADMIN_EMAILS = ['oliver.bocko@scioskola.cz', 'tobias.pokorny@scioskola.cz'];
+        const PILLAR_OPTIONS = ['zvydavost', 'moralni hodnoty', 'samostatnost'];
 
         let accessToken = '';
         let tokenClient = null;
@@ -321,6 +332,7 @@
         let userProfile = { className: '' };
         let studentWorkFilterPillar = '';
         let studentWorkReadOnly = false;
+        let subjectOptions = [];
         const userEmailCache = new Map();
 
         function isAdminUser(user) {
@@ -391,6 +403,18 @@
 
             if (subjectInput) {
                 subjectInput.disabled = !canManageSubjects;
+            }
+
+            if (studentClassField) {
+                studentClassField.style.display = canManageSubjects ? 'none' : '';
+            }
+
+            if (adminClassField) {
+                adminClassField.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (adminClassFieldClass) {
+                adminClassFieldClass.style.display = canManageSubjects ? '' : 'none';
             }
         }
 
@@ -658,8 +682,53 @@
             });
         }
 
+        function createTemplateChipField(config) {
+            const field = document.createElement('div');
+            field.className = 'student-work-field template-chip-field';
+
+            const label = document.createElement('span');
+            label.className = 'student-work-label';
+            label.textContent = config.label || '';
+            field.appendChild(label);
+
+            const group = document.createElement('div');
+            group.className = 'student-work-select student-work-multi template-chip-group';
+            group.setAttribute('role', 'group');
+            group.setAttribute('aria-label', config.label || '');
+            field.appendChild(group);
+
+            const selected = new Set((config.selectedValues || []).map(value => String(value).toLowerCase()));
+            (config.options || []).forEach(option => {
+                const labelText = config.getLabel ? config.getLabel(option) : String(option || '');
+                const value = config.getValue ? config.getValue(option) : String(option || '');
+                if (!labelText || !value) {
+                    return;
+                }
+
+                const chip = document.createElement('label');
+                chip.className = 'student-work-chip';
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.value = value;
+                if (selected.has(String(value).toLowerCase())) {
+                    input.checked = true;
+                }
+
+                const text = document.createElement('span');
+                text.textContent = config.formatLabel ? config.formatLabel(labelText) : labelText;
+
+                chip.appendChild(input);
+                chip.appendChild(text);
+                group.appendChild(chip);
+            });
+
+            return { field, group };
+        }
+
         function renderSubjectOptions(subjects) {
             const items = subjects && subjects.length ? subjects : defaultSubjectOptions;
+            subjectOptions = items;
             [subjectSelect, templateSubjectSelect].forEach(select => {
                 if (!select) {
                     return;
@@ -1402,8 +1471,15 @@
           const sentTemplatesList = document.getElementById('sent-templates-list');
           const sentTemplatesEmpty = document.getElementById('sent-templates-empty');
           const sentTemplatesClose = document.getElementById('sent-templates-close');
+          const studentClassField = document.getElementById('student-class-field');
           const studentClassInput = document.getElementById('student-class');
-          const studentClassSave = document.getElementById('student-class-save');
+          const studentClassNote = document.getElementById('student-class-note');
+          const adminClassField = document.getElementById('admin-class-field');
+          const adminClassFieldClass = document.getElementById('admin-class-field-class');
+          const adminStudentEmailInput = document.getElementById('admin-student-email');
+          const adminStudentClassInput = document.getElementById('admin-student-class');
+          const adminStudentClassSave = document.getElementById('admin-student-class-save');
+          const adminClassNote = document.getElementById('admin-class-note');
           const subjectInput = document.getElementById('subject-new');
           const subjectAddButton = document.getElementById('subject-add');
           const subjectList = document.getElementById('subject-list');
@@ -1667,7 +1743,11 @@
             }
 
             const userRef = db.collection('users').doc(user.uid);
-            await userRef.set({ email: user.email || '' }, { merge: true });
+            const emailLower = user.email ? user.email.toLowerCase() : '';
+            await userRef.set({
+              email: user.email || '',
+              emailLower
+            }, { merge: true });
             const snapshot = await userRef.get();
             const data = snapshot.data() || {};
             userProfile = {
@@ -1677,27 +1757,79 @@
             if (studentClassInput) {
               studentClassInput.value = userProfile.className || '';
             }
+            if (studentClassNote) {
+              studentClassNote.textContent = userProfile.className
+                ? `Prirazena trida: ${userProfile.className}.`
+                : 'Tridu prideluje pruvodce.';
+            }
           }
 
-          async function saveStudentClass() {
-            if (!currentUser || !studentClassInput) {
+          async function assignStudentClass() {
+            if (!isAdmin) {
+              alert('Tuto akci muze delat jen pruvodce.');
+              return;
+            }
+            if (!adminStudentEmailInput || !adminStudentClassInput) {
               return;
             }
 
-            const className = studentClassInput.value.trim();
+            const email = adminStudentEmailInput.value.trim();
+            const className = adminStudentClassInput.value.trim();
+            if (!email) {
+              alert('Zadej email zaka.');
+              return;
+            }
             if (!className) {
               alert('Zadej tridu.');
               return;
             }
 
-            await db.collection('users').doc(currentUser.uid).set({
-              className,
-              classNameLower: className.toLowerCase(),
-              email: currentUser.email || ''
-            }, { merge: true });
+            const normalizedEmail = email.toLowerCase();
 
-            userProfile.className = className;
-            await loadAssignedTemplates();
+            try {
+              let snapshot = await db.collection('users')
+                .where('emailLower', '==', normalizedEmail)
+                .limit(1)
+                .get();
+
+              if (snapshot.empty) {
+                snapshot = await db.collection('users')
+                  .where('email', '==', email)
+                  .limit(1)
+                  .get();
+              }
+
+              if (snapshot.empty) {
+                alert('Uzivatel nenalezen.');
+                return;
+              }
+
+              const docRef = snapshot.docs[0].ref;
+              await docRef.set({
+                className,
+                classNameLower: className.toLowerCase(),
+                email: snapshot.docs[0].data().email || email,
+                emailLower: normalizedEmail
+              }, { merge: true });
+
+              if (adminClassNote) {
+                adminClassNote.textContent = `Trida ulozena pro ${email}.`;
+              }
+
+              if (currentUser && currentUser.email && currentUser.email.toLowerCase() === normalizedEmail) {
+                userProfile.className = className;
+                if (studentClassInput) {
+                  studentClassInput.value = className;
+                }
+                if (studentClassNote) {
+                  studentClassNote.textContent = `Prirazena trida: ${className}.`;
+                }
+                await loadAssignedTemplates();
+              }
+            } catch (error) {
+              console.error('Error assigning student class:', error);
+              alert('Nepodarilo se ulozit tridu.');
+            }
           }
 
           async function loadTemplateResponses(user) {
@@ -1835,11 +1967,19 @@
                 if (!userId && doc.ref && doc.ref.parent && doc.ref.parent.parent) {
                   userId = doc.ref.parent.parent.id;
                 }
+                const subjects = Array.isArray(data.subjects)
+                  ? data.subjects
+                  : (data.subjects ? [data.subjects] : []);
+                const pillars = Array.isArray(data.pillars)
+                  ? data.pillars
+                  : (data.pillars ? [data.pillars] : []);
                 responses.push({
                   id: doc.id,
                   userId,
                   userEmail: data.userEmail || '',
                   response: data.response || '',
+                  subjects,
+                  pillars,
                   updatedAt: data.updatedAt || null
                 });
               });
@@ -2032,6 +2172,33 @@
               value.textContent = response.response || '';
 
               item.appendChild(meta);
+              const tagContainer = document.createElement('div');
+              tagContainer.className = 'template-response-tags';
+              const pillarTags = Array.isArray(response.pillars) ? response.pillars : [];
+              const subjectTags = Array.isArray(response.subjects) ? response.subjects : [];
+              pillarTags.forEach(label => {
+                const text = String(label || '').trim();
+                if (!text) {
+                  return;
+                }
+                const tag = document.createElement('span');
+                tag.className = 'data-tag';
+                tag.textContent = text;
+                tagContainer.appendChild(tag);
+              });
+              subjectTags.forEach(label => {
+                const text = formatSubjectLabel(label);
+                if (!text) {
+                  return;
+                }
+                const tag = document.createElement('span');
+                tag.className = 'data-tag';
+                tag.textContent = text;
+                tagContainer.appendChild(tag);
+              });
+              if (tagContainer.childNodes.length) {
+                item.appendChild(tagContainer);
+              }
               item.appendChild(value);
               listEl.appendChild(item);
             });
@@ -2052,10 +2219,17 @@
             return field;
           }
 
-          async function saveTemplateResponse(template, responseValue) {
+          async function saveTemplateResponse(template, responseValue, responseMeta = {}) {
             if (!currentUser) {
               return;
             }
+
+            const subjects = Array.isArray(responseMeta.subjects)
+              ? responseMeta.subjects.map(value => String(value || '').trim()).filter(Boolean)
+              : [];
+            const pillars = Array.isArray(responseMeta.pillars)
+              ? responseMeta.pillars.map(value => String(value || '').trim()).filter(Boolean)
+              : [];
 
             await db.collection('users').doc(currentUser.uid).collection('templateResponses').doc(template.id).set({
               templateId: template.id,
@@ -2063,6 +2237,8 @@
               subject: template.subject || '',
               proofType: template.proofType || '',
               response: responseValue,
+              subjects,
+              pillars,
               recipientType: template.recipientType || '',
               recipientValue: template.recipientValue || '',
               userId: currentUser.uid,
@@ -2070,6 +2246,46 @@
               userEmailLower: (currentUser.email || '').toLowerCase(),
               updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
+
+            await saveTemplateResponseEntry(template, responseValue, subjects, pillars);
+          }
+
+          async function saveTemplateResponseEntry(template, responseValue, subjects, pillars) {
+            if (!currentUser) {
+              return;
+            }
+
+            const title = template && template.title ? String(template.title).trim() : '';
+            const valueParts = [];
+            if (title) {
+              valueParts.push(title);
+            }
+            if (responseValue) {
+              valueParts.push(responseValue);
+            }
+            const value = valueParts.join('\n').trim();
+            if (!value) {
+              return;
+            }
+
+            const dataRef = db.collection('users').doc(currentUser.uid).collection('data');
+            const entryId = template && template.id ? `template-${template.id}` : '';
+            const payload = {
+              value,
+              pillar: pillars && pillars.length ? pillars[0] : '',
+              pillars: Array.isArray(pillars) ? pillars : [],
+              subjects: Array.isArray(subjects) ? subjects : [],
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              source: 'template',
+              templateId: template && template.id ? template.id : '',
+              templateTitle: title
+            };
+
+            if (entryId) {
+              await dataRef.doc(entryId).set(payload, { merge: true });
+            } else {
+              await dataRef.add(payload);
+            }
           }
 
           function renderTemplateFillList(templates, responses) {
@@ -2149,6 +2365,29 @@
                 details.appendChild(instructions);
               }
 
+              const availableSubjects = subjectOptions.length ? subjectOptions : defaultSubjectOptions;
+              const savedSubjects = responseData && Array.isArray(responseData.subjects) ? responseData.subjects : [];
+              const savedPillars = responseData && Array.isArray(responseData.pillars) ? responseData.pillars : [];
+              const subjectDefaults = savedSubjects.length
+                ? savedSubjects
+                : (template.subject ? [template.subject] : []);
+
+              const subjectField = createTemplateChipField({
+                label: 'Predmet',
+                options: availableSubjects,
+                selectedValues: subjectDefaults,
+                getLabel: getSubjectLabel,
+                getValue: getSubjectValue,
+                formatLabel: formatSubjectLabel
+              });
+              const pillarField = createTemplateChipField({
+                label: 'Pilir',
+                options: PILLAR_OPTIONS,
+                selectedValues: savedPillars
+              });
+              details.appendChild(subjectField.field);
+              details.appendChild(pillarField.field);
+
               const responseLabel = document.createElement('label');
               responseLabel.className = 'template-response-label';
               responseLabel.textContent = 'Odpoved';
@@ -2168,8 +2407,14 @@
                   alert('Dopln odpoved.');
                   return;
                 }
-                await saveTemplateResponse(template, value);
+                const selectedSubjects = getCheckedValues(subjectField.group);
+                const selectedPillars = getCheckedValues(pillarField.group);
+                await saveTemplateResponse(template, value, {
+                  subjects: selectedSubjects,
+                  pillars: selectedPillars
+                });
                 await loadAssignedTemplates();
+                await renderData();
               });
 
               details.appendChild(submitButton);
@@ -2281,8 +2526,24 @@
             });
           }
 
-          if (studentClassSave) {
-            studentClassSave.addEventListener('click', saveStudentClass);
+          if (adminStudentClassSave) {
+            adminStudentClassSave.addEventListener('click', assignStudentClass);
+          }
+
+          if (adminStudentEmailInput) {
+            adminStudentEmailInput.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter') {
+                assignStudentClass();
+              }
+            });
+          }
+
+          if (adminStudentClassInput) {
+            adminStudentClassInput.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter') {
+                assignStudentClass();
+              }
+            });
           }
 
           if (subjectAddButton) {

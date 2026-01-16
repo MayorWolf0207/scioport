@@ -1159,6 +1159,13 @@ body.theme-dark .student-work-input {
     color: var(--text-muted);
 }
 
+.template-note {
+    font-family: 'Scio', sans-serif;
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
 .template-field {
     display: grid;
     gap: 6px;
@@ -1179,6 +1186,12 @@ body.theme-dark .student-work-input {
     border-radius: 12px;
     padding: 10px 12px;
     background-color: var(--surface-strong);
+}
+
+.template-field input[readonly] {
+    background-color: var(--surface-muted);
+    color: var(--text-muted);
+    cursor: default;
 }
 
 .template-actions {
@@ -1351,6 +1364,12 @@ body.theme-dark .student-work-input {
 .template-response-input:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(63, 188, 166, 0.2);
+}
+
+.template-response-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .template-response-list {
