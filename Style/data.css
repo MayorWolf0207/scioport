@@ -5,17 +5,47 @@
 
 :root {
     color-scheme: light;
-    --bg-1: #fdf7ef;
-    --bg-2: #f3e7dc;
-    --bg-3: #d7eef2;
-    --surface: rgba(255, 255, 255, 0.76);
+    --scio-blue: #009ade;
+    --scio-black: #000000;
+    --gray-1: #4f4f4f;
+    --gray-2: #818182;
+    --gray-3: #bdbdbd;
+    --gray-4: #c4c4c4;
+    --gray-5: #ebebeb;
+    --purple-11: #672ce2;
+    --purple-12: #bfafee;
+    --blue-01: #f2fbff;
+    --blue-02: #d3f1ff;
+    --blue-11: #5fcfff;
+    --blue-12: #bcebff;
+    --blue-21: #0077ab;
+    --blue-22: #bfdff8;
+    --blue-31: #006692;
+    --blue-32: #005173;
+    --blue-33: #002d40;
+    --teal-11: #17a2b8;
+    --teal-12: #dcf5ff;
+    --green-11: #7ab339;
+    --green-12: #dbf5c7;
+    --green-21: #91df52;
+    --green-22: #ecf9e1;
+    --yellow-11: #ffdb57;
+    --yellow-12: #fff5d0;
+    --orange-11: #fd7e14;
+    --orange-12: #ffefe8;
+    --red-11: #dd4371;
+    --red-12: #f5cad7;
+    --bg-1: var(--blue-01);
+    --bg-2: var(--blue-22);
+    --bg-3: var(--blue-12);
+    --surface: rgba(255, 255, 255, 0.82);
     --surface-strong: rgba(255, 255, 255, 0.96);
-    --text: #1a1b1f;
-    --text-muted: rgba(26, 27, 31, 0.55);
-    --accent: #f06a3d;
-    --accent-2: #1fb59c;
-    --accent-3: #ffcf8b;
-    --border: rgba(26, 27, 31, 0.14);
+    --text: var(--scio-black);
+    --text-muted: rgba(79, 79, 79, 0.7);
+    --accent: var(--scio-blue);
+    --accent-2: var(--blue-21);
+    --accent-3: var(--blue-22);
+    --border: rgba(79, 79, 79, 0.18);
     --shadow-lg: 0 24px 60px rgba(21, 28, 45, 0.18), 0 8px 20px rgba(21, 28, 45, 0.1);
     --shadow-sm: 0 12px 28px rgba(21, 28, 45, 0.12);
     --radius-lg: 22px;
@@ -34,8 +64,8 @@ body {
     padding: 32px;
     font-family: 'Scio', sans-serif;
     color: var(--text);
-    background: radial-gradient(900px 600px at 12% -10%, rgba(255, 207, 139, 0.55), transparent 60%),
-        radial-gradient(800px 600px at 88% 8%, rgba(31, 181, 156, 0.22), transparent 60%),
+    background: radial-gradient(900px 600px at 12% -10%, rgba(0, 154, 222, 0.32), transparent 60%),
+        radial-gradient(800px 600px at 88% 8%, rgba(0, 119, 171, 0.2), transparent 60%),
         linear-gradient(140deg, var(--bg-1), var(--bg-2) 48%, var(--bg-3));
     overflow-x: hidden;
 }
@@ -47,7 +77,7 @@ body::before {
     height: 360px;
     top: -140px;
     right: -120px;
-    background: radial-gradient(circle, rgba(240, 106, 61, 0.22), transparent 70%);
+    background: radial-gradient(circle, rgba(0, 154, 222, 0.2), transparent 70%);
     pointer-events: none;
     z-index: 0;
 }
@@ -59,14 +89,14 @@ body::after {
     height: 480px;
     bottom: -220px;
     left: -180px;
-    background: radial-gradient(circle, rgba(31, 181, 156, 0.18), transparent 70%);
+    background: radial-gradient(circle, rgba(0, 119, 171, 0.18), transparent 70%);
     pointer-events: none;
     z-index: 0;
 }
 
 #admin {
     border: none;
-    background: linear-gradient(135deg, var(--accent-2), #5ae4c8);
+    background: linear-gradient(135deg, var(--accent-2), var(--blue-22));
     color: var(--text);
     border-radius: 999px;
     font-size: 1rem;
