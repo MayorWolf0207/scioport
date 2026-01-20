@@ -1075,8 +1075,8 @@ body.theme-dark .student-work-input {
 }
 
 .student-work-emoji {
-    width: 1em;
-    height: 1em;
+    width: 2em;
+    height: 2em;
     display: inline-block;
     vertical-align: -0.12em;
     pointer-events: none;
