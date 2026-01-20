@@ -1029,6 +1029,26 @@ body.theme-dark .student-work-input {
     border-color: rgba(255, 255, 255, 0.08);
 }
 
+.student-work-input-area {
+    flex: 1;
+    min-width: 0;
+    min-height: 1.2em;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'Scio', sans-serif;
+    font-size: 1rem;
+    line-height: 1.4;
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.student-work-input-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+}
+
 .student-work-input input {
     flex: 1;
     min-width: 0;
@@ -1045,6 +1065,64 @@ body.theme-dark .student-work-input {
 
 .student-work-input input:focus {
     outline: none;
+}
+
+.student-work-emoji-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.student-work-emoji {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.12em;
+    pointer-events: none;
+}
+
+.student-work-emoji-picker {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 12px);
+    display: none;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 6px;
+    padding: 10px;
+    min-width: 240px;
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    z-index: 20;
+}
+
+.student-work-emoji-picker.is-open {
+    display: grid;
+}
+
+.student-work-emoji-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.student-work-emoji-btn:hover {
+    background: var(--surface);
+    border-color: var(--border);
+    transform: translateY(-1px);
+}
+
+.student-work-emoji-btn:active {
+    transform: translateY(1px);
 }
 
 .student-work-icon-btn {
@@ -1678,6 +1756,10 @@ body.theme-dark .student-work-input {
 
     .student-work-log {
         padding: 18px;
+    }
+
+    .student-work-emoji-picker {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
     .student-work-input {
