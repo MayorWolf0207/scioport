@@ -1789,6 +1789,7 @@
           const uploadButton = document.getElementById('upload');
           const themeToggle = document.getElementById('theme-toggle');
           const studentWorkStage = document.getElementById('student-work-stage');
+          const studentWorkLog = document.getElementById('student-work-log');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
           const studentWorkPillarFilterButton = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-1"]');
           const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-2"]');
@@ -1873,6 +1874,14 @@
             inputButtons.forEach(button => {
               button.disabled = studentWorkReadOnly;
             });
+          }
+
+          function setStudentWorkLogVisible(isVisible) {
+            if (!studentWorkLog) {
+              return;
+            }
+            studentWorkLog.hidden = !isVisible;
+            studentWorkLog.style.display = isVisible ? '' : 'none';
           }
 
           async function sendStudentWorkMessage() {
@@ -3117,6 +3126,7 @@
             studentWorkAddButton.addEventListener('click', async () => {
               studentWorkFilterPillar = '';
               setStudentWorkReadOnly(false);
+              setStudentWorkLogVisible(false);
               const title = studentWorkAddButton.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
               await renderData();
@@ -3127,6 +3137,7 @@
             studentWorkPillarFilterButton.addEventListener('click', async () => {
               studentWorkFilterPillar = 'zvydavost';
               setStudentWorkReadOnly(true);
+              setStudentWorkLogVisible(true);
               const title = studentWorkPillarFilterButton.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
               await renderData();
@@ -3137,6 +3148,7 @@
             studentWorkPillarFilterButtonTwo.addEventListener('click', async () => {
               studentWorkFilterPillar = 'moralni-hodnoty';
               setStudentWorkReadOnly(true);
+              setStudentWorkLogVisible(true);
               const title = studentWorkPillarFilterButtonTwo.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
               await renderData();
@@ -3147,6 +3159,7 @@
             studentWorkPillarFilterButtonThree.addEventListener('click', async () => {
               studentWorkFilterPillar = 'samostatnost';
               setStudentWorkReadOnly(true);
+              setStudentWorkLogVisible(true);
               const title = studentWorkPillarFilterButtonThree.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
               await renderData();
