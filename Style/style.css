@@ -732,24 +732,24 @@ body.theme-dark .student-work {
 }
 
 .student-work-avatar-icon-bulb {
-    fill: var(--blue-12);
+    fill: var(--yellow-11);
 }
 
 .student-work-avatar-icon-bulb-base {
-    fill: var(--blue-22);
+    fill: var(--orange-11);
 }
 
 .student-work-avatar-icon-heart {
-    fill: var(--scio-blue);
+    fill: var(--red-11);
 }
 
 .student-work-avatar-icon-arm {
-    fill: var(--blue-21);
+    fill: #e0a57a;
 }
 
 .student-work-avatar-icon-arm-detail {
     fill: none;
-    stroke: rgba(0, 119, 171, 0.7);
+    stroke: #b7764b;
     stroke-width: 3;
     stroke-linecap: round;
 }
