@@ -161,11 +161,11 @@
                                     <div id="student-work-input" class="student-work-input-area" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Type here..." aria-label="Text"></div>
                                     <div class="student-work-emoji-bar" id="student-work-emoji-bar">
                                         <button class="student-work-icon-btn student-work-emoji-toggle" id="student-work-emoji-toggle" type="button" aria-label="Emoji" aria-expanded="false" aria-controls="student-work-emoji-picker">
-                                            <img class="student-work-emoji" src="Media/emoji/dopln_01.png" alt="">
+                                            <img class="student-work-emoji" src="Media/emoji/scio_sasek.png" alt="">
                                         </button>
                                         <div class="student-work-emoji-picker" id="student-work-emoji-picker" aria-hidden="true">
-                                            <button class="student-work-emoji-btn" type="button" aria-label="dopln_01">
-                                                <img class="student-work-emoji" src="Media/emoji/dopln_01.png" alt="">
+                                            <button class="student-work-emoji-btn" type="button" aria-label="scio_decko_happy">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_decko_happy.png" alt="">
                                             </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="dopln_02">
                                                 <img class="student-work-emoji" src="Media/emoji/dopln_02.png" alt="">
@@ -738,6 +738,18 @@
             return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
+        function getEmojiCodeFromSrc(src) {
+            const cleaned = String(src || '').split('?')[0].split('#')[0];
+            const parts = cleaned.split(/[\\/]/);
+            const filename = parts[parts.length - 1] || '';
+            const dotIndex = filename.lastIndexOf('.');
+            const base = dotIndex > 0 ? filename.slice(0, dotIndex) : filename;
+            if (!base) {
+                return '';
+            }
+            return `:${base}:`;
+        }
+
         function refreshEmojiLookup(emojiContainer) {
             const defs = new Map();
             EMOJI_DEFS.forEach(def => {
@@ -746,14 +758,19 @@
                 }
             });
             if (emojiContainer) {
-                emojiContainer.querySelectorAll('button[data-emoji-code]').forEach(button => {
-                    const code = button.dataset.emojiCode || '';
+                emojiContainer.querySelectorAll('.student-work-emoji-btn').forEach(button => {
                     const img = button.querySelector('img');
                     const src = img ? img.getAttribute('src') : '';
-                    const label = button.getAttribute('aria-label') || code.replace(/:/g, '');
-                    if (code && src) {
-                        defs.set(code, { code, src, label });
+                    const derivedCode = getEmojiCodeFromSrc(src);
+                    const code = derivedCode || button.dataset.emojiCode || '';
+                    if (!code || !src) {
+                        return;
                     }
+                    if (derivedCode) {
+                        button.dataset.emojiCode = derivedCode;
+                    }
+                    const label = button.getAttribute('aria-label') || code.replace(/:/g, '');
+                    defs.set(code, { code, src, label });
                 });
             }
             EMOJI_CODE_MAP = new Map(defs);
@@ -3164,11 +3181,18 @@
 
           if (studentWorkEmojiBar) {
             studentWorkEmojiBar.addEventListener('click', function(event) {
-              const button = event.target.closest('button[data-emoji-code]');
+              const button = event.target.closest('.student-work-emoji-btn');
               if (!button || studentWorkReadOnly) {
                 return;
               }
-              insertEmojiAtCaret(studentWorkInput, button.dataset.emojiCode);
+              const img = button.querySelector('img');
+              const src = img ? img.getAttribute('src') : '';
+              const code = button.dataset.emojiCode || getEmojiCodeFromSrc(src);
+              if (!code) {
+                return;
+              }
+              refreshEmojiLookup(studentWorkEmojiBar);
+              insertEmojiAtCaret(studentWorkInput, code);
               setEmojiPickerOpen(false);
             });
           }
