@@ -280,6 +280,12 @@
                             <path class="student-work-avatar-icon-heart" d="M32 51s-14.8-8.7-21-16.4C6.3 29.6 5 25.4 5 21.4 5 14 10.8 8.7 18.4 8.7c5 0 9.4 2.6 11.6 6.7 2.2-4.1 6.6-6.7 11.6-6.7C49.2 8.7 55 14 55 21.4c0 4-1.3 8.2-6 13.2C46.8 42.3 32 51 32 51z"></path>
                         </svg>
                     </button>
+                    <button class="student-work-avatar-button student-work-gender-button" type="button" data-gender="holcicka" aria-label="holcicka" aria-pressed="false">
+                        <img class="student-work-avatar-icon" src="Media/emoji/scio_holka_usmev.png" alt="">
+                    </button>
+                    <button class="student-work-avatar-button student-work-gender-button" type="button" data-gender="kluk" aria-label="kluk" aria-pressed="false">
+                        <img class="student-work-avatar-icon" src="Media/emoji/scio_kluk_usmev.png" alt="">
+                    </button>
                     <button class="student-work-avatar-button" type="button" data-action="filter-pillar-3" data-title="Samostatnost" aria-label="sila">
                         <svg class="student-work-avatar-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
                             <path class="student-work-avatar-icon-arm" d="M16 40c-4-2-6-6-6-11 0-6 5-11 11-11 4.4 0 8.2 2.2 10.3 5.7l3.7-6.3c1.3-2.2 3.7-3.4 6.2-3.4 3.7 0 6.7 3 6.7 6.7 0 2.5-1.4 4.9-3.6 6.1l-6.2 3.2 6.1 6.1c2.4 2.4 3.8 5.7 3.8 9.1 0 6-4.9 10.8-10.8 10.8H24.5c-6.3 0-10.5-4.3-10.5-10.5V40z"></path>
@@ -425,6 +431,10 @@
         const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         const ADMIN_EMAILS = ['oliver.bocko@scioskola.cz', 'tobias.pokorny@scioskola.cz', 'jiri.prevorovsky@scioskola.cz'];
         const EMOJI_DEFS = [];
+        const GENDER_ICON_MAP = {
+            holcicka: 'Media/emoji/scio_holka_usmev.png',
+            kluk: 'Media/emoji/scio_kluk_usmev.png'
+        };
         let EMOJI_CODE_MAP = new Map();
         let EMOJI_CODE_PATTERN = null;
         const PILLAR_OPTIONS = ['zvydavost', 'moralni hodnoty', 'samostatnost'];
@@ -439,6 +449,7 @@
         let studentWorkFilterPillar = '';
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
+        let studentWorkGender = '';
         let subjectOptions = [];
         const userEmailCache = new Map();
 
@@ -1802,6 +1813,8 @@
           const studentWorkEmojiBar = document.getElementById('student-work-emoji-bar');
           const studentWorkEmojiToggle = document.getElementById('student-work-emoji-toggle');
           const studentWorkEmojiPicker = document.getElementById('student-work-emoji-picker');
+          const studentWorkGenderButtons = document.querySelectorAll('.student-work-gender-button');
+          const studentWorkGenderPreviewIcon = document.querySelector('.student-work-gender-button[data-gender="holcicka"] .student-work-avatar-icon');
           const studentWorkSendButton = document.querySelector('#student-work .student-work-icon-btn.is-send');
           refreshEmojiLookup(studentWorkEmojiBar);
 
@@ -1882,6 +1895,21 @@
             }
             studentWorkLog.hidden = !isVisible;
             studentWorkLog.style.display = isVisible ? '' : 'none';
+          }
+
+          function setStudentWorkGender(value) {
+            studentWorkGender = value || '';
+            if (studentWorkGenderButtons && studentWorkGenderButtons.length) {
+              studentWorkGenderButtons.forEach(button => {
+                const isActive = button.dataset.gender === studentWorkGender;
+                button.classList.toggle('is-selected', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+              });
+            }
+            if (studentWorkGenderPreviewIcon) {
+              const nextKey = GENDER_ICON_MAP[studentWorkGender] ? studentWorkGender : 'holcicka';
+              studentWorkGenderPreviewIcon.src = GENDER_ICON_MAP[nextKey];
+            }
           }
 
           async function sendStudentWorkMessage() {
@@ -3163,6 +3191,14 @@
               const title = studentWorkPillarFilterButtonThree.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
               await renderData();
+            });
+          }
+
+          if (studentWorkGenderButtons && studentWorkGenderButtons.length) {
+            studentWorkGenderButtons.forEach(button => {
+              button.addEventListener('click', function() {
+                setStudentWorkGender(button.dataset.gender || '');
+              });
             });
           }
 
