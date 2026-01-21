@@ -835,6 +835,10 @@ body.theme-dark .student-work[data-gender="kluk"] {
 
 .student-eye {
     fill: var(--student-eye);
+    transform: translate(var(--eye-offset-x, 0px), var(--eye-offset-y, 0px));
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.08s ease-out;
 }
 
 .student-blush {

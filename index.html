@@ -1815,6 +1815,7 @@
           const themeToggle = document.getElementById('theme-toggle');
           const studentWork = document.getElementById('student-work');
           const studentWorkStage = document.getElementById('student-work-stage');
+          const studentWorkIllustration = document.querySelector('.student-work-illustration');
           const studentWorkLog = document.getElementById('student-work-log');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
           const studentWorkPillarFilterButton = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-1"]');
@@ -1924,6 +1925,49 @@
                 button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
               });
             }
+          }
+
+          let studentWorkEyeRaf = 0;
+          let studentWorkEyeTarget = null;
+
+          function setStudentWorkEyeOffset(x, y) {
+            if (!studentWork) {
+              return;
+            }
+            studentWork.style.setProperty('--eye-offset-x', `${x}px`);
+            studentWork.style.setProperty('--eye-offset-y', `${y}px`);
+          }
+
+          function scheduleStudentWorkEyeOffset(x, y) {
+            studentWorkEyeTarget = { x, y };
+            if (studentWorkEyeRaf) {
+              return;
+            }
+            studentWorkEyeRaf = requestAnimationFrame(() => {
+              if (!studentWorkEyeTarget) {
+                studentWorkEyeRaf = 0;
+                return;
+              }
+              setStudentWorkEyeOffset(studentWorkEyeTarget.x, studentWorkEyeTarget.y);
+              studentWorkEyeTarget = null;
+              studentWorkEyeRaf = 0;
+            });
+          }
+
+          function handleStudentWorkEyeMove(event) {
+            if (!studentWorkIllustration) {
+              return;
+            }
+            const rect = studentWorkIllustration.getBoundingClientRect();
+            if (!rect.width || !rect.height) {
+              return;
+            }
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const normalizedX = Math.max(-1, Math.min(1, (event.clientX - centerX) / (rect.width / 2)));
+            const normalizedY = Math.max(-1, Math.min(1, (event.clientY - centerY) / (rect.height / 2)));
+            const maxOffset = 4;
+            scheduleStudentWorkEyeOffset(normalizedX * maxOffset, normalizedY * maxOffset);
           }
 
           const defaultGender = studentWork ? studentWork.getAttribute('data-gender') : '';
@@ -3216,6 +3260,16 @@
               button.addEventListener('click', function() {
                 setStudentWorkGender(button.dataset.gender || '');
               });
+            });
+          }
+
+          if (studentWorkIllustration) {
+            document.addEventListener('mousemove', handleStudentWorkEyeMove);
+            document.addEventListener('mouseleave', function() {
+              setStudentWorkEyeOffset(0, 0);
+            });
+            window.addEventListener('blur', function() {
+              setStudentWorkEyeOffset(0, 0);
             });
           }
 
