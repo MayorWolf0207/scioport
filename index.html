@@ -185,6 +185,9 @@
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_jelen">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_jelen.png" alt="">
                                             </button>
+                                            <button class="student-work-emoji-btn" type="button" aria-label="scio_klobouk_smutny">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_klobouk_smutny.png" alt="">
+                                            </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_klobouk_usmev">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_klobouk_usmev.png" alt="">
                                             </button>
@@ -193,6 +196,9 @@
                                             </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_kocka_happy">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_kocka_happy.png" alt="">
+                                            </button>
+                                            <button class="student-work-emoji-btn" type="button" aria-label="scio_kral_smutny">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_kral_smutny.png" alt="">
                                             </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_kral_usmev">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_kral_usmev.png" alt="">
@@ -215,6 +221,9 @@
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_panacek">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_panacek.png" alt="">
                                             </button>
+                                            <button class="student-work-emoji-btn" type="button" aria-label="scio_party_smutny">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_party_smutny.png" alt="">
+                                            </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_party_usmev">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_party_usmev.png" alt="">
                                             </button>
@@ -223,6 +232,9 @@
                                             </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_pixel_usmev">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_pixel_usmev.png" alt="">
+                                            </button>
+                                            <button class="student-work-emoji-btn" type="button" aria-label="scio_pixel_zamraceni">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_pixel_zamraceni.png" alt="">
                                             </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_prekvapeny">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_prekvapeny.png" alt="">
@@ -233,8 +245,14 @@
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_robutek">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_robutek.png" alt="">
                                             </button>
+                                            <button class="student-work-emoji-btn" type="button" aria-label="scio_sad">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_sad.png" alt="">
+                                            </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_sasek">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_sasek.png" alt="">
+                                            </button>
+                                            <button class="student-work-emoji-btn" type="button" aria-label="scio_sasek_smytny">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_sasek_smytny.png" alt="">
                                             </button>
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_smeje">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_smeje.png" alt="">
@@ -431,10 +449,6 @@
         const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         const ADMIN_EMAILS = ['oliver.bocko@scioskola.cz', 'tobias.pokorny@scioskola.cz', 'jiri.prevorovsky@scioskola.cz'];
         const EMOJI_DEFS = [];
-        const GENDER_ICON_MAP = {
-            holcicka: 'Media/emoji/scio_holka_usmev.png',
-            kluk: 'Media/emoji/scio_kluk_usmev.png'
-        };
         let EMOJI_CODE_MAP = new Map();
         let EMOJI_CODE_PATTERN = null;
         const PILLAR_OPTIONS = ['zvydavost', 'moralni hodnoty', 'samostatnost'];
@@ -1799,6 +1813,7 @@
           const defaultSubjectOptions = getDefaultSubjects(subjectSelect || templateSubjectSelect);
           const uploadButton = document.getElementById('upload');
           const themeToggle = document.getElementById('theme-toggle');
+          const studentWork = document.getElementById('student-work');
           const studentWorkStage = document.getElementById('student-work-stage');
           const studentWorkLog = document.getElementById('student-work-log');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
@@ -1814,7 +1829,6 @@
           const studentWorkEmojiToggle = document.getElementById('student-work-emoji-toggle');
           const studentWorkEmojiPicker = document.getElementById('student-work-emoji-picker');
           const studentWorkGenderButtons = document.querySelectorAll('.student-work-gender-button');
-          const studentWorkGenderPreviewIcon = document.querySelector('.student-work-gender-button[data-gender="holcicka"] .student-work-avatar-icon');
           const studentWorkSendButton = document.querySelector('#student-work .student-work-icon-btn.is-send');
           refreshEmojiLookup(studentWorkEmojiBar);
 
@@ -1898,7 +1912,11 @@
           }
 
           function setStudentWorkGender(value) {
-            studentWorkGender = value || '';
+            const nextGender = value === 'kluk' ? 'kluk' : 'holcicka';
+            studentWorkGender = nextGender;
+            if (studentWork) {
+              studentWork.setAttribute('data-gender', nextGender);
+            }
             if (studentWorkGenderButtons && studentWorkGenderButtons.length) {
               studentWorkGenderButtons.forEach(button => {
                 const isActive = button.dataset.gender === studentWorkGender;
@@ -1906,11 +1924,10 @@
                 button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
               });
             }
-            if (studentWorkGenderPreviewIcon) {
-              const nextKey = GENDER_ICON_MAP[studentWorkGender] ? studentWorkGender : 'holcicka';
-              studentWorkGenderPreviewIcon.src = GENDER_ICON_MAP[nextKey];
-            }
           }
+
+          const defaultGender = studentWork ? studentWork.getAttribute('data-gender') : '';
+          setStudentWorkGender(defaultGender || 'holcicka');
 
           async function sendStudentWorkMessage() {
             const user = firebase.auth().currentUser;

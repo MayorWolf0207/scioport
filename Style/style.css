@@ -615,6 +615,17 @@ a:hover {
     --orbit-bg: rgba(255, 255, 255, 0.92);
 }
 
+.student-work[data-gender="kluk"] {
+    --student-blob: #7bc4ff;
+    --student-hair: #3f3f46;
+    --student-face: #f3decc;
+    --student-neck: #e4c7b3;
+    --student-shirt: #1f4f7a;
+    --student-glasses: rgba(0, 0, 0, 0);
+    --student-eye: #14161b;
+    --student-blush: rgba(0, 0, 0, 0);
+}
+
 body.theme-dark .student-work {
     --student-blob: #e58734;
     --student-hair: #5f4d43;
@@ -625,6 +636,17 @@ body.theme-dark .student-work {
     --student-eye: #0e1013;
     --student-blush: rgba(226, 146, 146, 0.5);
     --orbit-bg: rgba(16, 22, 30, 0.72);
+}
+
+body.theme-dark .student-work[data-gender="kluk"] {
+    --student-blob: #4f8fc7;
+    --student-hair: #2c2f36;
+    --student-face: #e0cbb8;
+    --student-neck: #d2b6a3;
+    --student-shirt: #10293d;
+    --student-glasses: rgba(0, 0, 0, 0);
+    --student-eye: #0e1013;
+    --student-blush: rgba(0, 0, 0, 0);
 }
 
 .student-work-header {
@@ -725,6 +747,11 @@ body.theme-dark .student-work {
     box-shadow: 0 6px 0 rgba(0, 119, 171, 0.6), 0 12px 18px rgba(16, 24, 38, 0.2);
 }
 
+.student-work-avatar-button.is-selected {
+    outline: 3px solid rgba(255, 229, 137, 0.95);
+    outline-offset: 2px;
+}
+
 .student-work-avatar-icon {
     width: 34px;
     height: 34px;
@@ -786,6 +813,12 @@ body.theme-dark .student-work {
 
 .student-hair {
     fill: var(--student-hair);
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.student-work[data-gender="kluk"] .student-hair {
+    transform: translateY(6px) scaleY(0.82);
 }
 
 .student-face {
