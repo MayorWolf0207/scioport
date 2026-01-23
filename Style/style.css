@@ -170,6 +170,52 @@ nav {
     z-index: 20;
 }
 
+.gem-indicator {
+    position: fixed;
+    top: calc(24px + env(safe-area-inset-top));
+    right: calc(24px + env(safe-area-inset-right));
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(16px);
+    font-family: 'Scio', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    z-index: 21;
+}
+
+.gem-indicator-icon {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--yellow-11), var(--orange-11));
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.gem-indicator-icon svg {
+    width: 14px;
+    height: 14px;
+    fill: rgba(18, 14, 6, 0.7);
+}
+
+.gem-indicator-count {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.gem-indicator-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
 nav img {
     height: auto;
     width: 24px;
@@ -1869,6 +1915,16 @@ body.theme-dark .student-work-input {
         bottom: 16px;
         padding: 10px 14px;
         font-size: 0.9rem;
+    }
+
+    .gem-indicator {
+        top: calc(16px + env(safe-area-inset-top));
+        right: calc(16px + env(safe-area-inset-right));
+        padding: 8px 12px;
+    }
+
+    .gem-indicator-label {
+        display: none;
     }
 
     .template-panel {

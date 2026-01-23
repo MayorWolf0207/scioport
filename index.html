@@ -28,6 +28,15 @@
                 <a class="menu-item" id="menu-data-tests" href="data.html">Data tests</a>
             </div>
         </nav>
+        <div class="gem-indicator" id="gem-indicator" role="status" aria-live="polite" aria-atomic="true">
+            <span class="gem-indicator-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 3l7 6-7 12-7-12 7-6z"></path>
+                </svg>
+            </span>
+            <span class="gem-indicator-count" id="gem-count">0</span>
+            <span class="gem-indicator-label">Gemy</span>
+        </div>
         <header>
             <h1>ScioPort</h1>
         </header>
@@ -460,19 +469,48 @@
         let gisReady = false;
         let isAdmin = false;
         let currentUser = null;
-        let userProfile = { className: '', gender: '' };
+        let userProfile = { className: '', gender: '', gems: 0 };
         let studentWorkFilterPillar = '';
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
         let studentWorkGender = '';
         let studentWorkGenderSelectionLocked = false;
         let studentWorkGenderToast = null;
+        let gemCount = null;
         let subjectOptions = [];
         const userEmailCache = new Map();
 
         function isAdminUser(user) {
             const email = user && user.email ? user.email.toLowerCase() : '';
             return ADMIN_EMAILS.includes(email);
+        }
+
+        async function incrementUserGems(user, amount = 1) {
+            if (!user) {
+                return;
+            }
+            const incrementBy = Number.isFinite(amount) ? amount : 1;
+            if (!incrementBy) {
+                return;
+            }
+            try {
+                await db.collection('users').doc(user.uid).set({
+                    gems: firebase.firestore.FieldValue.increment(incrementBy)
+                }, { merge: true });
+                const currentGems = Number(userProfile.gems) || 0;
+                userProfile.gems = currentGems + incrementBy;
+                updateGemDisplay(userProfile.gems);
+            } catch (error) {
+                console.error('Error updating gems:', error);
+            }
+        }
+
+        function updateGemDisplay(nextValue) {
+            if (!gemCount) {
+                return;
+            }
+            const resolvedValue = Number.isFinite(nextValue) ? nextValue : Number(userProfile.gems) || 0;
+            gemCount.textContent = String(resolvedValue);
         }
 
         function applyAdminUi() {
@@ -701,6 +739,7 @@
                 source: 'drive',
                 fileId
             });
+            await incrementUserGems(user);
         }
 
         function getDefaultSubjects(selectEl) {
@@ -1763,6 +1802,8 @@
             stopTemplateNotificationListeners();
             if (!user) {
               initTemplateNotificationState(null);
+              userProfile = { className: '', gender: '', gems: 0 };
+              updateGemDisplay(0);
               window.location.replace(loginUrl);
               return;
             } else {
@@ -1780,6 +1821,7 @@
 
 
 
+          gemCount = document.getElementById('gem-count');
           const inputField = document.getElementById('input');
           const subjectSelect = document.getElementById('subject-select');
           const templateSubjectSelect = document.getElementById('template-subject');
@@ -2128,6 +2170,7 @@
                 subjects: subjectLabels,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
               });
+              await incrementUserGems(user);
               await renderData();
               studentWorkInput.textContent = '';
               clearCheckboxGroup(studentWorkSubject);
@@ -2288,8 +2331,10 @@
             const data = snapshot.data() || {};
             userProfile = {
               className: data.className || '',
-              gender: data.gender || ''
+              gender: data.gender || '',
+              gems: Number(data.gems) || 0
             };
+            updateGemDisplay(userProfile.gems);
 
             if (studentClassInput) {
               studentClassInput.value = userProfile.className || '';
@@ -3537,6 +3582,7 @@
                   value: `${subjectValue} ${cleanedValue}`,
                   timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                await incrementUserGems(user);
                 await renderData();
                 inputField.value = '';
               } catch (error) {
