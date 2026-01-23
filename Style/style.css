@@ -724,6 +724,10 @@ body.theme-dark .student-work[data-gender="kluk"] {
     padding: 8px 24px 24px;
 }
 
+.student-work.is-gender-locked .student-work-gender-button {
+    display: none;
+}
+
 .student-work-avatar-button {
     width: 74px;
     height: 74px;
@@ -1565,6 +1569,11 @@ body.theme-dark .student-work-input {
     justify-items: center;
 }
 
+.student-work-toast-stack {
+    top: 92px;
+    top: calc(92px + env(safe-area-inset-top));
+}
+
 .template-toast {
     pointer-events: auto;
     background: linear-gradient(160deg, var(--surface-strong), var(--surface));
@@ -1607,6 +1616,42 @@ body.theme-dark .student-work-input {
     margin: 0;
     font-size: 0.88rem;
     color: var(--text-muted);
+}
+
+.student-work-gender-toast {
+    cursor: default;
+}
+
+.student-work-gender-toast:hover {
+    transform: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.student-work-gender-toast-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.student-work-gender-toast-title {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.student-work-gender-toast-text {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.student-work-gender-toast-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding-top: 4px;
 }
 
 .template-toast-close {

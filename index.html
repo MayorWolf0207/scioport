@@ -33,7 +33,7 @@
         </header>
         <section class="student-work" id="student-work">
             <div class="student-work-header">
-                <h2>Prace zaka</h2>
+                <h2>Prace zaka</h2>                                                 
                 <p>Vyber praci a otevri formular k vyplneni.</p>
             </div>
             <div class="student-work-stage" id="student-work-stage">
@@ -414,6 +414,7 @@
         </section>
     </main>
     <div class="template-toast-stack" id="template-toast-stack" aria-live="polite" aria-atomic="true"></div>
+    <div class="template-toast-stack student-work-toast-stack" id="student-work-toast-stack" aria-live="polite" aria-atomic="true"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -464,6 +465,8 @@
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
         let studentWorkGender = '';
+        let studentWorkGenderSelectionLocked = false;
+        let studentWorkGenderToast = null;
         let subjectOptions = [];
         const userEmailCache = new Map();
 
@@ -1798,6 +1801,7 @@
           const sentTemplatesEmpty = document.getElementById('sent-templates-empty');
           const sentTemplatesClose = document.getElementById('sent-templates-close');
           const templateToastStack = document.getElementById('template-toast-stack');
+          const studentWorkToastStack = document.getElementById('student-work-toast-stack');
           const studentClassField = document.getElementById('student-class-field');
           const studentClassInput = document.getElementById('student-class');
           const studentClassNote = document.getElementById('student-class-note');
@@ -1927,6 +1931,82 @@
             }
           }
 
+          function createStudentWorkGenderToast() {
+            if (studentWorkGenderToast || !studentWorkToastStack || !studentWorkGenderButtons || !studentWorkGenderButtons.length) {
+              return;
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'template-toast student-work-gender-toast';
+            toast.setAttribute('role', 'dialog');
+            toast.setAttribute('aria-label', 'Vyber avatara');
+            toast.setAttribute('aria-live', 'polite');
+
+            const header = document.createElement('div');
+            header.className = 'student-work-gender-toast-header';
+
+            const titleEl = document.createElement('p');
+            titleEl.className = 'student-work-gender-toast-title';
+            titleEl.textContent = 'Vyber avatara';
+            header.appendChild(titleEl);
+
+            const textEl = document.createElement('p');
+            textEl.className = 'student-work-gender-toast-text';
+            textEl.textContent = 'Zvol, koho chceš vidět.';
+
+            const actions = document.createElement('div');
+            actions.className = 'student-work-gender-toast-actions';
+
+            studentWorkGenderButtons.forEach(button => {
+              actions.appendChild(button);
+            });
+
+            toast.appendChild(header);
+            toast.appendChild(textEl);
+            toast.appendChild(actions);
+            studentWorkToastStack.appendChild(toast);
+            studentWorkGenderToast = toast;
+          }
+
+          function setStudentWorkGenderToastVisible(isVisible) {
+            if (!studentWorkGenderToast) {
+              return;
+            }
+            studentWorkGenderToast.hidden = !isVisible;
+            studentWorkGenderToast.style.display = isVisible ? '' : 'none';
+          }
+
+          function setStudentWorkGenderButtonsVisible(isVisible) {
+            if (!studentWorkGenderButtons || !studentWorkGenderButtons.length) {
+              return;
+            }
+            if (isVisible) {
+              createStudentWorkGenderToast();
+            }
+            if (studentWork) {
+              studentWork.classList.toggle('is-gender-locked', !isVisible);
+            }
+            studentWorkGenderButtons.forEach(button => {
+              button.hidden = !isVisible;
+              if (!isVisible) {
+                button.style.display = 'none';
+                button.setAttribute('aria-hidden', 'true');
+              } else {
+                button.style.display = '';
+                button.removeAttribute('aria-hidden');
+              }
+            });
+            setStudentWorkGenderToastVisible(isVisible);
+          }
+
+          function lockStudentWorkGenderSelection() {
+            if (studentWorkGenderSelectionLocked) {
+              return;
+            }
+            studentWorkGenderSelectionLocked = true;
+            setStudentWorkGenderButtonsVisible(false);
+          }
+
           let studentWorkEyeRaf = 0;
           let studentWorkEyeTarget = null;
 
@@ -1972,6 +2052,7 @@
 
           const defaultGender = studentWork ? studentWork.getAttribute('data-gender') : '';
           setStudentWorkGender(defaultGender || 'holcicka');
+          setStudentWorkGenderButtonsVisible(true);
 
           async function sendStudentWorkMessage() {
             const user = firebase.auth().currentUser;
@@ -3259,6 +3340,7 @@
             studentWorkGenderButtons.forEach(button => {
               button.addEventListener('click', function() {
                 setStudentWorkGender(button.dataset.gender || '');
+                lockStudentWorkGenderSelection();
               });
             });
           }
