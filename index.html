@@ -40,6 +40,62 @@
         <header>
             <h1>ScioPort</h1>
         </header>
+        <section class="avatar-selection" id="avatar-selection" data-state="select" data-avatar="" hidden aria-hidden="true">
+            <div class="avatar-selection-shell">
+                <div class="avatar-selection-hero" id="avatar-selection-select">
+                    <div class="avatar-selection-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M3 8l4 4 5-6 5 6 4-4v9H3z"></path>
+                        </svg>
+                    </div>
+                    <h2>Jak bys chtel/a byt znazornen/a ve svem portfoliu?</h2>
+                    <button class="avatar-selection-cta" id="avatar-selection-cta" type="button">Zacni svou cestu!</button>
+                    <div class="avatar-selection-grid" id="avatar-selection-grid">
+                        <button class="avatar-card avatar-card--pink student-work-gender-button" type="button" data-gender="holcicka" aria-pressed="false">
+                            <span class="avatar-card-icon">
+                                <img src="Media/emoji/scio_holka_usmev.png" alt="">
+                            </span>
+                            <span class="avatar-card-title">Holka</span>
+                            <span class="avatar-card-text">Zensky avatar</span>
+                            <span class="avatar-card-cta">Klikni pro vyber</span>
+                        </button>
+                        <button class="avatar-card avatar-card--blue student-work-gender-button" type="button" data-gender="kluk" aria-pressed="false">
+                            <span class="avatar-card-icon">
+                                <img src="Media/emoji/scio_kluk_usmev.png" alt="">
+                            </span>
+                            <span class="avatar-card-title">Kluk</span>
+                            <span class="avatar-card-text">Muzsky avatar</span>
+                            <span class="avatar-card-cta">Klikni pro vyber</span>
+                        </button>
+                        <button class="avatar-card avatar-card--mint" type="button" data-choice="random">
+                            <span class="avatar-card-icon">
+                                <img src="Media/emoji/scio_panacek.png" alt="">
+                            </span>
+                            <span class="avatar-card-title">Nechci rozhodnout</span>
+                            <span class="avatar-card-text">Neutralni avatar</span>
+                            <span class="avatar-card-cta">Klikni pro vyber</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="avatar-selection-success" id="avatar-selection-success" aria-hidden="true">
+                    <div class="avatar-selection-success-header">
+                        <p class="avatar-selection-success-title">VYBORNE!</p>
+                        <p class="avatar-selection-success-text">Tvuj avatar je uspesne nastaven.</p>
+                        <span class="avatar-selection-success-pill">MISE SPLNENA!</span>
+                    </div>
+                    <div class="avatar-selection-success-card" id="avatar-selection-success-card">
+                        <div class="avatar-selection-success-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M7 8h10M7 16h10M7 12h10"></path>
+                            </svg>
+                        </div>
+                        <img class="avatar-selection-success-image" id="avatar-success-image" src="Media/emoji/scio_holka_usmev.png" alt="">
+                        <p class="avatar-selection-success-name" id="avatar-success-name">Avatar: Holka</p>
+                    </div>
+                    <button class="avatar-selection-change" id="avatar-selection-change" type="button">Zmenit avatara</button>
+                </div>
+            </div>
+        </section>
         <section class="student-work" id="student-work">
             <div class="student-work-header">
                 <h2>Prace zaka</h2>                                                 
@@ -307,12 +363,6 @@
                             <path class="student-work-avatar-icon-heart" d="M32 51s-14.8-8.7-21-16.4C6.3 29.6 5 25.4 5 21.4 5 14 10.8 8.7 18.4 8.7c5 0 9.4 2.6 11.6 6.7 2.2-4.1 6.6-6.7 11.6-6.7C49.2 8.7 55 14 55 21.4c0 4-1.3 8.2-6 13.2C46.8 42.3 32 51 32 51z"></path>
                         </svg>
                     </button>
-                    <button class="student-work-avatar-button student-work-gender-button" type="button" data-gender="holcicka" aria-label="holcicka" aria-pressed="false">
-                        <img class="student-work-avatar-icon" src="Media/emoji/scio_holka_usmev.png" alt="">
-                    </button>
-                    <button class="student-work-avatar-button student-work-gender-button" type="button" data-gender="kluk" aria-label="kluk" aria-pressed="false">
-                        <img class="student-work-avatar-icon" src="Media/emoji/scio_kluk_usmev.png" alt="">
-                    </button>
                     <button class="student-work-avatar-button" type="button" data-action="filter-pillar-3" data-title="Samostatnost" aria-label="sila">
                         <svg class="student-work-avatar-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
                             <path class="student-work-avatar-icon-arm" d="M16 40c-4-2-6-6-6-11 0-6 5-11 11-11 4.4 0 8.2 2.2 10.3 5.7l3.7-6.3c1.3-2.2 3.7-3.4 6.2-3.4 3.7 0 6.7 3 6.7 6.7 0 2.5-1.4 4.9-3.6 6.1l-6.2 3.2 6.1 6.1c2.4 2.4 3.8 5.7 3.8 9.1 0 6-4.9 10.8-10.8 10.8H24.5c-6.3 0-10.5-4.3-10.5-10.5V40z"></path>
@@ -476,9 +526,29 @@
         let studentWorkGender = '';
         let studentWorkGenderSelectionLocked = false;
         let studentWorkGenderToast = null;
+        let avatarSelection = null;
+        let avatarSelectionSelect = null;
+        let avatarSelectionSuccess = null;
+        let avatarSelectionGrid = null;
+        let avatarSelectionChange = null;
+        let avatarSelectionCta = null;
+        let avatarSuccessName = null;
+        let avatarSuccessImage = null;
+        let avatarRandomButton = null;
         let gemCount = null;
         let subjectOptions = [];
         const userEmailCache = new Map();
+
+        const AVATAR_CHOICES = {
+            holcicka: {
+                label: 'Holka',
+                image: 'Media/emoji/scio_holka_usmev.png'
+            },
+            kluk: {
+                label: 'Kluk',
+                image: 'Media/emoji/scio_kluk_usmev.png'
+            }
+        };
 
         function isAdminUser(user) {
             const email = user && user.email ? user.email.toLowerCase() : '';
@@ -1804,6 +1874,9 @@
               initTemplateNotificationState(null);
               userProfile = { className: '', gender: '', gems: 0 };
               updateGemDisplay(0);
+              studentWorkGenderSelectionLocked = false;
+              setAvatarSelectionState(false);
+              setAvatarOverlayVisible(false);
               window.location.replace(loginUrl);
               return;
             } else {
@@ -1822,6 +1895,15 @@
 
 
           gemCount = document.getElementById('gem-count');
+          avatarSelection = document.getElementById('avatar-selection');
+          avatarSelectionSelect = document.getElementById('avatar-selection-select');
+          avatarSelectionSuccess = document.getElementById('avatar-selection-success');
+          avatarSelectionGrid = document.getElementById('avatar-selection-grid');
+          avatarSelectionChange = document.getElementById('avatar-selection-change');
+          avatarSelectionCta = document.getElementById('avatar-selection-cta');
+          avatarSuccessName = document.getElementById('avatar-success-name');
+          avatarSuccessImage = document.getElementById('avatar-success-image');
+          avatarRandomButton = document.querySelector('.avatar-card[data-choice="random"]');
           const inputField = document.getElementById('input');
           const subjectSelect = document.getElementById('subject-select');
           const templateSubjectSelect = document.getElementById('template-subject');
@@ -1983,7 +2065,60 @@
             return '';
           }
 
+          function updateAvatarSuccessCard(gender) {
+            if (!avatarSelection) {
+              return;
+            }
+            const normalized = getNormalizedStudentWorkGender(gender) || 'holcicka';
+            const meta = AVATAR_CHOICES[normalized] || AVATAR_CHOICES.holcicka;
+            if (avatarSuccessName) {
+              avatarSuccessName.textContent = `Avatar: ${meta.label}`;
+            }
+            if (avatarSuccessImage) {
+              avatarSuccessImage.src = meta.image;
+              avatarSuccessImage.alt = meta.label;
+            }
+            avatarSelection.setAttribute('data-avatar', normalized);
+          }
+
+          function setAvatarOverlayVisible(isVisible) {
+            if (!avatarSelection) {
+              return;
+            }
+            avatarSelection.hidden = !isVisible;
+            avatarSelection.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+            document.body.classList.toggle('is-avatar-open', isVisible);
+          }
+
+          function setAvatarSelectionState(isLocked) {
+            if (!avatarSelection) {
+              return;
+            }
+            const showSelect = !isLocked;
+            avatarSelection.setAttribute('data-state', showSelect ? 'select' : 'success');
+            if (avatarSelectionSelect) {
+              avatarSelectionSelect.hidden = !showSelect;
+              avatarSelectionSelect.setAttribute('aria-hidden', showSelect ? 'false' : 'true');
+            }
+            if (avatarSelectionSuccess) {
+              avatarSelectionSuccess.hidden = showSelect;
+              avatarSelectionSuccess.setAttribute('aria-hidden', showSelect ? 'true' : 'false');
+            }
+          }
+
+          function pickRandomAvatar() {
+            const options = Object.keys(AVATAR_CHOICES);
+            if (!options.length) {
+              return 'holcicka';
+            }
+            const index = Math.floor(Math.random() * options.length);
+            return options[index] || 'holcicka';
+          }
+
           function createStudentWorkGenderToast() {
+            if (avatarSelection) {
+              return;
+            }
             if (studentWorkGenderToast || !studentWorkToastStack || !studentWorkGenderButtons || !studentWorkGenderButtons.length) {
               return;
             }
@@ -2029,26 +2164,15 @@
           }
 
           function setStudentWorkGenderButtonsVisible(isVisible) {
-            if (!studentWorkGenderButtons || !studentWorkGenderButtons.length) {
-              return;
-            }
-            if (isVisible) {
-              createStudentWorkGenderToast();
-            }
             if (studentWork) {
               studentWork.classList.toggle('is-gender-locked', !isVisible);
             }
-            studentWorkGenderButtons.forEach(button => {
-              button.hidden = !isVisible;
-              if (!isVisible) {
-                button.style.display = 'none';
-                button.setAttribute('aria-hidden', 'true');
-              } else {
-                button.style.display = '';
-                button.removeAttribute('aria-hidden');
-              }
-            });
-            setStudentWorkGenderToastVisible(isVisible);
+            if (isVisible) {
+              setAvatarSelectionState(false);
+              setAvatarOverlayVisible(true);
+            } else {
+              setAvatarOverlayVisible(false);
+            }
           }
 
           function lockStudentWorkGenderSelection() {
@@ -2057,11 +2181,12 @@
             }
             studentWorkGenderSelectionLocked = true;
             setStudentWorkGenderButtonsVisible(false);
+            updateAvatarSuccessCard(studentWorkGender);
           }
 
           async function saveStudentWorkGenderSelection(value) {
             if (!currentUser) {
-              return;
+              return false;
             }
             const normalized = value === 'kluk' ? 'kluk' : 'holcicka';
             try {
@@ -2069,8 +2194,10 @@
                 gender: normalized
               }, { merge: true });
               userProfile.gender = normalized;
+              return true;
             } catch (error) {
               console.error('Error saving gender:', error);
+              return false;
             }
           }
 
@@ -2080,6 +2207,7 @@
               setStudentWorkGender(storedGender);
               studentWorkGenderSelectionLocked = true;
               setStudentWorkGenderButtonsVisible(false);
+              updateAvatarSuccessCard(storedGender);
               return;
             }
             studentWorkGenderSelectionLocked = false;
@@ -3423,12 +3551,55 @@
 
           if (studentWorkGenderButtons && studentWorkGenderButtons.length) {
             studentWorkGenderButtons.forEach(button => {
-              button.addEventListener('click', function() {
+              button.addEventListener('click', async function() {
                 const selectedGender = button.dataset.gender || '';
                 setStudentWorkGender(selectedGender);
-                saveStudentWorkGenderSelection(selectedGender);
-                lockStudentWorkGenderSelection();
+                updateAvatarSuccessCard(selectedGender);
+                setAvatarSelectionState(true);
+                setAvatarOverlayVisible(true);
+                const saved = await saveStudentWorkGenderSelection(selectedGender);
+                if (saved) {
+                  lockStudentWorkGenderSelection();
+                } else {
+                  setAvatarSelectionState(false);
+                  setAvatarOverlayVisible(true);
+                }
               });
+            });
+          }
+
+          if (avatarRandomButton) {
+            avatarRandomButton.addEventListener('click', async function() {
+              const selectedGender = pickRandomAvatar();
+              setStudentWorkGender(selectedGender);
+              updateAvatarSuccessCard(selectedGender);
+              setAvatarSelectionState(true);
+              setAvatarOverlayVisible(true);
+              const saved = await saveStudentWorkGenderSelection(selectedGender);
+              if (saved) {
+                lockStudentWorkGenderSelection();
+              } else {
+                setAvatarSelectionState(false);
+                setAvatarOverlayVisible(true);
+              }
+            });
+          }
+
+          if (avatarSelectionChange) {
+            avatarSelectionChange.addEventListener('click', function() {
+              studentWorkGenderSelectionLocked = false;
+              setStudentWorkGenderButtonsVisible(true);
+              if (avatarSelectionGrid) {
+                avatarSelectionGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            });
+          }
+
+          if (avatarSelectionCta) {
+            avatarSelectionCta.addEventListener('click', function() {
+              if (avatarSelectionGrid) {
+                avatarSelectionGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
             });
           }
 
