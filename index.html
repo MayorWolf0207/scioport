@@ -460,7 +460,7 @@
         let gisReady = false;
         let isAdmin = false;
         let currentUser = null;
-        let userProfile = { className: '' };
+        let userProfile = { className: '', gender: '' };
         let studentWorkFilterPillar = '';
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
@@ -1931,6 +1931,16 @@
             }
           }
 
+          function getNormalizedStudentWorkGender(value) {
+            if (value === 'kluk') {
+              return 'kluk';
+            }
+            if (value === 'holcicka') {
+              return 'holcicka';
+            }
+            return '';
+          }
+
           function createStudentWorkGenderToast() {
             if (studentWorkGenderToast || !studentWorkToastStack || !studentWorkGenderButtons || !studentWorkGenderButtons.length) {
               return;
@@ -2007,6 +2017,34 @@
             setStudentWorkGenderButtonsVisible(false);
           }
 
+          async function saveStudentWorkGenderSelection(value) {
+            if (!currentUser) {
+              return;
+            }
+            const normalized = value === 'kluk' ? 'kluk' : 'holcicka';
+            try {
+              await db.collection('users').doc(currentUser.uid).set({
+                gender: normalized
+              }, { merge: true });
+              userProfile.gender = normalized;
+            } catch (error) {
+              console.error('Error saving gender:', error);
+            }
+          }
+
+          function applyStudentWorkGenderProfile() {
+            const storedGender = getNormalizedStudentWorkGender(userProfile.gender);
+            if (storedGender) {
+              setStudentWorkGender(storedGender);
+              studentWorkGenderSelectionLocked = true;
+              setStudentWorkGenderButtonsVisible(false);
+              return;
+            }
+            studentWorkGenderSelectionLocked = false;
+            setStudentWorkGender(studentWorkGender || 'holcicka');
+            setStudentWorkGenderButtonsVisible(true);
+          }
+
           let studentWorkEyeRaf = 0;
           let studentWorkEyeTarget = null;
 
@@ -2052,7 +2090,7 @@
 
           const defaultGender = studentWork ? studentWork.getAttribute('data-gender') : '';
           setStudentWorkGender(defaultGender || 'holcicka');
-          setStudentWorkGenderButtonsVisible(true);
+          setStudentWorkGenderButtonsVisible(false);
 
           async function sendStudentWorkMessage() {
             const user = firebase.auth().currentUser;
@@ -2249,7 +2287,8 @@
             const snapshot = await userRef.get();
             const data = snapshot.data() || {};
             userProfile = {
-              className: data.className || ''
+              className: data.className || '',
+              gender: data.gender || ''
             };
 
             if (studentClassInput) {
@@ -2260,6 +2299,7 @@
                 ? `Prirazena trida: ${userProfile.className}.`
                 : 'Tridu prideluje pruvodce.';
             }
+            applyStudentWorkGenderProfile();
           }
 
           async function assignStudentClass() {
@@ -3339,7 +3379,9 @@
           if (studentWorkGenderButtons && studentWorkGenderButtons.length) {
             studentWorkGenderButtons.forEach(button => {
               button.addEventListener('click', function() {
-                setStudentWorkGender(button.dataset.gender || '');
+                const selectedGender = button.dataset.gender || '';
+                setStudentWorkGender(selectedGender);
+                saveStudentWorkGenderSelection(selectedGender);
                 lockStudentWorkGenderSelection();
               });
             });
