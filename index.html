@@ -13,33 +13,41 @@
 <body>
     <main>
         <button class="logout" onclick="firebase.auth().signOut()"><span>Log-out</span></button>
-        <nav>
-            <button class="menu-toggle" id="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="menu-panel">
-                <img src="Media/icons/menu.svg" alt="">
-            </button>
-            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
-                <img src="Media/icons/theme.svg" alt="">
-            </button>
-            <div class="menu-panel" id="menu-panel">
-                <button class="menu-item" id="menu-fill-template" type="button">Vyplnit sablonu</button>
-                <button class="menu-item" id="menu-subjects" type="button">Předměty</button>
-                <button class="menu-item" id="menu-templates" type="button">Šablony</button>
-                <button class="menu-item" id="menu-sent-templates" type="button">Odeslane sablony</button>
-                <a class="menu-item" id="menu-data-tests" href="data.html">Data tests</a>
+
+        <header class="site-header">
+            <div class="site-header-inner">
+                <div class="site-header-actions">
+                    <nav class="site-nav">
+                        <button class="menu-toggle" id="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="menu-panel">
+                            <img src="Media/icons/menu.svg" alt="">
+                        </button>
+                        <div class="menu-panel" id="menu-panel">
+                            <button class="menu-item" id="menu-fill-template" type="button">Vyplnit sablonu</button>
+                            <button class="menu-item" id="menu-subjects" type="button">Predmety</button>
+                            <button class="menu-item" id="menu-templates" type="button">Sablony</button>
+                            <button class="menu-item" id="menu-sent-templates" type="button">Odeslane sablony</button>
+                            <a class="menu-item" id="menu-data-tests" href="data.html">Data tests</a>
+                        </div>
+                    </nav>
+                    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+                        <img src="Media/icons/theme.svg" alt="">
+                    </button>
+                </div>
+                <h1 class="site-logo">Scioport</h1>
+                <div class="site-header-right">
+                    <div class="gem-indicator" id="gem-indicator" role="status" aria-live="polite" aria-atomic="true">
+                        <span class="gem-indicator-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M12 3l7 6-7 12-7-12 7-6z"></path>
+                            </svg>
+                        </span>
+                        <span class="gem-indicator-count" id="gem-count">0</span>
+                        <span class="gem-indicator-label">Gemy</span>
+                    </div>
+                </div>
             </div>
-        </nav>
-        <div class="gem-indicator" id="gem-indicator" role="status" aria-live="polite" aria-atomic="true">
-            <span class="gem-indicator-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M12 3l7 6-7 12-7-12 7-6z"></path>
-                </svg>
-            </span>
-            <span class="gem-indicator-count" id="gem-count">0</span>
-            <span class="gem-indicator-label">Gemy</span>
-        </div>
-        <header>
-            <h1>ScioPort</h1>
         </header>
+
         <section class="avatar-selection" id="avatar-selection" data-state="select" data-avatar="" hidden aria-hidden="true">
             <div class="avatar-selection-shell">
                 <div class="avatar-selection-hero" id="avatar-selection-select">
@@ -96,7 +104,8 @@
                 </div>
             </div>
         </section>
-        <section class="student-work" id="student-work">
+
+<section class="student-work" id="student-work">
             <div class="student-work-header">
                 <h2>Prace zaka</h2>                                                 
                 <p>Vyber praci a otevri formular k vyplneni.</p>
@@ -1352,7 +1361,6 @@
             }
         }
 
-
         async function renderData() {
             const user = firebase.auth().currentUser;
             const userDataSpan = document.getElementById('user-data');
@@ -1867,7 +1875,6 @@
             }
           }
 
-
           firebase.auth().onAuthStateChanged(async function(user) {
             stopTemplateNotificationListeners();
             if (!user) {
@@ -1891,8 +1898,6 @@
               await initSubjects();
             }
           });
-
-
 
           gemCount = document.getElementById('gem-count');
           avatarSelection = document.getElementById('avatar-selection');
@@ -2307,7 +2312,6 @@
               console.error('Error saving data:', error);
             }
           }
-
 
           const savedTheme = getStoredTheme();
           const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
