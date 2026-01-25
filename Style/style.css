@@ -388,7 +388,7 @@ body.theme-dark .theme-toggle img {
     background: linear-gradient(180deg, var(--header-gradient-1) 0%, var(--header-gradient-2) 60%, var(--header-gradient-3) 100%);
     border-bottom: 1px solid var(--header-border);
     box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
-    overflow: hidden;
+    overflow: visible;
     z-index: 30;
     animation: float-in 0.6s ease 0.1s both;
 }
