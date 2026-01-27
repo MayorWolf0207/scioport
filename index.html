@@ -106,10 +106,6 @@
         </section>
 
 <section class="student-work" id="student-work">
-            <div class="student-work-header">
-                <h2>Prace zaka</h2>                                                 
-                <p>Vyber praci a otevri formular k vyplneni.</p>
-            </div>
             <div class="student-work-stage" id="student-work-stage">
                 <div class="student-work-track">
                     <div class="student-work-panel student-work-panel--buttons">
@@ -177,7 +173,6 @@
                             <div class="student-work-form-header">
                                 <div>
                                     <h3 id="student-work-form-title">Pridat zaznam</h3>
-                                    <p class="student-work-form-subtitle">Formular pro pridani zaznamu.</p>
                                 </div>
                                 <button class="student-work-back" id="student-work-back" type="button">Zpet</button>
                             </div>
@@ -208,8 +203,8 @@
                                     <span class="student-work-label">Pilir</span>
                                     <div class="student-work-select student-work-multi" id="student-work-pillar" role="group" aria-label="Pilir">
                                         <label class="student-work-chip">
-                                            <input type="checkbox" value="zvýdavost">
-                                            <span>zvýdavost</span>
+                                            <input type="checkbox" value="zvídavost">
+                                            <span>zvídavost</span>
                                         </label>
                                         <label class="student-work-chip">
                                             <input type="checkbox" value="morální hodnoty">
@@ -360,7 +355,7 @@
                     </div>
                 </div>
                 <div class="student-work-avatar-actions">
-                    <button class="student-work-avatar-button" type="button" data-action="filter-pillar-1" data-title="Zvýdavost" aria-label="zarovka">
+                    <button class="student-work-avatar-button" type="button" data-action="filter-pillar-1" data-title="Zvídavost" aria-label="zarovka">
                         <svg class="student-work-avatar-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
                             <path class="student-work-avatar-icon-bulb" d="M32 10c-10.5 0-19 8.5-19 19 0 7.2 4.1 13.7 10.4 16.8V48c0 2.2 1.8 4 4 4h9.2c2.2 0 4-1.8 4-4v-2.2C46.9 42.7 51 36.2 51 29c0-10.5-8.5-19-19-19z"></path>
                             <rect class="student-work-avatar-icon-bulb-base" x="25" y="50" width="14" height="6" rx="2"></rect>
@@ -1650,7 +1645,7 @@
             function formatPillarLabel(label) {
                 const slug = getPillarSlug(label);
                 if (slug === 'zvydavost') {
-                    return 'zvýdavost';
+                    return 'zvídavost';
                 }
                 if (slug === 'moralni-hodnoty') {
                     return 'morální hodnoty';
