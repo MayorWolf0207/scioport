@@ -217,6 +217,10 @@
                                         </label>
                                     </div>
                                 </div>
+                                <div class="student-work-field">
+                                    <span class="student-work-label">Jak se ti pracovalo</span>
+                                    <div class="student-work-select student-work-multi student-work-mood" id="student-work-mood" role="group" aria-label="Jak se ti pracovalo"></div>
+                                </div>
                                 <div class="student-work-input">
                                     <button class="student-work-icon-btn" type="button" aria-label="Nahrat">
                                         <svg class="student-work-input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -528,6 +532,7 @@
         let studentWorkFilterPillar = '';
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
+        let studentWorkMoodSelection = new Set();
         let studentWorkGender = '';
         let studentWorkGenderSelectionLocked = false;
         let studentWorkGenderToast = null;
@@ -902,6 +907,23 @@
                 return '';
             }
             return `:${base}:`;
+        }
+
+        function getEmojiCodeFromButton(button) {
+            if (!button) {
+                return '';
+            }
+            const stored = button.dataset.emojiCode || '';
+            if (stored) {
+                return stored;
+            }
+            const img = button.querySelector('img');
+            const src = img ? img.getAttribute('src') : '';
+            const derived = getEmojiCodeFromSrc(src);
+            if (derived) {
+                button.dataset.emojiCode = derived;
+            }
+            return derived;
         }
 
         function refreshEmojiLookup(emojiContainer) {
@@ -1618,6 +1640,25 @@
                 return parsedSubjects || [];
             }
 
+            function getWorkMoods(entryData) {
+                if (!entryData || typeof entryData !== 'object') {
+                    return [];
+                }
+                if (Array.isArray(entryData.workMoods) && entryData.workMoods.length) {
+                    return entryData.workMoods.map(item => String(item || '').trim()).filter(Boolean);
+                }
+                if (Array.isArray(entryData.workMood) && entryData.workMood.length) {
+                    return entryData.workMood.map(item => String(item || '').trim()).filter(Boolean);
+                }
+                if (entryData.workMood) {
+                    return [String(entryData.workMood).trim()].filter(Boolean);
+                }
+                if (entryData.mood) {
+                    return [String(entryData.mood).trim()].filter(Boolean);
+                }
+                return [];
+            }
+
             function slugify(value) {
                 return String(value || '')
                     .trim()
@@ -1812,6 +1853,19 @@
                     }
                 });
 
+                const moodCodes = getWorkMoods(entryData);
+                if (moodCodes.length) {
+                    const moodTag = document.createElement('span');
+                    moodTag.className = 'data-tag data-tag--mood';
+                    moodTag.setAttribute('title', 'Jak se ti pracovalo');
+                    moodTag.setAttribute('aria-label', 'Jak se ti pracovalo');
+                    moodCodes.forEach(code => {
+                        appendEmojiText(moodTag, code);
+                    });
+                    tagsEl.appendChild(moodTag);
+                    hasTags = true;
+                }
+
                 if (accent) {
                     entry.style.setProperty('--card-accent', accent);
                 }
@@ -1854,12 +1908,17 @@
                     const subjects = Array.isArray(data.subjects)
                         ? data.subjects
                         : (data.subjects ? [data.subjects] : []);
+                    const workMoods = Array.isArray(data.workMoods)
+                        ? data.workMoods
+                        : (data.workMood ? [data.workMood] : (data.mood ? [data.mood] : []));
                     return {
                         id: doc.id,
                         value: data.value || '',
                         pillar: data.pillar || '',
                         pillars,
-                        subjects
+                        subjects,
+                        workMood: data.workMood || data.mood || '',
+                        workMoods
                     };
                 }).filter(item => item.value || item.pillars.length || item.subjects.length);
                 const filteredValues = studentWorkFilterPillar
@@ -1955,12 +2014,22 @@
           const studentWorkInput = document.getElementById('student-work-input');
           const studentWorkSubject = document.getElementById('student-work-subject');
           const studentWorkPillar = document.getElementById('student-work-pillar');
+          const studentWorkMood = document.getElementById('student-work-mood');
           const studentWorkEmojiBar = document.getElementById('student-work-emoji-bar');
           const studentWorkEmojiToggle = document.getElementById('student-work-emoji-toggle');
           const studentWorkEmojiPicker = document.getElementById('student-work-emoji-picker');
           const studentWorkGenderButtons = document.querySelectorAll('.student-work-gender-button');
           const studentWorkSendButton = document.querySelector('#student-work .student-work-icon-btn.is-send');
+          if (studentWorkMood && studentWorkEmojiPicker) {
+            studentWorkMood.innerHTML = studentWorkEmojiPicker.innerHTML;
+            studentWorkMood.querySelectorAll('.student-work-emoji-btn').forEach(button => {
+              button.setAttribute('aria-pressed', 'false');
+            });
+          }
           refreshEmojiLookup(studentWorkEmojiBar);
+          if (studentWorkMood) {
+            refreshEmojiLookup(studentWorkMood);
+          }
 
           function getStoredTheme() {
             try {
@@ -2027,10 +2096,42 @@
             }
             setCheckboxGroupDisabled(studentWorkSubject, studentWorkReadOnly);
             setCheckboxGroupDisabled(studentWorkPillar, studentWorkReadOnly);
+            if (studentWorkMood) {
+              studentWorkMood.querySelectorAll('.student-work-emoji-btn').forEach(button => {
+                button.disabled = studentWorkReadOnly;
+              });
+            }
             const inputButtons = document.querySelectorAll('#student-work .student-work-input .student-work-icon-btn');
             inputButtons.forEach(button => {
               button.disabled = studentWorkReadOnly;
             });
+          }
+
+          function setStudentWorkMoods(codes) {
+            const next = Array.isArray(codes) ? codes : [];
+            studentWorkMoodSelection = new Set(next.filter(Boolean));
+            if (!studentWorkMood) {
+              return;
+            }
+            studentWorkMood.querySelectorAll('.student-work-emoji-btn').forEach(button => {
+              const buttonCode = getEmojiCodeFromButton(button);
+              const isSelected = Boolean(buttonCode) && studentWorkMoodSelection.has(buttonCode);
+              button.classList.toggle('is-selected', isSelected);
+              button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+            });
+          }
+
+          function toggleStudentWorkMood(code) {
+            if (!code) {
+              return;
+            }
+            const next = new Set(studentWorkMoodSelection);
+            if (next.has(code)) {
+              next.delete(code);
+            } else {
+              next.add(code);
+            }
+            setStudentWorkMoods(Array.from(next));
           }
 
           function setStudentWorkLogVisible(isVisible) {
@@ -2275,6 +2376,7 @@
             const inputValue = getEmojiInputValue(studentWorkInput).trim();
             const subjectValues = getCheckedValues(studentWorkSubject);
             const pillarValues = getCheckedValues(studentWorkPillar);
+            const moodCodes = Array.from(studentWorkMoodSelection || []).filter(Boolean);
             const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
             const subjectTokens = subjectValues.map(ensureSubjectPrefix).filter(Boolean);
             const subjectLabels = subjectTokens.map(label => formatSubjectLabel(label)).filter(Boolean);
@@ -2297,6 +2399,8 @@
                 pillar: pillarLabels[0] || '',
                 pillars: pillarLabels,
                 subjects: subjectLabels,
+                workMood: moodCodes[0] || '',
+                workMoods: moodCodes,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
               });
               await incrementUserGems(user);
@@ -2304,6 +2408,7 @@
               studentWorkInput.textContent = '';
               clearCheckboxGroup(studentWorkSubject);
               clearCheckboxGroup(studentWorkPillar);
+              setStudentWorkMoods([]);
             } catch (error) {
               console.error('Error saving data:', error);
             }
@@ -3648,6 +3753,20 @@
               }
               const isOpen = studentWorkEmojiPicker && studentWorkEmojiPicker.classList.contains('is-open');
               setEmojiPickerOpen(!isOpen);
+            });
+          }
+
+          if (studentWorkMood) {
+            studentWorkMood.addEventListener('click', function(event) {
+              const button = event.target.closest('.student-work-emoji-btn');
+              if (!button || studentWorkReadOnly) {
+                return;
+              }
+              const code = getEmojiCodeFromButton(button);
+              if (!code) {
+                return;
+              }
+              toggleStudentWorkMood(code);
             });
           }
 

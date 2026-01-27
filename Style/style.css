@@ -1531,6 +1531,12 @@ body.theme-dark .student-work-chip input:checked + span {
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
 }
 
+body.theme-dark .student-work-emoji-btn.is-selected {
+    background: rgba(0, 154, 222, 0.18);
+    border-color: rgba(0, 154, 222, 0.7);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
+}
+
 .student-work-input {
     display: flex;
     align-items: center;
@@ -1641,6 +1647,35 @@ body.theme-dark .student-work-input {
 
 .student-work-emoji-btn:active {
     transform: translateY(1px);
+}
+
+.student-work-mood {
+    justify-content: flex-start;
+}
+
+.student-work-mood .student-work-emoji-btn {
+    width: 34px;
+    height: 34px;
+}
+
+.student-work-emoji-btn.is-selected {
+    background: rgba(0, 154, 222, 0.2);
+    border-color: rgba(0, 154, 222, 0.7);
+    box-shadow: 0 10px 18px rgba(0, 154, 222, 0.2);
+    transform: translateY(-1px);
+}
+
+.student-work-emoji-btn.is-selected:active {
+    transform: translateY(0);
+}
+
+.data-tag--mood {
+    padding: 4px 8px;
+}
+
+.data-tag--mood .student-work-emoji {
+    width: 1.4em;
+    height: 1.4em;
 }
 
 .student-work-icon-btn {
