@@ -24,9 +24,7 @@
                         </button>
                         <div class="menu-panel" id="menu-panel">
                             <button class="menu-item" id="menu-fill-template" type="button">Vyplnit sablonu</button>
-                            <button class="menu-item" id="menu-subjects" type="button">Predmety</button>
-                            <button class="menu-item" id="menu-templates" type="button">Sablony</button>
-                            <button class="menu-item" id="menu-sent-templates" type="button">Odeslane sablony</button>
+                            <a class="menu-item" id="menu-admin" href="admin.html" style="display:none">Admin prostredi</a>
                             <a class="menu-item" id="menu-data-tests" href="data.html">Data tests</a>
                         </div>
                     </nav>
@@ -595,6 +593,7 @@
 
         function applyAdminUi() {
             const canManageSubjects = isAdmin;
+            const menuAdmin = document.getElementById('menu-admin');
             const menuSubjects = document.getElementById('menu-subjects');
             const subjectPanel = document.getElementById('subject-panel');
             const menuTemplates = document.getElementById('menu-templates');
@@ -632,6 +631,10 @@
 
             if (menuSentTemplates) {
                 menuSentTemplates.style.display = canManageSubjects ? '' : 'none';
+            }
+
+            if (menuAdmin) {
+                menuAdmin.style.display = canManageSubjects ? '' : 'none';
             }
 
             if (sentTemplatesPanel) {
@@ -3915,34 +3918,44 @@
           const templateClose = document.getElementById('template-close');
           const subjectClose = document.getElementById('subject-close');
 
-          menuToggle.addEventListener('click', () => {
-            const isOpen = menuPanel.classList.toggle('open');
-            menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-          });
+          if (menuToggle && menuPanel) {
+            menuToggle.addEventListener('click', () => {
+              const isOpen = menuPanel.classList.toggle('open');
+              menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+          }
 
-          menuTemplates.addEventListener('click', () => {
-            templatePanel.classList.add('open');
-            templatePanel.setAttribute('aria-hidden', 'false');
-            if (subjectPanel) {
-              subjectPanel.classList.remove('open');
-              subjectPanel.setAttribute('aria-hidden', 'true');
-            }
-            if (templateFillPanel) {
-              templateFillPanel.classList.remove('open');
-              templateFillPanel.setAttribute('aria-hidden', 'true');
-            }
-            if (sentTemplatesPanel) {
-              sentTemplatesPanel.classList.remove('open');
-              sentTemplatesPanel.setAttribute('aria-hidden', 'true');
-            }
-            menuPanel.classList.remove('open');
-            menuToggle.setAttribute('aria-expanded', 'false');
-          });
+          if (menuTemplates && templatePanel) {
+            menuTemplates.addEventListener('click', () => {
+              templatePanel.classList.add('open');
+              templatePanel.setAttribute('aria-hidden', 'false');
+              if (subjectPanel) {
+                subjectPanel.classList.remove('open');
+                subjectPanel.setAttribute('aria-hidden', 'true');
+              }
+              if (templateFillPanel) {
+                templateFillPanel.classList.remove('open');
+                templateFillPanel.setAttribute('aria-hidden', 'true');
+              }
+              if (sentTemplatesPanel) {
+                sentTemplatesPanel.classList.remove('open');
+                sentTemplatesPanel.setAttribute('aria-hidden', 'true');
+              }
+              if (menuPanel) {
+                menuPanel.classList.remove('open');
+              }
+              if (menuToggle) {
+                menuToggle.setAttribute('aria-expanded', 'false');
+              }
+            });
+          }
 
-          templateClose.addEventListener('click', () => {
-            templatePanel.classList.remove('open');
-            templatePanel.setAttribute('aria-hidden', 'true');
-          });
+          if (templateClose && templatePanel) {
+            templateClose.addEventListener('click', () => {
+              templatePanel.classList.remove('open');
+              templatePanel.setAttribute('aria-hidden', 'true');
+            });
+          }
 
           if (menuFillTemplate) {
             menuFillTemplate.addEventListener('click', async () => {
@@ -3967,8 +3980,10 @@
               }
               subjectPanel.classList.add('open');
               subjectPanel.setAttribute('aria-hidden', 'false');
-              templatePanel.classList.remove('open');
-              templatePanel.setAttribute('aria-hidden', 'true');
+              if (templatePanel) {
+                templatePanel.classList.remove('open');
+                templatePanel.setAttribute('aria-hidden', 'true');
+              }
               if (templateFillPanel) {
                 templateFillPanel.classList.remove('open');
                 templateFillPanel.setAttribute('aria-hidden', 'true');
@@ -3977,8 +3992,12 @@
                 sentTemplatesPanel.classList.remove('open');
                 sentTemplatesPanel.setAttribute('aria-hidden', 'true');
               }
-              menuPanel.classList.remove('open');
-              menuToggle.setAttribute('aria-expanded', 'false');
+              if (menuPanel) {
+                menuPanel.classList.remove('open');
+              }
+              if (menuToggle) {
+                menuToggle.setAttribute('aria-expanded', 'false');
+              }
             });
           }
 
@@ -4001,8 +4020,12 @@
                 subjectPanel.classList.remove('open');
                 subjectPanel.setAttribute('aria-hidden', 'true');
               }
-              menuPanel.classList.remove('open');
-              menuToggle.setAttribute('aria-expanded', 'false');
+              if (menuPanel) {
+                menuPanel.classList.remove('open');
+              }
+              if (menuToggle) {
+                menuToggle.setAttribute('aria-expanded', 'false');
+              }
               await loadSentTemplates();
             });
           }

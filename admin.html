@@ -1,0 +1,872 @@
+﻿<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ScioPort â€“ Admin</title>
+  <style>
+    :root{
+      --bg:#eff4fa;
+      --panel:#0f172a;
+      --panel2:#172554;
+      --text:#e2e8f0;
+      --fg:#0f172a;
+      --muted:#475569;
+      --border:#dbe4ef;
+      --accent:#2bbcff;
+      --accent2:#3bd4b0;
+      --ok:#16a34a;
+      --warn:#ca8a04;
+      --danger:#dc2626;
+      --r:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 400px at 15% -10%, rgba(43,188,255,.22), transparent 55%),
+        radial-gradient(700px 380px at 85% 0, rgba(59,212,176,.18), transparent 60%),
+        linear-gradient(180deg,#eaf1f8,#f7fbff);
+      color:var(--fg);
+    }
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:16px;
+      padding:16px;
+    }
+    @media (max-width:980px){
+      .app{grid-template-columns:1fr}
+    }
+    .sidebar{
+      background:
+        radial-gradient(500px 300px at 10% 0, rgba(43,188,255,.22), transparent 65%),
+        linear-gradient(180deg, var(--panel2), var(--panel));
+      border-radius:18px;
+      color:var(--text);
+      padding:14px;
+      border:1px solid rgba(255,255,255,.15);
+      box-shadow:0 16px 40px rgba(15,23,42,.3);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .brand{
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:16px;
+      padding:10px 12px;
+      background:rgba(255,255,255,.05);
+    }
+    .brand h1{margin:0;font-size:15px}
+    .brand p{margin:4px 0 0 0;font-size:12px;opacity:.85}
+    .nav{display:flex;flex-direction:column;gap:8px}
+    .nav button{
+      border:1px solid rgba(255,255,255,.16);
+      color:var(--text);
+      background:rgba(255,255,255,.04);
+      text-align:left;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .nav button.active{
+      background:linear-gradient(135deg, rgba(43,188,255,.35), rgba(59,212,176,.22));
+      border-color:rgba(43,188,255,.65);
+    }
+    .pill{
+      font-size:11px;
+      border:1px solid rgba(255,255,255,.2);
+      border-radius:999px;
+      padding:2px 7px;
+    }
+    .sidebar .actions{
+      margin-top:auto;
+      display:grid;
+      gap:8px;
+    }
+    .btn{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:8px 10px;
+      background:#fff;
+      color:var(--fg);
+      cursor:pointer;
+      font-size:13px;
+    }
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(43,188,255,.2), rgba(59,212,176,.16));
+      border-color:rgba(43,188,255,.4);
+    }
+    .btn.warn{border-color:rgba(202,138,4,.35); background:rgba(202,138,4,.1)}
+    .btn.danger{border-color:rgba(220,38,38,.35); background:rgba(220,38,38,.1)}
+    .main{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 12px 32px rgba(15,23,42,.12);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height:calc(100vh - 32px);
+    }
+    .topbar{
+      border-bottom:1px solid var(--border);
+      padding:12px 14px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      position:sticky;
+      top:0;
+      background:rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      z-index:10;
+    }
+    .topbar h2{margin:0;font-size:15px}
+    .topbar p{margin:3px 0 0 0;font-size:12px;color:var(--muted)}
+    #content{padding:14px}
+    .card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:#fff;
+      margin-bottom:12px;
+      overflow:hidden;
+    }
+    .card h3{
+      margin:0;
+      font-size:13px;
+      padding:11px 12px;
+      background:linear-gradient(180deg, rgba(43,188,255,.08), rgba(255,255,255,.9));
+      border-bottom:1px solid var(--border);
+    }
+    .cardBody{padding:12px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+    .col12{grid-column:span 12}
+    .col6{grid-column:span 6}
+    .col4{grid-column:span 4}
+    .kpi{
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#f8fbff;
+      padding:10px;
+    }
+    .kpi b{font-size:20px}
+    .kpi span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .item{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .title{font-size:13px;font-weight:600}
+    .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+    .badge{
+      font-size:11px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:2px 7px;
+      background:#f8fafc;
+    }
+    .badge.ok{background:rgba(22,163,74,.12);border-color:rgba(22,163,74,.35);color:#166534}
+    .badge.warn{background:rgba(202,138,4,.14);border-color:rgba(202,138,4,.35);color:#854d0e}
+    .badge.unread{background:rgba(43,188,255,.15);border-color:rgba(43,188,255,.35);color:#075985}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    input, textarea, select{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:9px 10px;
+      font-size:13px;
+      color:var(--fg);
+      background:#fff;
+    }
+    textarea{min-height:84px;resize:vertical}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+    .empty{
+      border:1px dashed var(--border);
+      border-radius:12px;
+      padding:12px;
+      font-size:13px;
+      color:var(--muted);
+      background:#fbfdff;
+    }
+    .hint{font-size:12px;color:var(--muted)}
+    .split{
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:12px;
+    }
+    @media (max-width:980px){
+      .split{grid-template-columns:1fr}
+      .col6,.col4{grid-column:span 12}
+    }
+    .classBtn{
+      width:100%;
+      text-align:left;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:9px;
+      background:#fff;
+      cursor:pointer;
+      margin-bottom:8px;
+    }
+    .classBtn.active{
+      border-color:rgba(43,188,255,.45);
+      background:rgba(43,188,255,.1);
+    }
+    .composeWrap{
+      background:#f6f8fb;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+    }
+    .composeGrid{
+      display:grid;
+      grid-template-columns:repeat(12,minmax(0,1fr));
+      gap:12px 14px;
+    }
+    .composeCol12{grid-column:span 12}
+    .composeCol6{grid-column:span 6}
+    .composeDivider{
+      border:0;
+      border-top:1px solid var(--border);
+      margin:14px 0;
+    }
+    .composeHint{
+      font-size:12px;
+      color:var(--muted);
+      margin:6px 0 0;
+    }
+    .composeSub{
+      margin:0 0 8px;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:600;
+    }
+    .composeActions{
+      margin-top:12px;
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .hidden{display:none!important}
+    .composeWrap input,
+    .composeWrap textarea,
+    .composeWrap select{
+      background:#fff;
+    }
+    @media (max-width:980px){
+      .composeCol6{grid-column:span 12}
+    }
+    .toastWrap{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      z-index:90;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .toast{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      box-shadow:0 16px 35px rgba(15,23,42,.16);
+      padding:10px 12px;
+      font-size:13px;
+      min-width:260px;
+    }
+    .toast small{display:block;color:var(--muted);margin-top:3px}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>ScioPort â€“ Admin</h1>
+        <p>Ĺ ablony a portfolia</p>
+      </div>
+      <div class="nav" id="nav">
+        <button class="active" data-view="dashboard"><span>Dashboard</span><span class="pill" id="pillDay">..</span></button>
+        <button data-view="newTemplate"><span>NovĂˇ Ĺˇablona</span><span class="pill">Form</span></button>
+        <button data-view="myTemplates"><span>Moje Ĺˇablony</span><span class="pill" id="pillTemplates">0</span></button>
+        <button data-view="classes"><span>TĹ™Ă­dy</span><span class="pill" id="pillClasses">0</span></button>
+        <button data-view="studentOverview"><span>PĹ™ehled dĂ­tÄ›te</span><span class="pill">Search</span></button>
+        <button data-view="notifications"><span>Notifikace</span><span class="pill" id="pillUnread">0</span></button>
+      </div>
+      <div class="actions">
+        <button class="btn warn" id="btnSimulate">đź§Ş TEST: simulovat vyplnÄ›nĂ­</button>
+        <button class="btn danger" id="btnReset">đź—‘ď¸Ź Reset dat</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="viewTitle">Dashboard</h2>
+          <p id="viewSub">RychlĂ˝ pĹ™ehled Ĺˇablon, tĹ™Ă­d a vyplnÄ›nĂ­.</p>
+        </div>
+        <div class="row">
+          <button class="btn" id="btnGoNotifs">đź”” Notifikace</button>
+          <button class="btn primary" id="btnGoNew">âž• NovĂˇ Ĺˇablona</button>
+        </div>
+      </div>
+      <section id="content"></section>
+    </main>
+  </div>
+
+  <div class="toastWrap" id="toastWrap"></div>
+
+  <script>
+  const $ = (selector, root) => (root || document).querySelector(selector);
+
+  function esc(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function toast(message, meta) {
+    const wrap = $("#toastWrap");
+    if (!wrap) {
+      return;
+    }
+    const el = document.createElement("div");
+    el.className = "toast";
+    const title = document.createElement("div");
+    title.textContent = message || "";
+    el.appendChild(title);
+    if (meta) {
+      const small = document.createElement("small");
+      small.textContent = meta;
+      el.appendChild(small);
+    }
+    wrap.appendChild(el);
+    window.setTimeout(function () {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    }, 3600);
+  }
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBYQPQwKYJLxcdjHHMv8w1KbLIIX-HKaQA",
+    authDomain: "scioport.firebaseapp.com",
+    projectId: "scioport",
+    storageBucket: "scioport.appspot.com",
+    messagingSenderId: "612919891675",
+    appId: "1:612919891675:web:3adef562f38e26c80e5efe",
+    measurementId: "G-7BW8NQ1VKC"
+  };
+
+  const GUIDE_EMAILS = [
+    "oliver.bocko@scioskola.cz",
+    "tobias.pokorny@scioskola.cz",
+    "jiri.prevorovsky@scioskola.cz"
+  ];
+
+  const loginUrl = new URL("login/index.html", window.location.href).toString();
+
+  let currentUser = null;
+  let db = null;
+  let templatesRef = null;
+  let usersRef = null;
+  let currentView = "newTemplate";
+  let recipientDirectory = { students: [], classes: [] };
+
+  function hasGuideAccess(email) {
+    return GUIDE_EMAILS.indexOf(String(email || "").toLowerCase()) >= 0;
+  }
+
+  function setHeader(title, subtitle) {
+    const titleEl = $("#viewTitle");
+    const subEl = $("#viewSub");
+    if (titleEl) {
+      titleEl.textContent = title;
+    }
+    if (subEl) {
+      subEl.textContent = subtitle;
+    }
+  }
+
+  function setNavActive(view) {
+    const buttons = document.querySelectorAll("#nav button[data-view]");
+    for (let i = 0; i < buttons.length; i += 1) {
+      const button = buttons[i];
+      if (button.dataset && button.dataset.view === view) {
+        button.classList.add("active");
+      } else {
+        button.classList.remove("active");
+      }
+    }
+  }
+
+  function showContentMessage(title, text) {
+    const content = $("#content");
+    if (!content) {
+      return;
+    }
+    content.innerHTML =
+      '<div class="card">' +
+      '<h3>' + esc(title) + '</h3>' +
+      '<div class="cardBody">' + esc(text) + '</div>' +
+      '</div>';
+  }
+
+  function normalizeEmail(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function normalizeClassName(value) {
+    return String(value || "").trim();
+  }
+
+  function getSubjects() {
+    return ["Anglictina", "Cestina", "Matematika", "Prvouka", "Horizont", "Projekt", "Vlastni..."];
+  }
+
+  function getPillars() {
+    return ["Zvidavost", "Hodnoty", "Samostatnost"];
+  }
+
+  function renderNewTemplate() {
+    const subjects = getSubjects();
+    const pillars = getPillars();
+    const students = Array.isArray(recipientDirectory.students) ? recipientDirectory.students : [];
+    const classes = Array.isArray(recipientDirectory.classes) ? recipientDirectory.classes : [];
+
+    return (
+      '<div class="card">' +
+      '<h3>Nova sablona</h3>' +
+      '<div class="cardBody">' +
+      '<div class="composeWrap">' +
+      '<div class="composeGrid">' +
+      '<div class="composeCol12">' +
+      '<label for="tplTitle">Nazev sablony</label>' +
+      '<input id="tplTitle" type="text" placeholder="Napr. Horizont - reflexe mesice">' +
+      '</div>' +
+      '<div class="composeCol6">' +
+      '<label for="tplAnno">Anotace</label>' +
+      '<textarea id="tplAnno" placeholder="Co deti budou delat a proc..."></textarea>' +
+      '</div>' +
+      '<div class="composeCol6">' +
+      '<label for="tplOut">Ocekavany vystup</label>' +
+      '<textarea id="tplOut" placeholder="Jak ma vypadat vystup (strucne, konkretne)..."></textarea>' +
+      '</div>' +
+      '<div class="composeCol6">' +
+      '<label for="tplSubject">Predmet</label>' +
+      '<select id="tplSubject">' +
+      subjects.map(function (subject) {
+        const value = subject === "Vlastni..." ? "__custom__" : subject;
+        return '<option value="' + esc(value) + '">' + esc(subject) + '</option>';
+      }).join("") +
+      '</select>' +
+      '<input id="tplSubjectCustom" class="hidden" type="text" placeholder="Napis vlastni predmet" disabled>' +
+      '<p class="composeHint">Vyber predmet nebo zvol "Vlastni..." a napis.</p>' +
+      '</div>' +
+      '<div class="composeCol6">' +
+      '<label for="tplPillar">Pilir</label>' +
+      '<select id="tplPillar">' +
+      pillars.map(function (pillar) {
+        return '<option value="' + esc(pillar) + '">' + esc(pillar) + '</option>';
+      }).join("") +
+      '</select>' +
+      '<p class="composeHint">Zvidavost / Hodnoty / Samostatnost.</p>' +
+      '</div>' +
+      '</div>' +
+      '<hr class="composeDivider">' +
+      '<p class="composeSub">Komu poslat</p>' +
+      '<p class="composeHint">Vyber bud konkretni dite, nebo tridu. Pri odeslani se vytvori assignment.</p>' +
+      '<div class="composeGrid" style="margin-top:8px">' +
+      '<div class="composeCol6">' +
+      '<label for="tplStudentEmail">1) Konkretnimu diteti (autocomplete)</label>' +
+      '<input id="tplStudentEmail" list="tplStudentList" type="email" placeholder="Zacni psat jmeno nebo e-mail...">' +
+      '<datalist id="tplStudentList">' +
+      students.map(function (student) {
+        return '<option value="' + esc(student.email) + '">' + esc(student.name || student.email) + '</option>';
+      }).join("") +
+      '</datalist>' +
+      '</div>' +
+      '<div class="composeCol6">' +
+      '<label for="tplClassName">2) Tride / skupine</label>' +
+      '<select id="tplClassName">' +
+      '<option value="">- nevybrano -</option>' +
+      classes.map(function (className) {
+        return '<option value="' + esc(className) + '">' + esc(className) + '</option>';
+      }).join("") +
+      '</select>' +
+      '<p class="composeHint">Pokud vyberes tridu, odesila se vsem jejim clenum.</p>' +
+      '</div>' +
+      '</div>' +
+      '<div class="composeActions">' +
+      '<button class="btn" id="saveTpl" type="button">Ulozit lokalne</button>' +
+      '<button class="btn primary" id="saveSendTpl" type="button">Odeslat sablonu</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderPlaceholder(view) {
+    const labels = {
+      dashboard: ["Dashboard", "Sprava sablon"],
+      myTemplates: ["Moje sablony", "Historie odeslani"],
+      classes: ["Tridy", "Sprava trid"],
+      studentOverview: ["Prehled dite", "Prehled odpovedi"],
+      notifications: ["Notifikace", "Stav vyplneni"]
+    };
+    const label = labels[view] || ["Admin", "Sprava"];
+    setHeader(label[0], label[1]);
+    showContentMessage(label[0], "Tato cast bude doplnena. Pro odeslani pouzij Nova sablona.");
+  }
+
+  function updateSubjectInputVisibility() {
+    const subjectSelect = $("#tplSubject");
+    const customInput = $("#tplSubjectCustom");
+    if (!subjectSelect || !customInput) {
+      return;
+    }
+    const isCustom = subjectSelect.value === "__custom__";
+    if (isCustom) {
+      customInput.classList.remove("hidden");
+      customInput.disabled = false;
+    } else {
+      customInput.classList.add("hidden");
+      customInput.disabled = true;
+      customInput.value = "";
+    }
+  }
+
+  function bindTemplateEvents() {
+    const subjectSelect = $("#tplSubject");
+    const studentEmailInput = $("#tplStudentEmail");
+    const classSelect = $("#tplClassName");
+    const saveLocalButton = $("#saveTpl");
+    const sendButton = $("#saveSendTpl");
+
+    if (subjectSelect) {
+      subjectSelect.addEventListener("change", updateSubjectInputVisibility);
+    }
+
+    if (studentEmailInput) {
+      studentEmailInput.addEventListener("input", function () {
+        if (normalizeEmail(studentEmailInput.value)) {
+          if (classSelect) {
+            classSelect.value = "";
+          }
+        }
+      });
+    }
+
+    if (classSelect) {
+      classSelect.addEventListener("change", function () {
+        if (normalizeClassName(classSelect.value) && studentEmailInput) {
+          studentEmailInput.value = "";
+        }
+      });
+    }
+
+    if (saveLocalButton) {
+      saveLocalButton.addEventListener("click", function () {
+        handleTemplateSave(false);
+      });
+    }
+
+    if (sendButton) {
+      sendButton.addEventListener("click", function () {
+        handleTemplateSave(true);
+      });
+    }
+
+    updateSubjectInputVisibility();
+  }
+
+  function getFormData() {
+    const title = String(("#tplTitle" && $("#tplTitle") ? $("#tplTitle").value : "") || "").trim();
+    const annotation = String(("#tplAnno" && $("#tplAnno") ? $("#tplAnno").value : "") || "").trim();
+    const output = String(("#tplOut" && $("#tplOut") ? $("#tplOut").value : "") || "").trim();
+    const subjectSelectValue = String(("#tplSubject" && $("#tplSubject") ? $("#tplSubject").value : "") || "").trim();
+    const customSubject = String(("#tplSubjectCustom" && $("#tplSubjectCustom") ? $("#tplSubjectCustom").value : "") || "").trim();
+    const subject = subjectSelectValue === "__custom__" ? customSubject : subjectSelectValue;
+    const pillar = String(("#tplPillar" && $("#tplPillar") ? $("#tplPillar").value : "") || "").trim();
+    const studentEmail = normalizeEmail(("#tplStudentEmail" && $("#tplStudentEmail") ? $("#tplStudentEmail").value : ""));
+    const className = normalizeClassName(("#tplClassName" && $("#tplClassName") ? $("#tplClassName").value : ""));
+
+    return {
+      title,
+      annotation,
+      output,
+      subject,
+      pillar,
+      studentEmail,
+      className
+    };
+  }
+
+  function validateForm(data, isSend) {
+    if (!data.title || !data.annotation || !data.output) {
+      return "Dopln nazev, anotaci a ocekavany vystup.";
+    }
+    if (!data.subject) {
+      return "Vyber predmet.";
+    }
+    if (!isSend) {
+      return "";
+    }
+    if (data.studentEmail && data.className) {
+      return "Vyber jen jednoho prijemce: dite nebo tridu.";
+    }
+    if (!data.studentEmail && !data.className) {
+      return "Vyber prijemce - konkretni dite nebo tridu.";
+    }
+    if (data.studentEmail && data.studentEmail.indexOf("@") < 0) {
+      return "Zadej platny e-mail zaka.";
+    }
+    return "";
+  }
+
+  function clearForm() {
+    const ids = ["tplTitle", "tplAnno", "tplOut", "tplSubjectCustom", "tplStudentEmail"];
+    for (let i = 0; i < ids.length; i += 1) {
+      const input = $("#" + ids[i]);
+      if (input) {
+        input.value = "";
+      }
+    }
+    const subjectSelect = $("#tplSubject");
+    if (subjectSelect) {
+      subjectSelect.value = "Anglictina";
+    }
+    const pillarSelect = $("#tplPillar");
+    if (pillarSelect) {
+      pillarSelect.value = "Zvidavost";
+    }
+    const classSelect = $("#tplClassName");
+    if (classSelect) {
+      classSelect.value = "";
+    }
+    updateSubjectInputVisibility();
+  }
+
+  async function handleTemplateSave(sendNow) {
+    const data = getFormData();
+    const validationError = validateForm(data, sendNow);
+    if (validationError) {
+      toast(validationError);
+      return;
+    }
+
+    if (!sendNow) {
+      toast("Sablona pripravena.", "Stiskni Odeslat sablonu.");
+      return;
+    }
+
+    if (!currentUser || !templatesRef) {
+      toast("Neni pripraveno odeslani. Obnov stranku.");
+      return;
+    }
+
+    const recipientType = data.studentEmail ? "student" : "class";
+    const recipientValue = data.studentEmail || data.className;
+    const instructions = "Anotace:\n" + data.annotation + "\n\nOcekavany vystup:\n" + data.output;
+
+    try {
+      await templatesRef.add({
+        title: data.title,
+        subject: data.subject,
+        instructions: instructions,
+        proofType: "text",
+        recipientType: recipientType,
+        recipientValue: recipientValue,
+        recipientValueLower: recipientValue.toLowerCase(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.uid,
+        createdByEmail: currentUser.email || "",
+        annotation: data.annotation,
+        output: data.output,
+        pillar: data.pillar
+      });
+      toast("Sablona odeslana.", recipientValue);
+      clearForm();
+    } catch (error) {
+      console.error("Template send failed:", error);
+      toast("Odeslani selhalo. Zkus to znovu.");
+    }
+  }
+
+  async function loadRecipientDirectory() {
+    recipientDirectory = { students: [], classes: [] };
+    if (!usersRef) {
+      return;
+    }
+
+    const classSet = new Set();
+    const studentMap = new Map();
+
+    try {
+      const snapshot = await usersRef.get();
+      snapshot.forEach(function (doc) {
+        const data = doc.data() || {};
+        const email = normalizeEmail(data.email);
+        const className = normalizeClassName(data.className);
+
+        if (className) {
+          classSet.add(className);
+        }
+
+        if (!email) {
+          return;
+        }
+
+        studentMap.set(email, {
+          email: email,
+          name: String(data.displayName || data.name || email.split("@")[0] || "").trim(),
+          className: className
+        });
+      });
+
+      recipientDirectory.students = Array.from(studentMap.values()).sort(function (a, b) {
+        return a.email.localeCompare(b.email, "cs");
+      });
+      recipientDirectory.classes = Array.from(classSet.values()).sort(function (a, b) {
+        return a.localeCompare(b, "cs");
+      });
+    } catch (error) {
+      console.error("Recipient directory load failed:", error);
+      toast("Nepodarilo se nacist prijemce.");
+    }
+  }
+
+  function render() {
+    const content = $("#content");
+    if (!content) {
+      return;
+    }
+
+    if (currentView === "newTemplate") {
+      setHeader("Nova sablona", "Vytvor a odesli sablonu zakum nebo tride.");
+      content.innerHTML = renderNewTemplate();
+      bindTemplateEvents();
+      return;
+    }
+
+    renderPlaceholder(currentView);
+  }
+
+  function setView(view) {
+    currentView = view;
+    setNavActive(view);
+    render();
+  }
+
+  async function denyGuideAccess() {
+    alert("Pristup ma pouze pruvodce.");
+    try {
+      if (window.firebase && firebase.auth) {
+        await firebase.auth().signOut();
+      }
+    } catch (error) {
+      console.warn("Sign-out failed while denying access", error);
+    }
+    window.location.replace(loginUrl);
+  }
+
+  function wireStaticEvents() {
+    const nav = $("#nav");
+    if (nav) {
+      nav.addEventListener("click", function (event) {
+        const button = event.target && event.target.closest ? event.target.closest("button[data-view]") : null;
+        if (!button || !button.dataset) {
+          return;
+        }
+        setView(button.dataset.view);
+      });
+    }
+
+    const btnGoNew = $("#btnGoNew");
+    if (btnGoNew) {
+      btnGoNew.addEventListener("click", function () {
+        setView("newTemplate");
+      });
+    }
+
+    const btnGoNotifs = $("#btnGoNotifs");
+    if (btnGoNotifs) {
+      btnGoNotifs.addEventListener("click", function () {
+        setView("notifications");
+      });
+    }
+
+    const btnSimulate = $("#btnSimulate");
+    if (btnSimulate) {
+      btnSimulate.classList.add("hidden");
+    }
+
+    const btnReset = $("#btnReset");
+    if (btnReset) {
+      btnReset.classList.add("hidden");
+    }
+  }
+
+  async function init() {
+    showContentMessage("Admin pristup", "Overuji pristup...");
+    wireStaticEvents();
+
+    if (!window.firebase || !firebase.auth || !firebase.firestore) {
+      showContentMessage("Admin pristup", "Firebase knihovny nejsou dostupne.");
+      return;
+    }
+
+    try {
+      if (!firebase.apps || !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.firestore();
+      templatesRef = db.collection("templates");
+      usersRef = db.collection("users");
+    } catch (error) {
+      console.error("Firebase init failed:", error);
+      showContentMessage("Admin pristup", "Nepodarilo se inicializovat Firebase.");
+      return;
+    }
+
+    firebase.auth().onAuthStateChanged(async function (user) {
+      if (!user) {
+        window.location.replace(loginUrl);
+        return;
+      }
+
+      if (!hasGuideAccess(user.email)) {
+        await denyGuideAccess();
+        return;
+      }
+
+      currentUser = user;
+      await loadRecipientDirectory();
+      setView("newTemplate");
+    });
+  }
+
+  init();
+</script>
+</body>
+</html>
+
+
