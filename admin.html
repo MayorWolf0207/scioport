@@ -266,6 +266,37 @@
     .composeWrap select{
       background:#fff;
     }
+    .composeCheckList{
+      display:grid;
+      gap:6px;
+      max-height:180px;
+      overflow:auto;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:8px;
+      background:#fff;
+    }
+    .composeCheckItem{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      margin:0;
+      font-size:12px;
+      color:var(--fg);
+    }
+    .composeCheckItem input{
+      width:auto;
+      margin-top:2px;
+      flex-shrink:0;
+    }
+    .composeCheckEmpty{
+      border:1px dashed var(--border);
+      border-radius:10px;
+      padding:8px;
+      color:var(--muted);
+      font-size:12px;
+      background:#fbfdff;
+    }
     @media (max-width:980px){
       .composeCol6{grid-column:span 12}
     }
@@ -450,6 +481,9 @@
     const pillars = getPillars();
     const students = Array.isArray(recipientDirectory.students) ? recipientDirectory.students : [];
     const classes = Array.isArray(recipientDirectory.classes) ? recipientDirectory.classes : [];
+    const defaultSubjects = subjects.filter(function (subject) {
+      return subject !== "Vlastni...";
+    });
 
     return (
       '<div class="card">' +
@@ -470,48 +504,54 @@
       '<textarea id="tplOut" placeholder="Jak ma vypadat vystup (strucne, konkretne)..."></textarea>' +
       '</div>' +
       '<div class="composeCol6">' +
-      '<label for="tplSubject">Predmet</label>' +
-      '<select id="tplSubject">' +
-      subjects.map(function (subject) {
-        const value = subject === "Vlastni..." ? "__custom__" : subject;
-        return '<option value="' + esc(value) + '">' + esc(subject) + '</option>';
+      '<label>Predmety</label>' +
+      '<div class="composeCheckList">' +
+      defaultSubjects.map(function (subject) {
+        const checked = subject === "Anglictina" ? ' checked' : '';
+        return '<label class="composeCheckItem"><input class="tpl-subject" type="checkbox" value="' + esc(subject) + '"' + checked + '><span>' + esc(subject) + '</span></label>';
       }).join("") +
-      '</select>' +
-      '<input id="tplSubjectCustom" class="hidden" type="text" placeholder="Napis vlastni predmet" disabled>' +
-      '<p class="composeHint">Vyber predmet nebo zvol "Vlastni..." a napis.</p>' +
+      '</div>' +
+      '<input id="tplSubjectsCustom" type="text" placeholder="Vlastni predmety oddel carkou">' +
+      '<p class="composeHint">Muzes zaskrtnout vice predmetu naraz.</p>' +
       '</div>' +
       '<div class="composeCol6">' +
-      '<label for="tplPillar">Pilir</label>' +
-      '<select id="tplPillar">' +
+      '<label>Pilire</label>' +
+      '<div class="composeCheckList">' +
       pillars.map(function (pillar) {
-        return '<option value="' + esc(pillar) + '">' + esc(pillar) + '</option>';
+        const checked = pillar === "Zvidavost" ? ' checked' : '';
+        return '<label class="composeCheckItem"><input class="tpl-pillar" type="checkbox" value="' + esc(pillar) + '"' + checked + '><span>' + esc(pillar) + '</span></label>';
       }).join("") +
-      '</select>' +
-      '<p class="composeHint">Zvidavost / Hodnoty / Samostatnost.</p>' +
+      '</div>' +
+      '<p class="composeHint">Muzes vybrat vice piliru.</p>' +
       '</div>' +
       '</div>' +
       '<hr class="composeDivider">' +
       '<p class="composeSub">Komu poslat</p>' +
-      '<p class="composeHint">Vyber bud konkretni dite, nebo tridu. Pri odeslani se vytvori assignment.</p>' +
+      '<p class="composeHint">Zaskrtni libovolnou kombinaci deti a trid. Odeslani vytvori assignment pro vsechny vybrane prijemce.</p>' +
       '<div class="composeGrid" style="margin-top:8px">' +
       '<div class="composeCol6">' +
-      '<label for="tplStudentEmail">1) Konkretnimu diteti (autocomplete)</label>' +
-      '<input id="tplStudentEmail" list="tplStudentList" type="email" placeholder="Zacni psat jmeno nebo e-mail...">' +
-      '<datalist id="tplStudentList">' +
-      students.map(function (student) {
-        return '<option value="' + esc(student.email) + '">' + esc(student.name || student.email) + '</option>';
-      }).join("") +
-      '</datalist>' +
+      '<label>Zaci</label>' +
+      (students.length
+        ? '<div class="composeCheckList">' +
+          students.map(function (student) {
+            const name = String(student.name || "").trim();
+            const classPart = student.className ? " - " + student.className : "";
+            const label = (name ? name + " (" + student.email + ")" : student.email) + classPart;
+            return '<label class="composeCheckItem"><input class="tpl-student" type="checkbox" value="' + esc(student.email) + '"><span>' + esc(label) + '</span></label>';
+          }).join("") +
+          '</div>'
+        : '<div class="composeCheckEmpty">V databazi zatim nejsou zadni zaci.</div>') +
       '</div>' +
       '<div class="composeCol6">' +
-      '<label for="tplClassName">2) Tride / skupine</label>' +
-      '<select id="tplClassName">' +
-      '<option value="">- nevybrano -</option>' +
-      classes.map(function (className) {
-        return '<option value="' + esc(className) + '">' + esc(className) + '</option>';
-      }).join("") +
-      '</select>' +
-      '<p class="composeHint">Pokud vyberes tridu, odesila se vsem jejim clenum.</p>' +
+      '<label>Tridy</label>' +
+      (classes.length
+        ? '<div class="composeCheckList">' +
+          classes.map(function (className) {
+            return '<label class="composeCheckItem"><input class="tpl-class" type="checkbox" value="' + esc(className) + '"><span>' + esc(className) + '</span></label>';
+          }).join("") +
+          '</div>'
+        : '<div class="composeCheckEmpty">V databazi zatim nejsou zadne tridy.</div>') +
+      '<p class="composeHint">Muzes zvolit vice trid i vice jednotlivych zaku.</p>' +
       '</div>' +
       '</div>' +
       '<div class="composeActions">' +
@@ -537,51 +577,48 @@
     showContentMessage(label[0], "Tato cast bude doplnena. Pro odeslani pouzij Nova sablona.");
   }
 
-  function updateSubjectInputVisibility() {
-    const subjectSelect = $("#tplSubject");
-    const customInput = $("#tplSubjectCustom");
-    if (!subjectSelect || !customInput) {
-      return;
+  function uniqueValues(values) {
+    const result = [];
+    const seen = new Set();
+    if (!Array.isArray(values)) {
+      return result;
     }
-    const isCustom = subjectSelect.value === "__custom__";
-    if (isCustom) {
-      customInput.classList.remove("hidden");
-      customInput.disabled = false;
-    } else {
-      customInput.classList.add("hidden");
-      customInput.disabled = true;
-      customInput.value = "";
+    for (let i = 0; i < values.length; i += 1) {
+      const value = String(values[i] || "").trim();
+      if (!value) {
+        continue;
+      }
+      const key = value.toLowerCase();
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      result.push(value);
     }
+    return result;
+  }
+
+  function splitCommaValues(value) {
+    return uniqueValues(String(value || "").split(",").map(function (item) {
+      return item.trim();
+    }));
+  }
+
+  function getCheckedValues(selector) {
+    const nodes = document.querySelectorAll(selector);
+    const values = [];
+    for (let i = 0; i < nodes.length; i += 1) {
+      const node = nodes[i];
+      if (node && node.checked) {
+        values.push(String(node.value || "").trim());
+      }
+    }
+    return uniqueValues(values);
   }
 
   function bindTemplateEvents() {
-    const subjectSelect = $("#tplSubject");
-    const studentEmailInput = $("#tplStudentEmail");
-    const classSelect = $("#tplClassName");
     const saveLocalButton = $("#saveTpl");
     const sendButton = $("#saveSendTpl");
-
-    if (subjectSelect) {
-      subjectSelect.addEventListener("change", updateSubjectInputVisibility);
-    }
-
-    if (studentEmailInput) {
-      studentEmailInput.addEventListener("input", function () {
-        if (normalizeEmail(studentEmailInput.value)) {
-          if (classSelect) {
-            classSelect.value = "";
-          }
-        }
-      });
-    }
-
-    if (classSelect) {
-      classSelect.addEventListener("change", function () {
-        if (normalizeClassName(classSelect.value) && studentEmailInput) {
-          studentEmailInput.value = "";
-        }
-      });
-    }
 
     if (saveLocalButton) {
       saveLocalButton.addEventListener("click", function () {
@@ -594,29 +631,34 @@
         handleTemplateSave(true);
       });
     }
-
-    updateSubjectInputVisibility();
   }
 
   function getFormData() {
     const title = String(("#tplTitle" && $("#tplTitle") ? $("#tplTitle").value : "") || "").trim();
     const annotation = String(("#tplAnno" && $("#tplAnno") ? $("#tplAnno").value : "") || "").trim();
     const output = String(("#tplOut" && $("#tplOut") ? $("#tplOut").value : "") || "").trim();
-    const subjectSelectValue = String(("#tplSubject" && $("#tplSubject") ? $("#tplSubject").value : "") || "").trim();
-    const customSubject = String(("#tplSubjectCustom" && $("#tplSubjectCustom") ? $("#tplSubjectCustom").value : "") || "").trim();
-    const subject = subjectSelectValue === "__custom__" ? customSubject : subjectSelectValue;
-    const pillar = String(("#tplPillar" && $("#tplPillar") ? $("#tplPillar").value : "") || "").trim();
-    const studentEmail = normalizeEmail(("#tplStudentEmail" && $("#tplStudentEmail") ? $("#tplStudentEmail").value : ""));
-    const className = normalizeClassName(("#tplClassName" && $("#tplClassName") ? $("#tplClassName").value : ""));
+    const subjectsCustom = String(("#tplSubjectsCustom" && $("#tplSubjectsCustom") ? $("#tplSubjectsCustom").value : "") || "").trim();
+    const selectedSubjects = getCheckedValues(".tpl-subject");
+    const customSubjects = splitCommaValues(subjectsCustom);
+    const subjects = uniqueValues(selectedSubjects.concat(customSubjects));
+    const pillars = getCheckedValues(".tpl-pillar");
+    const studentEmails = uniqueValues(getCheckedValues(".tpl-student").map(function (email) {
+      return normalizeEmail(email);
+    }));
+    const classNames = uniqueValues(getCheckedValues(".tpl-class").map(function (className) {
+      return normalizeClassName(className);
+    }));
 
     return {
       title,
       annotation,
       output,
-      subject,
-      pillar,
-      studentEmail,
-      className
+      subject: subjects.length ? subjects[0] : "",
+      subjects: subjects,
+      pillar: pillars.length ? pillars[0] : "",
+      pillars: pillars,
+      studentEmails: studentEmails,
+      classNames: classNames
     };
   }
 
@@ -624,45 +666,83 @@
     if (!data.title || !data.annotation || !data.output) {
       return "Dopln nazev, anotaci a ocekavany vystup.";
     }
-    if (!data.subject) {
-      return "Vyber predmet.";
+    if (!data.subjects || !data.subjects.length) {
+      return "Vyber aspon jeden predmet.";
     }
+    if (!data.pillars || !data.pillars.length) {
+      return "Vyber aspon jeden pilir.";
+    }
+
+    const invalidEmail = (data.studentEmails || []).find(function (email) {
+      return email.indexOf("@") < 0;
+    });
+    if (invalidEmail) {
+      return "Neplatny e-mail zaka: " + invalidEmail;
+    }
+
     if (!isSend) {
       return "";
     }
-    if (data.studentEmail && data.className) {
-      return "Vyber jen jednoho prijemce: dite nebo tridu.";
+
+    if (!(data.studentEmails.length || data.classNames.length)) {
+      return "Vyber aspon jednoho prijemce (zak/trida).";
     }
-    if (!data.studentEmail && !data.className) {
-      return "Vyber prijemce - konkretni dite nebo tridu.";
-    }
-    if (data.studentEmail && data.studentEmail.indexOf("@") < 0) {
-      return "Zadej platny e-mail zaka.";
-    }
+
     return "";
   }
 
   function clearForm() {
-    const ids = ["tplTitle", "tplAnno", "tplOut", "tplSubjectCustom", "tplStudentEmail"];
+    const ids = ["tplTitle", "tplAnno", "tplOut", "tplSubjectsCustom"];
     for (let i = 0; i < ids.length; i += 1) {
       const input = $("#" + ids[i]);
       if (input) {
         input.value = "";
       }
     }
-    const subjectSelect = $("#tplSubject");
-    if (subjectSelect) {
-      subjectSelect.value = "Anglictina";
+
+    const checkboxes = document.querySelectorAll(".tpl-subject, .tpl-pillar, .tpl-student, .tpl-class");
+    for (let i = 0; i < checkboxes.length; i += 1) {
+      checkboxes[i].checked = false;
     }
-    const pillarSelect = $("#tplPillar");
-    if (pillarSelect) {
-      pillarSelect.value = "Zvidavost";
+
+    const defaultSubject = document.querySelector('.tpl-subject[value="Anglictina"]');
+    if (defaultSubject) {
+      defaultSubject.checked = true;
     }
-    const classSelect = $("#tplClassName");
-    if (classSelect) {
-      classSelect.value = "";
+
+    const defaultPillar = document.querySelector('.tpl-pillar[value="Zvidavost"]');
+    if (defaultPillar) {
+      defaultPillar.checked = true;
     }
-    updateSubjectInputVisibility();
+  }
+
+  function buildRecipientTargets(data) {
+    const targetMap = new Map();
+
+    (data.studentEmails || []).forEach(function (email) {
+      const normalized = normalizeEmail(email);
+      if (!normalized) {
+        return;
+      }
+      targetMap.set("student|" + normalized, {
+        recipientType: "student",
+        recipientValue: normalized
+      });
+    });
+
+    (data.classNames || []).forEach(function (className) {
+      const normalized = normalizeClassName(className);
+      if (!normalized) {
+        return;
+      }
+      const key = "class|" + normalized.toLowerCase();
+      targetMap.set(key, {
+        recipientType: "class",
+        recipientValue: normalized
+      });
+    });
+
+    return Array.from(targetMap.values());
   }
 
   async function handleTemplateSave(sendNow) {
@@ -673,37 +753,56 @@
       return;
     }
 
+    const recipients = buildRecipientTargets(data);
+
     if (!sendNow) {
-      toast("Sablona pripravena.", "Stiskni Odeslat sablonu.");
+      toast(
+        "Sablona pripravena.",
+        data.subjects.length + " predmetu, " + data.pillars.length + " piliru, " + recipients.length + " prijemcu."
+      );
       return;
     }
 
-    if (!currentUser || !templatesRef) {
+    if (!currentUser || !templatesRef || !db) {
       toast("Neni pripraveno odeslani. Obnov stranku.");
       return;
     }
 
-    const recipientType = data.studentEmail ? "student" : "class";
-    const recipientValue = data.studentEmail || data.className;
     const instructions = "Anotace:\n" + data.annotation + "\n\nOcekavany vystup:\n" + data.output;
 
     try {
-      await templatesRef.add({
+      const basePayload = {
         title: data.title,
         subject: data.subject,
+        subjects: data.subjects,
         instructions: instructions,
         proofType: "text",
-        recipientType: recipientType,
-        recipientValue: recipientValue,
-        recipientValueLower: recipientValue.toLowerCase(),
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         createdBy: currentUser.uid,
         createdByEmail: currentUser.email || "",
         annotation: data.annotation,
         output: data.output,
-        pillar: data.pillar
-      });
-      toast("Sablona odeslana.", recipientValue);
+        pillar: data.pillar,
+        pillars: data.pillars
+      };
+
+      const chunkSize = 400;
+      for (let offset = 0; offset < recipients.length; offset += chunkSize) {
+        const batch = db.batch();
+        const chunk = recipients.slice(offset, offset + chunkSize);
+        chunk.forEach(function (recipient) {
+          const recipientValueLower = String(recipient.recipientValue || "").toLowerCase();
+          const docRef = templatesRef.doc();
+          batch.set(docRef, Object.assign({}, basePayload, {
+            recipientType: recipient.recipientType,
+            recipientValue: recipient.recipientValue,
+            recipientValueLower: recipientValueLower
+          }));
+        });
+        await batch.commit();
+      }
+
+      toast("Sablona odeslana.", recipients.length + " prijemcu");
       clearForm();
     } catch (error) {
       console.error("Template send failed:", error);

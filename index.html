@@ -3199,7 +3199,10 @@
               const meta = document.createElement('div');
               meta.className = 'template-card-meta';
               const metaParts = [];
-              if (template.subject) {
+              const templateSubjects = Array.isArray(template.subjects) ? template.subjects.filter(Boolean) : [];
+              if (templateSubjects.length) {
+                metaParts.push(templateSubjects.join(', '));
+              } else if (template.subject) {
                 metaParts.push(template.subject);
               }
               if (template.proofType) {
@@ -3460,7 +3463,10 @@
               const meta = document.createElement('div');
               meta.className = 'template-card-meta';
               const metaParts = [];
-              if (template.subject) {
+              const templateSubjects = Array.isArray(template.subjects) ? template.subjects.filter(Boolean) : [];
+              if (templateSubjects.length) {
+                metaParts.push(templateSubjects.join(', '));
+              } else if (template.subject) {
                 metaParts.push(template.subject);
               }
               if (template.proofType) {
@@ -3511,9 +3517,10 @@
               const availableSubjects = subjectOptions.length ? subjectOptions : defaultSubjectOptions;
               const savedSubjects = responseData && Array.isArray(responseData.subjects) ? responseData.subjects : [];
               const savedPillars = responseData && Array.isArray(responseData.pillars) ? responseData.pillars : [];
+              const templateSubjectDefaults = Array.isArray(template.subjects) ? template.subjects.filter(Boolean) : [];
               const subjectDefaults = savedSubjects.length
                 ? savedSubjects
-                : (template.subject ? [template.subject] : []);
+                : (templateSubjectDefaults.length ? templateSubjectDefaults : (template.subject ? [template.subject] : []));
 
               const subjectField = createTemplateChipField({
                 label: 'Predmet',
