@@ -862,6 +862,7 @@
           <p id="viewSub">Rychlý přehled šablon, tříd a vyplnění.</p>
         </div>
         <div class="row">
+          <button class="btn" id="btnHome" type="button">🏠 Domů</button>
           <button class="btn" id="btnTheme" type="button" aria-pressed="false">🌙 Tmavý režim</button>
           <button class="btn" id="btnGoNotifs">🔔 Notifikace</button>
           <button class="btn primary" id="btnGoNew">➕ Nová šablona</button>
@@ -924,6 +925,7 @@
   ];
 
   const loginUrl = new URL("login/index.html", window.location.href).toString();
+  const homeUrl = new URL("index.html", window.location.href).toString();
   const THEME_STORAGE_KEY = "scioport-admin-theme";
   const DASHBOARD_NOTIF_SEEN_LIMIT = 800;
 
@@ -1573,21 +1575,17 @@
       seenIds.add(value);
       ids.push(value);
     });
-    if (!db || !ids.length) {
+    if (!db) {
       return [];
     }
 
-    const chunkSize = 10;
-    const responses = [];
-    for (let offset = 0; offset < ids.length; offset += chunkSize) {
-      const chunk = ids.slice(offset, offset + chunkSize);
-      if (!chunk.length) {
-        continue;
-      }
-      const snapshot = await db.collectionGroup("templateResponses").where("templateId", "in", chunk).get();
+    const idSet = new Set(ids);
+
+    function normalizeResponseDocs(snapshot) {
+      const values = [];
       snapshot.forEach(function (doc) {
         const data = doc.data() || {};
-        const templateId = String(data.templateId || "").trim();
+        const templateId = String(data.templateId || doc.id || "").trim();
         if (!templateId) {
           return;
         }
@@ -1604,7 +1602,7 @@
           ? data.pillars.map(function (item) { return String(item || "").trim(); }).filter(Boolean)
           : (data.pillar ? [String(data.pillar || "").trim()] : []);
         const responseKey = [userId || userEmail || "user", templateId, String(updatedAtMillis || 0)].join("|");
-        responses.push({
+        values.push({
           responseKey: responseKey,
           templateId: templateId,
           templateTitle: String(data.templateTitle || "").trim(),
@@ -1615,7 +1613,106 @@
           updatedAtMillis: updatedAtMillis
         });
       });
+      return values;
     }
+
+    async function loadResponsesFromUsersSubcollections() {
+      if (!usersRef) {
+        return [];
+      }
+
+      const userSnapshot = await usersRef.get();
+      const userDocs = [];
+      userSnapshot.forEach(function (doc) {
+        userDocs.push(doc);
+      });
+
+      const values = [];
+      const chunkSize = 15;
+      for (let offset = 0; offset < userDocs.length; offset += chunkSize) {
+        const chunk = userDocs.slice(offset, offset + chunkSize);
+        const chunkValues = await Promise.all(chunk.map(async function (userDoc) {
+          try {
+            const responseSnapshot = await userDoc.ref.collection("templateResponses").get();
+            return normalizeResponseDocs(responseSnapshot);
+          } catch (error) {
+            return [];
+          }
+        }));
+        chunkValues.forEach(function (list) {
+          if (!Array.isArray(list) || !list.length) {
+            return;
+          }
+          for (let i = 0; i < list.length; i += 1) {
+            values.push(list[i]);
+          }
+        });
+      }
+
+      if (!idSet.size) {
+        return values;
+      }
+      return values.filter(function (item) {
+        return idSet.has(item.templateId);
+      });
+    }
+
+    const chunkSize = 10;
+    let responses = [];
+
+    try {
+      if (ids.length) {
+        for (let offset = 0; offset < ids.length; offset += chunkSize) {
+          const chunk = ids.slice(offset, offset + chunkSize);
+          if (!chunk.length) {
+            continue;
+          }
+          const snapshot = await db.collectionGroup("templateResponses").where("templateId", "in", chunk).get();
+          responses = responses.concat(normalizeResponseDocs(snapshot));
+        }
+      }
+    } catch (error) {
+      responses = [];
+    }
+
+    // Fallback 1: přímé čtení users/{uid}/templateResponses bez collectionGroup indexů.
+    if (!responses.length) {
+      try {
+        responses = await loadResponsesFromUsersSubcollections();
+      } catch (error) {
+        responses = [];
+      }
+    }
+
+    // Fallback 2: poslední odpovědi obecně.
+    if (!responses.length) {
+      try {
+        const fallbackSnapshot = await db.collectionGroup("templateResponses")
+          .orderBy("updatedAt", "desc")
+          .limit(200)
+          .get();
+        const fallbackResponses = normalizeResponseDocs(fallbackSnapshot);
+        responses = idSet.size
+          ? fallbackResponses.filter(function (item) {
+              return idSet.has(item.templateId);
+            })
+          : fallbackResponses;
+      } catch (error) {
+        responses = [];
+      }
+    }
+
+    const deduped = new Map();
+    responses.forEach(function (item) {
+      const key = String(item && item.responseKey ? item.responseKey : "");
+      if (!key) {
+        return;
+      }
+      if (!deduped.has(key)) {
+        deduped.set(key, item);
+      }
+    });
+    responses = Array.from(deduped.values());
 
     responses.sort(function (a, b) {
       return (b.updatedAtMillis || 0) - (a.updatedAtMillis || 0);
@@ -2046,7 +2143,7 @@
       responses = await loadDashboardResponses(templateIds);
     } catch (error) {
       console.error("Dashboard responses load failed:", error);
-      toast("Nepodařilo se načíst notifikace vyplnění.");
+      responses = [];
     }
 
     const classGroups = buildClassGroups(recipientDirectory.students);
@@ -2283,7 +2380,7 @@
       responses = await loadDashboardResponses(templateIds);
     } catch (error) {
       console.error("Notifications responses load failed:", error);
-      toast("Nepodařilo se načíst vyplněné odpovědi.");
+      responses = [];
     }
 
     const classGroups = buildClassGroups(recipientDirectory.students);
@@ -2704,6 +2801,13 @@
   }
 
   function wireStaticEvents() {
+    const btnHome = $("#btnHome");
+    if (btnHome) {
+      btnHome.addEventListener("click", function () {
+        window.location.href = homeUrl;
+      });
+    }
+
     const btnTheme = $("#btnTheme");
     if (btnTheme) {
       btnTheme.addEventListener("click", function () {
