@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projekt P.</title>
     <link rel="icon" href="Media/icons/sciokoly_logo.ico" type="image/x-icon">
-    <link rel="stylesheet" href="Style/style.css?v=2026-10-2">
+    <link rel="stylesheet" href="Style/style.css?v=2026-10-3">
 </head>
 <body>
     <main>
@@ -34,6 +34,7 @@
                 </div>
                 <h1 class="site-logo">Scioport</h1>
                 <div class="site-header-right">
+                    <button class="help-toggle" id="ai-chat-toggle" type="button" aria-label="Otevrit AI asistenta" title="AI asistent">?</button>
                     <div class="gem-indicator" id="gem-indicator" role="status" aria-live="polite" aria-atomic="true">
                         <span class="gem-indicator-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -482,6 +483,27 @@
             <div class="template-list" id="sent-templates-list"></div>
             <p class="template-empty" id="sent-templates-empty">Zatim zadne odeslane sablony.</p>
         </section>
+        <section class="template-panel ai-chat-panel" id="ai-chat-panel" aria-hidden="true">
+            <div class="template-header">
+                <h2>AI asistent</h2>
+                <button class="template-close" id="ai-chat-close" type="button">Zavrit</button>
+            </div>
+            <p class="template-hint">Basic chat pro rychle dotazy k aplikaci a sablonam.</p>
+            <div class="template-field">
+                <label for="ai-chat-api-key">OpenAI API klic</label>
+                <div class="template-inline">
+                    <input type="password" id="ai-chat-api-key" placeholder="sk-...">
+                    <button class="secondary" id="ai-chat-api-key-save" type="button">Ulozit lokalne</button>
+                </div>
+                <p class="template-note" id="ai-chat-api-key-note">Klic se uklada jen v tomto prohlizeci.</p>
+            </div>
+            <div class="ai-chat-log" id="ai-chat-log" role="log" aria-live="polite" aria-atomic="false"></div>
+            <div class="ai-chat-input-row">
+                <textarea id="ai-chat-input" rows="3" placeholder="Napis dotaz..."></textarea>
+                <button class="template-submit ai-chat-send" id="ai-chat-send" type="button">Odeslat</button>
+            </div>
+            <p class="template-note ai-chat-status" id="ai-chat-status"></p>
+        </section>
         <section class="template-panel" id="subject-panel" aria-hidden="true">
             <div class="template-header">
                 <h2>Předměty</h2>
@@ -534,6 +556,9 @@
         const GOOGLE_APP_ID = 'zaznamy-zrhomazdeni';
         const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         const ADMIN_EMAILS = ['oliver.bocko@scioskola.cz', 'tobias.pokorny@scioskola.cz', 'jiri.prevorovsky@scioskola.cz'];
+        const AI_CHAT_MODEL = 'gpt-4o-mini';
+        const AI_CHAT_STORAGE_KEY = 'scioport-openai-api-key';
+        const AI_CHAT_MAX_HISTORY = 12;
         const EMOJI_DEFS = [];
         let EMOJI_CODE_MAP = new Map();
         let EMOJI_CODE_PATTERN = null;
@@ -566,6 +591,8 @@
         let subjectOptions = [];
         const userEmailCache = new Map();
         let adminStudentSuggestions = [];
+        let aiChatMessages = [];
+        let aiChatSending = false;
 
         const AVATAR_CHOICES = {
             holcicka: {
@@ -2106,6 +2133,16 @@
           const sentTemplatesList = document.getElementById('sent-templates-list');
           const sentTemplatesEmpty = document.getElementById('sent-templates-empty');
           const sentTemplatesClose = document.getElementById('sent-templates-close');
+          const aiChatToggle = document.getElementById('ai-chat-toggle');
+          const aiChatPanel = document.getElementById('ai-chat-panel');
+          const aiChatClose = document.getElementById('ai-chat-close');
+          const aiChatApiKeyInput = document.getElementById('ai-chat-api-key');
+          const aiChatApiKeySave = document.getElementById('ai-chat-api-key-save');
+          const aiChatApiKeyNote = document.getElementById('ai-chat-api-key-note');
+          const aiChatLog = document.getElementById('ai-chat-log');
+          const aiChatInput = document.getElementById('ai-chat-input');
+          const aiChatSend = document.getElementById('ai-chat-send');
+          const aiChatStatus = document.getElementById('ai-chat-status');
           const templateToastStack = document.getElementById('template-toast-stack');
           const studentWorkToastStack = document.getElementById('student-work-toast-stack');
           const studentClassField = document.getElementById('student-class-field');
@@ -2151,6 +2188,279 @@
           refreshEmojiLookup(studentWorkEmojiBar);
           if (studentWorkMood) {
             refreshEmojiLookup(studentWorkMood);
+          }
+
+          function getStoredAiApiKey() {
+            try {
+              return String(localStorage.getItem(AI_CHAT_STORAGE_KEY) || '').trim();
+            } catch (error) {
+              return '';
+            }
+          }
+
+          function storeAiApiKey(value) {
+            const normalized = String(value || '').trim();
+            try {
+              if (normalized) {
+                localStorage.setItem(AI_CHAT_STORAGE_KEY, normalized);
+              } else {
+                localStorage.removeItem(AI_CHAT_STORAGE_KEY);
+              }
+            } catch (error) {
+              console.warn('Unable to persist AI API key:', error);
+            }
+            return normalized;
+          }
+
+          function setAiChatStatus(message, isError) {
+            if (!aiChatStatus) {
+              return;
+            }
+            aiChatStatus.textContent = message || '';
+            aiChatStatus.classList.toggle('is-error', Boolean(isError));
+          }
+
+          function setAiChatSending(isSending) {
+            aiChatSending = Boolean(isSending);
+            if (aiChatSend) {
+              aiChatSend.disabled = aiChatSending;
+            }
+            if (aiChatInput) {
+              aiChatInput.disabled = aiChatSending;
+            }
+            if (aiChatApiKeyInput) {
+              aiChatApiKeyInput.disabled = aiChatSending;
+            }
+            if (aiChatApiKeySave) {
+              aiChatApiKeySave.disabled = aiChatSending;
+            }
+          }
+
+          function renderAiChatMessages() {
+            if (!aiChatLog) {
+              return;
+            }
+            aiChatLog.innerHTML = '';
+            if (!aiChatMessages.length) {
+              const empty = document.createElement('p');
+              empty.className = 'ai-chat-empty';
+              empty.textContent = 'Zeptej se treba na sablony, predmety nebo jak neco v appce funguje.';
+              aiChatLog.appendChild(empty);
+              return;
+            }
+            aiChatMessages.forEach(item => {
+              const role = item && item.role === 'user' ? 'user' : 'assistant';
+              const text = item && item.text ? String(item.text) : '';
+              if (!text) {
+                return;
+              }
+              const bubble = document.createElement('article');
+              bubble.className = `ai-chat-msg ai-chat-msg--${role}`;
+              const body = document.createElement('p');
+              body.textContent = text;
+              bubble.appendChild(body);
+              aiChatLog.appendChild(bubble);
+            });
+            aiChatLog.scrollTop = aiChatLog.scrollHeight;
+          }
+
+          function pushAiChatMessage(role, text) {
+            const normalizedRole = role === 'assistant' ? 'assistant' : 'user';
+            const normalizedText = String(text || '').trim();
+            if (!normalizedText) {
+              return;
+            }
+            aiChatMessages.push({
+              role: normalizedRole,
+              text: normalizedText
+            });
+            if (aiChatMessages.length > AI_CHAT_MAX_HISTORY * 2) {
+              aiChatMessages = aiChatMessages.slice(-AI_CHAT_MAX_HISTORY * 2);
+            }
+            renderAiChatMessages();
+          }
+
+          function getAiChatContextPrompt() {
+            const role = isAdmin ? 'admin/pruvodce' : 'zak';
+            const className = userProfile && userProfile.className ? String(userProfile.className).trim() : '';
+            const subjects = (Array.isArray(subjectOptions) ? subjectOptions : [])
+              .map(item => getSubjectLabel(item))
+              .filter(Boolean)
+              .slice(0, 18)
+              .join(', ');
+            return [
+              'Scioport context:',
+              `role=${role};`,
+              `trida=${className || 'neuvedena'};`,
+              `predmety=${subjects || 'nenacteny seznam'};`
+            ].join(' ');
+          }
+
+          function closeAiChatPanel() {
+            if (!aiChatPanel) {
+              return;
+            }
+            aiChatPanel.classList.remove('open');
+            aiChatPanel.setAttribute('aria-hidden', 'true');
+          }
+
+          function openAiChatPanel() {
+            if (!aiChatPanel) {
+              return;
+            }
+            const panelIds = ['template-panel', 'template-fill-panel', 'subject-panel', 'sent-templates-panel'];
+            panelIds.forEach(panelId => {
+              const panel = document.getElementById(panelId);
+              if (!panel) {
+                return;
+              }
+              panel.classList.remove('open');
+              panel.setAttribute('aria-hidden', 'true');
+            });
+            const menuPanelEl = document.getElementById('menu-panel');
+            const menuToggleEl = document.getElementById('menu-toggle');
+            if (menuPanelEl) {
+              menuPanelEl.classList.remove('open');
+            }
+            if (menuToggleEl) {
+              menuToggleEl.setAttribute('aria-expanded', 'false');
+            }
+            aiChatPanel.classList.add('open');
+            aiChatPanel.setAttribute('aria-hidden', 'false');
+            renderAiChatMessages();
+            setTimeout(() => {
+              if (aiChatInput) {
+                aiChatInput.focus();
+              }
+            }, 0);
+          }
+
+          async function requestAiChatCompletion(apiKey) {
+            const history = aiChatMessages.slice(-AI_CHAT_MAX_HISTORY).map(item => ({
+              role: item.role === 'assistant' ? 'assistant' : 'user',
+              content: item.text
+            }));
+            const payload = {
+              model: AI_CHAT_MODEL,
+              temperature: 0.4,
+              messages: [
+                {
+                  role: 'system',
+                  content: 'Jsi Scioport AI asistent. Odpovidej cesky, vecne a kratce. Pokud nevis, rekni to narovinu.'
+                },
+                {
+                  role: 'system',
+                  content: getAiChatContextPrompt()
+                },
+                ...history
+              ]
+            };
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+              },
+              body: JSON.stringify(payload)
+            });
+            let data = null;
+            try {
+              data = await response.json();
+            } catch (error) {
+              data = null;
+            }
+            if (!response.ok) {
+              const errorMessage = data && data.error && data.error.message
+                ? data.error.message
+                : `HTTP ${response.status}`;
+              throw new Error(errorMessage);
+            }
+            const text = data && data.choices && data.choices[0] && data.choices[0].message
+              ? data.choices[0].message.content
+              : '';
+            const normalized = String(text || '').trim();
+            if (!normalized) {
+              throw new Error('AI vratilo prazdnou odpoved.');
+            }
+            return normalized;
+          }
+
+          async function sendAiChatMessage() {
+            if (aiChatSending) {
+              return;
+            }
+            const message = aiChatInput ? String(aiChatInput.value || '').trim() : '';
+            if (!message) {
+              setAiChatStatus('Napis nejdriv dotaz.', true);
+              return;
+            }
+            const apiKey = aiChatApiKeyInput
+              ? String(aiChatApiKeyInput.value || '').trim()
+              : '';
+            if (!apiKey) {
+              setAiChatStatus('Nejdriv vloz OpenAI API klic.', true);
+              if (aiChatApiKeyInput) {
+                aiChatApiKeyInput.focus();
+              }
+              return;
+            }
+            pushAiChatMessage('user', message);
+            if (aiChatInput) {
+              aiChatInput.value = '';
+            }
+            setAiChatStatus('AI premysli...', false);
+            setAiChatSending(true);
+            try {
+              const answer = await requestAiChatCompletion(apiKey);
+              pushAiChatMessage('assistant', answer);
+              setAiChatStatus('Odpoved dorazila.', false);
+            } catch (error) {
+              console.error('AI chat request failed:', error);
+              const errorText = error && error.message ? error.message : 'Neznama chyba';
+              pushAiChatMessage('assistant', `Nepodarilo se odpovedet: ${errorText}`);
+              setAiChatStatus('Nepodarilo se zavolat AI API.', true);
+            } finally {
+              setAiChatSending(false);
+              if (aiChatInput) {
+                aiChatInput.focus();
+              }
+            }
+          }
+
+          function saveAiChatApiKeyFromInput() {
+            if (!aiChatApiKeyInput) {
+              return;
+            }
+            const key = storeAiApiKey(aiChatApiKeyInput.value);
+            if (aiChatApiKeyNote) {
+              aiChatApiKeyNote.textContent = key
+                ? 'Klic je ulozeny lokalne v tomto prohlizeci.'
+                : 'Klic se uklada jen v tomto prohlizeci.';
+            }
+            if (!key) {
+              setAiChatStatus('API klic byl smazan z lokalniho uloziste.', false);
+              return;
+            }
+            setAiChatStatus('API klic ulozen lokalne v tomto prohlizeci.', false);
+          }
+
+          function initAiChat() {
+            const storedKey = getStoredAiApiKey();
+            if (aiChatApiKeyInput && storedKey) {
+              aiChatApiKeyInput.value = storedKey;
+            }
+            if (aiChatApiKeyNote) {
+              aiChatApiKeyNote.textContent = storedKey
+                ? 'Klic je nacteny z tohoto prohlizece.'
+                : 'Klic se uklada jen v tomto prohlizeci.';
+            }
+            aiChatMessages = [{
+              role: 'assistant',
+              text: 'Ahoj, jsem basic AI asistent. Napis dotaz a odpovim.'
+            }];
+            renderAiChatMessages();
+            setAiChatStatus(storedKey ? 'API klic je pripraven.' : 'Vloz OpenAI API klic a napis dotaz.', false);
+            setAiChatSending(false);
           }
 
           function getStoredTheme() {
@@ -3103,6 +3413,7 @@
             if (!templateFillPanel) {
               return [];
             }
+            closeAiChatPanel();
             const templatePanelEl = document.getElementById('template-panel');
             const subjectPanelEl = document.getElementById('subject-panel');
             const sentTemplatesPanelEl = document.getElementById('sent-templates-panel');
@@ -3734,6 +4045,7 @@
           applyAdminUi();
           updateTemplateRecipient();
           updateTemplateSaveState();
+          initAiChat();
 
           if (uploadButton) {
             uploadButton.addEventListener('click', handleDriveButton);
@@ -3767,6 +4079,40 @@
           if (themeToggle) {
             themeToggle.addEventListener('click', () => {
               setTheme(!document.body.classList.contains('theme-dark'));
+            });
+          }
+
+          if (aiChatToggle) {
+            aiChatToggle.addEventListener('click', openAiChatPanel);
+          }
+
+          if (aiChatClose) {
+            aiChatClose.addEventListener('click', closeAiChatPanel);
+          }
+
+          if (aiChatApiKeySave) {
+            aiChatApiKeySave.addEventListener('click', saveAiChatApiKeyFromInput);
+          }
+
+          if (aiChatApiKeyInput) {
+            aiChatApiKeyInput.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                saveAiChatApiKeyFromInput();
+              }
+            });
+          }
+
+          if (aiChatSend) {
+            aiChatSend.addEventListener('click', sendAiChatMessage);
+          }
+
+          if (aiChatInput) {
+            aiChatInput.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendAiChatMessage();
+              }
             });
           }
 
@@ -4084,6 +4430,7 @@
 
           if (menuTemplates && templatePanel) {
             menuTemplates.addEventListener('click', () => {
+              closeAiChatPanel();
               templatePanel.classList.add('open');
               templatePanel.setAttribute('aria-hidden', 'false');
               if (subjectPanel) {
@@ -4116,6 +4463,7 @@
 
           if (menuFillTemplate) {
             menuFillTemplate.addEventListener('click', async () => {
+              closeAiChatPanel();
               await openTemplateFillPanel();
             });
           }
@@ -4132,6 +4480,7 @@
 
           if (menuSubjects) {
             menuSubjects.addEventListener('click', () => {
+              closeAiChatPanel();
               if (!subjectPanel) {
                 return;
               }
@@ -4160,6 +4509,7 @@
 
           if (menuSentTemplates) {
             menuSentTemplates.addEventListener('click', async () => {
+              closeAiChatPanel();
               if (!sentTemplatesPanel) {
                 return;
               }
@@ -4206,6 +4556,12 @@
               subjectPanel.setAttribute('aria-hidden', 'true');
             });
           }
+
+          document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && aiChatPanel && aiChatPanel.classList.contains('open')) {
+              closeAiChatPanel();
+            }
+          });
 
           initGooglePicker();
           window.addEventListener('load', initGoogleAuth);
