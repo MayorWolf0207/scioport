@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ScioPort â€“ Admin</title>
+  <title>ScioPort – Admin</title>
   <style>
     :root{
       --bg:#eff4fa;
@@ -30,6 +30,13 @@
         radial-gradient(700px 380px at 85% 0, rgba(59,212,176,.18), transparent 60%),
         linear-gradient(180deg,#eaf1f8,#f7fbff);
       color:var(--fg);
+    }
+    body[data-theme="dark"]{
+      background:
+        radial-gradient(900px 420px at 10% -10%, rgba(34,211,238,.15), transparent 55%),
+        radial-gradient(780px 420px at 90% 0, rgba(59,130,246,.14), transparent 60%),
+        linear-gradient(180deg,#020617,#0b1220);
+      color:#e2e8f0;
     }
     .app{
       min-height:100vh;
@@ -325,6 +332,366 @@
       min-width:260px;
     }
     .toast small{display:block;color:var(--muted);margin-top:3px}
+    .dashWrap{
+      border-radius:16px;
+      border:1px solid var(--border);
+      background:#f8fbff;
+      overflow:hidden;
+    }
+    .dashHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(43,188,255,.12), rgba(255,255,255,.95));
+    }
+    .dashHeadTitle{
+      display:inline-block;
+      margin:0;
+      font-size:28px;
+      line-height:1;
+    }
+    .dashHeadMeta{
+      margin-left:10px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:600;
+    }
+    .dashWeekChip{
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:7px 12px;
+      background:#eef4f8;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .dashBody{
+      padding:14px;
+    }
+    .dashMetricGrid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+    .dashMetric{
+      border:1px solid #d3dbe5;
+      border-radius:22px;
+      background:#fff;
+      padding:14px 16px;
+    }
+    .dashMetricValue{
+      font-size:36px;
+      line-height:1.05;
+      margin:0;
+      letter-spacing:-0.02em;
+      font-weight:600;
+      color:#1e293b;
+    }
+    .dashMetricLabel{
+      margin-top:8px;
+      font-size:13px;
+      color:#475569;
+    }
+    .dashSplit{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:14px;
+    }
+    .dashSectionHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+      gap:8px;
+    }
+    .dashSectionTitle{
+      margin:0;
+      font-size:20px;
+      line-height:1;
+      color:#c7d4e9;
+      text-shadow:0 1px 0 rgba(255,255,255,.18);
+    }
+    .dashGhostBtn{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      padding:7px 12px;
+      font-size:14px;
+      cursor:pointer;
+      color:var(--fg);
+    }
+    .dashNotifList{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .dashNotifItem{
+      border:1px solid #d3dbe5;
+      border-radius:20px;
+      background:#fff;
+      padding:13px 14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .dashNotifTitle{
+      margin:0;
+      font-size:24px;
+      line-height:1.12;
+      font-weight:500;
+      color:#1f2937;
+    }
+    .dashChips{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .dashChip{
+      border:1px solid #c9d2dd;
+      border-radius:999px;
+      padding:4px 11px;
+      font-size:12px;
+      color:#334155;
+      background:#f4f7fb;
+      white-space:nowrap;
+    }
+    .dashState{
+      border:1px solid #e5c68a;
+      color:#a16207;
+      background:#fff8e8;
+      border-radius:999px;
+      padding:4px 11px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .dashState.read{
+      border-color:#bbf7d0;
+      color:#166534;
+      background:#ecfdf3;
+    }
+    .dashOpenBtn{
+      border:1px solid #d1d9e4;
+      border-radius:14px;
+      padding:7px 12px;
+      background:#fff;
+      font-size:14px;
+      cursor:pointer;
+      color:#1f2937;
+    }
+    .dashActionList{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .dashActionItem{
+      border:1px solid #d3dbe5;
+      border-radius:20px;
+      background:#fff;
+      padding:14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .dashActionTitle{
+      margin:0;
+      font-size:23px;
+      line-height:1.1;
+      color:#1f2937;
+    }
+    .dashActionBtn{
+      border:1px solid #8fd3f7;
+      border-radius:20px;
+      padding:8px 16px;
+      background:#dff3ff;
+      color:#0f172a;
+      font-size:14px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .dashActionBtn.neutral{
+      border-color:#d1d9e4;
+      background:#f8fafc;
+    }
+    .dashShortcut{
+      margin-top:12px;
+      border-top:1px solid var(--border);
+      padding-top:12px;
+      color:#64748b;
+      font-size:14px;
+    }
+    .dashKey{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:22px;
+      height:22px;
+      padding:0 8px;
+      border:1px solid #cbd5e1;
+      border-radius:10px;
+      background:#f8fafc;
+      color:#334155;
+      font-size:12px;
+      margin:0 3px;
+    }
+    @media (max-width:1200px){
+      .dashMetricGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .dashSplit{grid-template-columns:1fr}
+    }
+    @media (max-width:760px){
+      .dashMetricGrid{grid-template-columns:1fr}
+      .dashHead{flex-direction:column;align-items:flex-start}
+      .dashWeekChip{white-space:normal}
+      .dashActionItem,
+      .dashNotifItem{flex-direction:column}
+    }
+    body[data-theme="dark"] .main{
+      background:#0b1220;
+      border-color:#334155;
+      box-shadow:0 18px 40px rgba(2,6,23,.65);
+    }
+    body[data-theme="dark"] .topbar{
+      border-bottom-color:#334155;
+      background:rgba(11,18,32,.9);
+    }
+    body[data-theme="dark"] .topbar p,
+    body[data-theme="dark"] label,
+    body[data-theme="dark"] .hint,
+    body[data-theme="dark"] .composeHint,
+    body[data-theme="dark"] .composeSub,
+    body[data-theme="dark"] .empty,
+    body[data-theme="dark"] .composeCheckEmpty,
+    body[data-theme="dark"] .toast small{
+      color:#94a3b8;
+    }
+    body[data-theme="dark"] .btn{
+      background:#0f172a;
+      color:#e2e8f0;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .btn.primary{
+      background:linear-gradient(135deg, rgba(37,99,235,.32), rgba(14,165,233,.24));
+      border-color:rgba(56,189,248,.42);
+    }
+    body[data-theme="dark"] .card{
+      background:#0f172a;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .card h3{
+      background:linear-gradient(180deg, rgba(37,99,235,.18), rgba(15,23,42,.9));
+      border-bottom-color:#334155;
+    }
+    body[data-theme="dark"] .kpi{
+      background:#111a2b;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .item{
+      background:#0d1628;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .badge{
+      background:#111a2b;
+      border-color:#334155;
+      color:#cbd5e1;
+    }
+    body[data-theme="dark"] .composeWrap{
+      background:#0b1324;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .composeWrap input,
+    body[data-theme="dark"] .composeWrap textarea,
+    body[data-theme="dark"] .composeWrap select,
+    body[data-theme="dark"] input,
+    body[data-theme="dark"] textarea,
+    body[data-theme="dark"] select{
+      background:#0f172a;
+      border-color:#334155;
+      color:#e2e8f0;
+    }
+    body[data-theme="dark"] input::placeholder,
+    body[data-theme="dark"] textarea::placeholder{
+      color:#94a3b8;
+    }
+    body[data-theme="dark"] .composeCheckList{
+      background:#0f172a;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .composeCheckEmpty{
+      background:#0d1628;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .classBtn{
+      background:#0f172a;
+      border-color:#334155;
+      color:#e2e8f0;
+    }
+    body[data-theme="dark"] .toast{
+      background:#0f172a;
+      border-color:#334155;
+      color:#e2e8f0;
+      box-shadow:0 18px 36px rgba(2,6,23,.65);
+    }
+    body[data-theme="dark"] .dashWrap{
+      background:#0b1324;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .dashHead{
+      background:linear-gradient(180deg, rgba(30,64,175,.3), rgba(11,19,36,.92));
+      border-bottom-color:#334155;
+    }
+    body[data-theme="dark"] .dashHeadMeta{
+      color:#94a3b8;
+    }
+    body[data-theme="dark"] .dashWeekChip{
+      background:#0f172a;
+      border-color:#334155;
+      color:#cbd5e1;
+    }
+    body[data-theme="dark"] .dashMetric,
+    body[data-theme="dark"] .dashNotifItem,
+    body[data-theme="dark"] .dashActionItem{
+      background:#0f172a;
+      border-color:#334155;
+    }
+    body[data-theme="dark"] .dashMetricValue,
+    body[data-theme="dark"] .dashNotifTitle,
+    body[data-theme="dark"] .dashActionTitle{
+      color:#e2e8f0;
+    }
+    body[data-theme="dark"] .dashMetricLabel,
+    body[data-theme="dark"] .dashShortcut{
+      color:#94a3b8;
+    }
+    body[data-theme="dark"] .dashChip{
+      border-color:#334155;
+      background:#111a2b;
+      color:#cbd5e1;
+    }
+    body[data-theme="dark"] .dashOpenBtn,
+    body[data-theme="dark"] .dashGhostBtn{
+      border-color:#334155;
+      background:#0f172a;
+      color:#e2e8f0;
+    }
+    body[data-theme="dark"] .dashActionBtn{
+      border-color:#0ea5e9;
+      background:#0c4a6e;
+      color:#e0f2fe;
+    }
+    body[data-theme="dark"] .dashActionBtn.neutral{
+      border-color:#334155;
+      background:#111a2b;
+      color:#e2e8f0;
+    }
+    body[data-theme="dark"] .dashKey{
+      border-color:#334155;
+      background:#111a2b;
+      color:#cbd5e1;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -334,20 +701,20 @@
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
-        <h1>ScioPort â€“ Admin</h1>
-        <p>Ĺ ablony a portfolia</p>
+        <h1>ScioPort – Admin</h1>
+        <p>Šablony a portfolia</p>
       </div>
       <div class="nav" id="nav">
         <button class="active" data-view="dashboard"><span>Dashboard</span><span class="pill" id="pillDay">..</span></button>
-        <button data-view="newTemplate"><span>NovĂˇ Ĺˇablona</span><span class="pill">Form</span></button>
-        <button data-view="myTemplates"><span>Moje Ĺˇablony</span><span class="pill" id="pillTemplates">0</span></button>
-        <button data-view="classes"><span>TĹ™Ă­dy</span><span class="pill" id="pillClasses">0</span></button>
-        <button data-view="studentOverview"><span>PĹ™ehled dĂ­tÄ›te</span><span class="pill">Search</span></button>
+        <button data-view="newTemplate"><span>Nová šablona</span><span class="pill">Form</span></button>
+        <button data-view="myTemplates"><span>Moje šablony</span><span class="pill" id="pillTemplates">0</span></button>
+        <button data-view="classes"><span>Třídy</span><span class="pill" id="pillClasses">0</span></button>
+        <button data-view="studentOverview"><span>Přehled dítěte</span><span class="pill">Search</span></button>
         <button data-view="notifications"><span>Notifikace</span><span class="pill" id="pillUnread">0</span></button>
       </div>
       <div class="actions">
-        <button class="btn warn" id="btnSimulate">đź§Ş TEST: simulovat vyplnÄ›nĂ­</button>
-        <button class="btn danger" id="btnReset">đź—‘ď¸Ź Reset dat</button>
+        <button class="btn warn" id="btnSimulate">🧪 TEST: simulovat vyplnění</button>
+        <button class="btn danger" id="btnReset">🗑️ Reset dat</button>
       </div>
     </aside>
 
@@ -355,11 +722,12 @@
       <div class="topbar">
         <div>
           <h2 id="viewTitle">Dashboard</h2>
-          <p id="viewSub">RychlĂ˝ pĹ™ehled Ĺˇablon, tĹ™Ă­d a vyplnÄ›nĂ­.</p>
+          <p id="viewSub">Rychlý přehled šablon, tříd a vyplnění.</p>
         </div>
         <div class="row">
-          <button class="btn" id="btnGoNotifs">đź”” Notifikace</button>
-          <button class="btn primary" id="btnGoNew">âž• NovĂˇ Ĺˇablona</button>
+          <button class="btn" id="btnTheme" type="button" aria-pressed="false">🌙 Tmavý režim</button>
+          <button class="btn" id="btnGoNotifs">🔔 Notifikace</button>
+          <button class="btn primary" id="btnGoNew">➕ Nová šablona</button>
         </div>
       </div>
       <section id="content"></section>
@@ -419,16 +787,51 @@
   ];
 
   const loginUrl = new URL("login/index.html", window.location.href).toString();
+  const THEME_STORAGE_KEY = "scioport-admin-theme";
+  const DASHBOARD_NOTIF_SEEN_LIMIT = 800;
 
   let currentUser = null;
   let db = null;
   let templatesRef = null;
   let usersRef = null;
+  let subjectsRef = null;
   let currentView = "newTemplate";
   let recipientDirectory = { students: [], classes: [] };
+  let subjectDirectory = [];
 
   function hasGuideAccess(email) {
     return GUIDE_EMAILS.indexOf(String(email || "").toLowerCase()) >= 0;
+  }
+
+  function getInitialTheme() {
+    try {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === "dark" || stored === "light") {
+        return stored;
+      }
+    } catch (error) {
+      // ignore storage errors
+    }
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return prefersDark ? "dark" : "light";
+  }
+
+  function applyTheme(theme) {
+    const nextTheme = theme === "dark" ? "dark" : "light";
+    document.body.setAttribute("data-theme", nextTheme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+      // ignore storage errors
+    }
+    const button = $("#btnTheme");
+    if (!button) {
+      return;
+    }
+    const isDark = nextTheme === "dark";
+    button.textContent = isDark ? "☀️ Světlý režim" : "🌙 Tmavý režim";
+    button.setAttribute("aria-pressed", isDark ? "true" : "false");
+    button.title = isDark ? "Přepnout na světlý režim" : "Přepnout na tmavý režim";
   }
 
   function setHeader(title, subtitle) {
@@ -474,6 +877,10 @@
     return String(value || "").trim();
   }
 
+  function normalizeSubjectName(value) {
+    return String(value || "").replace(/^@+/, "").trim();
+  }
+
   function normalizeSearchText(value) {
     return String(value || "")
       .toLowerCase()
@@ -483,11 +890,15 @@
   }
 
   function getSubjects() {
-    return ["Anglictina", "Cestina", "Matematika", "Prvouka", "Horizont", "Projekt", "Vlastni..."];
+    const base = subjectDirectory.slice();
+    if (base.indexOf("Vlastní...") < 0) {
+      base.push("Vlastní...");
+    }
+    return base;
   }
 
   function getPillars() {
-    return ["Zvidavost", "Hodnoty", "Samostatnost"];
+    return ["Zvídavost", "Hodnoty", "Samostatnost"];
   }
 
   function renderNewTemplate() {
@@ -496,57 +907,57 @@
     const students = Array.isArray(recipientDirectory.students) ? recipientDirectory.students : [];
     const classes = Array.isArray(recipientDirectory.classes) ? recipientDirectory.classes : [];
     const defaultSubjects = subjects.filter(function (subject) {
-      return subject !== "Vlastni...";
+      return subject !== "Vlastní...";
     });
 
     return (
       '<div class="card">' +
-      '<h3>Nova sablona</h3>' +
+      '<h3>Nová šablona</h3>' +
       '<div class="cardBody">' +
       '<div class="composeWrap">' +
       '<div class="composeGrid">' +
       '<div class="composeCol12">' +
-      '<label for="tplTitle">Nazev sablony</label>' +
-      '<input id="tplTitle" type="text" placeholder="Napr. Horizont - reflexe mesice">' +
+      '<label for="tplTitle">Název šablony</label>' +
+      '<input id="tplTitle" type="text" placeholder="Např. Horizont - reflexe měsíce">' +
       '</div>' +
       '<div class="composeCol6">' +
       '<label for="tplAnno">Anotace</label>' +
-      '<textarea id="tplAnno" placeholder="Co deti budou delat a proc..."></textarea>' +
+      '<textarea id="tplAnno" placeholder="Co děti budou dělat a proč..."></textarea>' +
       '</div>' +
       '<div class="composeCol6">' +
-      '<label for="tplOut">Ocekavany vystup</label>' +
-      '<textarea id="tplOut" placeholder="Jak ma vypadat vystup (strucne, konkretne)..."></textarea>' +
+      '<label for="tplOut">Očekávaný výstup</label>' +
+      '<textarea id="tplOut" placeholder="Jak má vypadat výstup (stručně, konkrétně)..."></textarea>' +
       '</div>' +
       '<div class="composeCol6">' +
-      '<label>Predmety</label>' +
+      '<label>Předměty</label>' +
       '<div class="composeCheckList">' +
-      defaultSubjects.map(function (subject) {
-        const checked = subject === "Anglictina" ? ' checked' : '';
+      defaultSubjects.map(function (subject, index) {
+        const checked = index === 0 ? ' checked' : '';
         return '<label class="composeCheckItem"><input class="tpl-subject" type="checkbox" value="' + esc(subject) + '"' + checked + '><span>' + esc(subject) + '</span></label>';
       }).join("") +
       '</div>' +
-      '<input id="tplSubjectsCustom" type="text" placeholder="Vlastni predmety oddel carkou">' +
-      '<p class="composeHint">Muzes zaskrtnout vice predmetu naraz.</p>' +
+      '<input id="tplSubjectsCustom" type="text" placeholder="Vlastní předměty odděl čárkou">' +
+      '<p class="composeHint">Můžeš zaškrtnout více předmětů naráz.</p>' +
       '</div>' +
       '<div class="composeCol6">' +
-      '<label>Pilire</label>' +
+      '<label>Pilíře</label>' +
       '<div class="composeCheckList">' +
       pillars.map(function (pillar) {
-        const checked = pillar === "Zvidavost" ? ' checked' : '';
+        const checked = pillar === "Zvídavost" ? ' checked' : '';
         return '<label class="composeCheckItem"><input class="tpl-pillar" type="checkbox" value="' + esc(pillar) + '"' + checked + '><span>' + esc(pillar) + '</span></label>';
       }).join("") +
       '</div>' +
-      '<p class="composeHint">Muzes vybrat vice piliru.</p>' +
+      '<p class="composeHint">Můžeš vybrat více pilířů.</p>' +
       '</div>' +
       '</div>' +
       '<hr class="composeDivider">' +
       '<p class="composeSub">Komu poslat</p>' +
-      '<p class="composeHint">Zaskrtni libovolnou kombinaci deti a trid. Odeslani vytvori assignment pro vsechny vybrane prijemce.</p>' +
+      '<p class="composeHint">Zaškrtni libovolnou kombinaci dětí a tříd. Odeslání vytvoří assignment pro všechny vybrané příjemce.</p>' +
       '<div class="composeGrid" style="margin-top:8px">' +
       '<div class="composeCol6">' +
-      '<label>Zaci</label>' +
+      '<label>Žáci</label>' +
       (students.length
-        ? '<input id="tplStudentFilter" class="composeFilterInput" type="text" placeholder="Filtrovat podle jmena nebo e-mailu">' +
+        ? '<input id="tplStudentFilter" class="composeFilterInput" type="text" placeholder="Filtrovat podle jména nebo e-mailu">' +
           '<div class="composeCheckList" id="tplStudentList">' +
           students.map(function (student) {
             const name = String(student.name || "").trim();
@@ -556,24 +967,24 @@
             return '<label class="composeCheckItem tpl-student-item" data-search="' + esc(searchText) + '"><input class="tpl-student" type="checkbox" value="' + esc(student.email) + '"><span>' + esc(label) + '</span></label>';
           }).join("") +
           '</div>' +
-          '<div class="composeCheckEmpty filterEmpty hidden" id="tplStudentFilterEmpty">Zadny zak neodpovida filtru.</div>'
-        : '<div class="composeCheckEmpty">V databazi zatim nejsou zadni zaci.</div>') +
+          '<div class="composeCheckEmpty filterEmpty hidden" id="tplStudentFilterEmpty">Žádný žák neodpovídá filtru.</div>'
+        : '<div class="composeCheckEmpty">V databázi zatím nejsou žádní žáci.</div>') +
       '</div>' +
       '<div class="composeCol6">' +
-      '<label>Tridy</label>' +
+      '<label>Třídy</label>' +
       (classes.length
         ? '<div class="composeCheckList">' +
           classes.map(function (className) {
             return '<label class="composeCheckItem"><input class="tpl-class" type="checkbox" value="' + esc(className) + '"><span>' + esc(className) + '</span></label>';
           }).join("") +
           '</div>'
-        : '<div class="composeCheckEmpty">V databazi zatim nejsou zadne tridy.</div>') +
-      '<p class="composeHint">Muzes zvolit vice trid i vice jednotlivych zaku.</p>' +
+        : '<div class="composeCheckEmpty">V databázi zatím nejsou žádné třídy.</div>') +
+      '<p class="composeHint">Můžeš zvolit více tříd i více jednotlivých žáků.</p>' +
       '</div>' +
       '</div>' +
       '<div class="composeActions">' +
-      '<button class="btn" id="saveTpl" type="button">Ulozit lokalne</button>' +
-      '<button class="btn primary" id="saveSendTpl" type="button">Odeslat sablonu</button>' +
+      '<button class="btn" id="saveTpl" type="button">Uložit lokálně</button>' +
+      '<button class="btn primary" id="saveSendTpl" type="button">Odeslat šablonu</button>' +
       '</div>' +
       '</div>' +
       '</div>' +
@@ -583,15 +994,15 @@
 
   function renderPlaceholder(view) {
     const labels = {
-      dashboard: ["Dashboard", "Sprava sablon"],
-      myTemplates: ["Moje sablony", "Historie odeslani"],
-      classes: ["Tridy", "Sprava trid"],
-      studentOverview: ["Prehled dite", "Prehled odpovedi"],
-      notifications: ["Notifikace", "Stav vyplneni"]
+      dashboard: ["Dashboard", "Správa šablon"],
+      myTemplates: ["Moje šablony", "Historie odeslání"],
+      classes: ["Třídy", "Správa tříd"],
+      studentOverview: ["Přehled dítěte", "Přehled odpovědí"],
+      notifications: ["Notifikace", "Stav vyplnění"]
     };
-    const label = labels[view] || ["Admin", "Sprava"];
+    const label = labels[view] || ["Admin", "Správa"];
     setHeader(label[0], label[1]);
-    showContentMessage(label[0], "Tato cast bude doplnena. Pro odeslani pouzij Nova sablona.");
+    showContentMessage(label[0], "Tato část bude doplněna. Pro odeslání použij Novou šablonu.");
   }
 
   function uniqueValues(values) {
@@ -712,20 +1123,20 @@
 
   function validateForm(data, isSend) {
     if (!data.title || !data.annotation || !data.output) {
-      return "Dopln nazev, anotaci a ocekavany vystup.";
+      return "Doplň název, anotaci a očekávaný výstup.";
     }
     if (!data.subjects || !data.subjects.length) {
-      return "Vyber aspon jeden predmet.";
+      return "Vyber aspoň jeden předmět.";
     }
     if (!data.pillars || !data.pillars.length) {
-      return "Vyber aspon jeden pilir.";
+      return "Vyber aspoň jeden pilíř.";
     }
 
     const invalidEmail = (data.studentEmails || []).find(function (email) {
       return email.indexOf("@") < 0;
     });
     if (invalidEmail) {
-      return "Neplatny e-mail zaka: " + invalidEmail;
+      return "Neplatný e-mail žáka: " + invalidEmail;
     }
 
     if (!isSend) {
@@ -733,7 +1144,7 @@
     }
 
     if (!(data.studentEmails.length || data.classNames.length)) {
-      return "Vyber aspon jednoho prijemce (zak/trida).";
+      return "Vyber aspoň jednoho příjemce (žák/třída).";
     }
 
     return "";
@@ -753,12 +1164,12 @@
       checkboxes[i].checked = false;
     }
 
-    const defaultSubject = document.querySelector('.tpl-subject[value="Anglictina"]');
+    const defaultSubject = document.querySelector(".tpl-subject");
     if (defaultSubject) {
       defaultSubject.checked = true;
     }
 
-    const defaultPillar = document.querySelector('.tpl-pillar[value="Zvidavost"]');
+    const defaultPillar = document.querySelector('.tpl-pillar[value="Zvídavost"]');
     if (defaultPillar) {
       defaultPillar.checked = true;
     }
@@ -795,6 +1206,925 @@
     return Array.from(targetMap.values());
   }
 
+  function getStudentWord(count) {
+    if (count === 1) {
+      return "žák";
+    }
+    if (count >= 2 && count <= 4) {
+      return "žáci";
+    }
+    return "žáků";
+  }
+
+  function getStudentDisplayName(student) {
+    const name = String(student && student.name ? student.name : "").trim();
+    if (name) {
+      return name;
+    }
+    const email = String(student && student.email ? student.email : "").trim();
+    if (!email) {
+      return "Neznámý žák";
+    }
+    const local = email.split("@")[0] || email;
+    return local.trim() || email;
+  }
+
+  function buildClassGroups(students) {
+    const groups = new Map();
+    const source = Array.isArray(students) ? students : [];
+    source.forEach(function (student) {
+      const className = normalizeClassName(student && student.className ? student.className : "");
+      if (!className) {
+        return;
+      }
+      if (!groups.has(className)) {
+        groups.set(className, []);
+      }
+      groups.get(className).push(student);
+    });
+
+    return Array.from(groups.entries())
+      .map(function (entry) {
+        const className = entry[0];
+        const classStudents = entry[1] || [];
+        const names = classStudents.map(function (student) {
+          return getStudentDisplayName(student);
+        }).filter(Boolean).sort(function (a, b) {
+          return a.localeCompare(b, "cs");
+        });
+        return {
+          className: className,
+          studentCount: classStudents.length,
+          names: names
+        };
+      })
+      .sort(function (a, b) {
+        return a.className.localeCompare(b.className, "cs");
+      });
+  }
+
+  function renderClassesList(groups) {
+    const classGroups = Array.isArray(groups) ? groups : [];
+    const totalStudents = classGroups.reduce(function (sum, group) {
+      return sum + (group && group.studentCount ? group.studentCount : 0);
+    }, 0);
+
+    if (!classGroups.length) {
+      return (
+        '<div class="card">' +
+        '<h3>Třídy</h3>' +
+        '<div class="cardBody empty">Zatím nejsou přiřazené žádné třídy ani žáci.</div>' +
+        '</div>'
+      );
+    }
+
+    return (
+      '<div class="card">' +
+      '<h3>Třídy</h3>' +
+      '<div class="cardBody">' +
+      '<div class="meta">' +
+      '<span class="badge ok">Třídy: ' + String(classGroups.length) + '</span>' +
+      '<span class="badge">Žáci celkem: ' + String(totalStudents) + '</span>' +
+      '</div>' +
+      '<div class="list">' +
+      classGroups.map(function (group) {
+        const namesBadges = (group.names || []).map(function (name) {
+          return '<span class="badge">' + esc(name) + '</span>';
+        }).join("");
+        return (
+          '<div class="item">' +
+          '<div>' +
+          '<div class="title">' + esc(group.className) + '</div>' +
+          '<div class="meta"><span class="badge ok">' + String(group.studentCount) + " " + getStudentWord(group.studentCount) + '</span></div>' +
+          (namesBadges
+            ? '<div class="meta">' + namesBadges + '</div>'
+            : '<div class="hint">Třída zatím nemá přiřazená jména.</div>') +
+          '</div>' +
+          '</div>'
+        );
+      }).join("") +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  async function renderClassesView() {
+    const content = $("#content");
+    if (!content) {
+      return;
+    }
+
+    content.innerHTML =
+      '<div class="card">' +
+      '<h3>Třídy</h3>' +
+      '<div class="cardBody">Načítám třídy…</div>' +
+      '</div>';
+
+    await loadRecipientDirectory();
+    const groups = buildClassGroups(recipientDirectory.students);
+    const pillClasses = $("#pillClasses");
+    if (pillClasses) {
+      pillClasses.textContent = String(groups.length);
+    }
+
+    if (currentView !== "classes") {
+      return;
+    }
+    content.innerHTML = renderClassesList(groups);
+  }
+
+  function toMillis(value) {
+    if (!value && value !== 0) {
+      return 0;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    if (value && typeof value.toMillis === "function") {
+      return value.toMillis();
+    }
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  }
+
+  function getWeekStartMillis(baseMillis) {
+    const date = new Date(baseMillis || Date.now());
+    const day = date.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - diff);
+    return date.getTime();
+  }
+
+  function getDashboardNotificationSeenKey() {
+    const uid = currentUser && currentUser.uid ? currentUser.uid : "guest";
+    return "scioport-admin-notif-seen-" + uid;
+  }
+
+  function loadDashboardNotificationSeenSet() {
+    const seen = new Set();
+    try {
+      const raw = localStorage.getItem(getDashboardNotificationSeenKey());
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        parsed.forEach(function (item) {
+          const value = String(item || "").trim();
+          if (value) {
+            seen.add(value);
+          }
+        });
+      }
+    } catch (error) {
+      // ignore storage errors
+    }
+    return seen;
+  }
+
+  function saveDashboardNotificationSeenSet(seenSet) {
+    if (!(seenSet instanceof Set)) {
+      return;
+    }
+    const values = Array.from(seenSet.values()).slice(-DASHBOARD_NOTIF_SEEN_LIMIT);
+    try {
+      localStorage.setItem(getDashboardNotificationSeenKey(), JSON.stringify(values));
+    } catch (error) {
+      // ignore storage errors
+    }
+  }
+
+  function markDashboardNotificationsSeen(keys) {
+    if (!Array.isArray(keys) || !keys.length) {
+      return;
+    }
+    const seen = loadDashboardNotificationSeenSet();
+    let changed = false;
+    keys.forEach(function (key) {
+      const value = String(key || "").trim();
+      if (!value || seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+      changed = true;
+    });
+    if (changed) {
+      saveDashboardNotificationSeenSet(seen);
+    }
+  }
+
+  function collectTemplateIdsFromGroups(templateGroups) {
+    const ids = new Set();
+    (Array.isArray(templateGroups) ? templateGroups : []).forEach(function (group) {
+      (group && Array.isArray(group.templateIds) ? group.templateIds : []).forEach(function (templateId) {
+        const value = String(templateId || "").trim();
+        if (value) {
+          ids.add(value);
+        }
+      });
+    });
+    return Array.from(ids.values());
+  }
+
+  async function loadDashboardResponses(templateIds) {
+    const ids = [];
+    const seenIds = new Set();
+    (Array.isArray(templateIds) ? templateIds : []).forEach(function (templateId) {
+      const value = String(templateId || "").trim();
+      if (!value || seenIds.has(value)) {
+        return;
+      }
+      seenIds.add(value);
+      ids.push(value);
+    });
+    if (!db || !ids.length) {
+      return [];
+    }
+
+    const chunkSize = 10;
+    const responses = [];
+    for (let offset = 0; offset < ids.length; offset += chunkSize) {
+      const chunk = ids.slice(offset, offset + chunkSize);
+      if (!chunk.length) {
+        continue;
+      }
+      const snapshot = await db.collectionGroup("templateResponses").where("templateId", "in", chunk).get();
+      snapshot.forEach(function (doc) {
+        const data = doc.data() || {};
+        const templateId = String(data.templateId || "").trim();
+        if (!templateId) {
+          return;
+        }
+        const updatedAtMillis = toMillis(data.updatedAt);
+        let userId = String(data.userId || "").trim();
+        if (!userId && doc.ref && doc.ref.parent && doc.ref.parent.parent) {
+          userId = String(doc.ref.parent.parent.id || "").trim();
+        }
+        const userEmail = normalizeEmail(data.userEmail || "");
+        const subjects = Array.isArray(data.subjects)
+          ? data.subjects.map(function (item) { return String(item || "").trim(); }).filter(Boolean)
+          : (data.subject ? [String(data.subject || "").trim()].filter(Boolean) : []);
+        const pillars = Array.isArray(data.pillars)
+          ? data.pillars.map(function (item) { return String(item || "").trim(); }).filter(Boolean)
+          : (data.pillar ? [String(data.pillar || "").trim()] : []);
+        const responseKey = [userId || userEmail || "user", templateId, String(updatedAtMillis || 0)].join("|");
+        responses.push({
+          responseKey: responseKey,
+          templateId: templateId,
+          templateTitle: String(data.templateTitle || "").trim(),
+          userId: userId,
+          userEmail: userEmail,
+          subjects: subjects,
+          pillars: pillars,
+          updatedAtMillis: updatedAtMillis
+        });
+      });
+    }
+
+    responses.sort(function (a, b) {
+      return (b.updatedAtMillis || 0) - (a.updatedAtMillis || 0);
+    });
+    return responses;
+  }
+
+  function resolveStudentLabelFromEmail(email, studentByEmail) {
+    const normalizedEmail = normalizeEmail(email);
+    const student = studentByEmail.get(normalizedEmail);
+    if (student) {
+      return getStudentDisplayName(student);
+    }
+    if (normalizedEmail) {
+      return normalizedEmail.split("@")[0] || normalizedEmail;
+    }
+    return "Neznámý žák";
+  }
+
+  function pickMostFrequentLabel(sourceValues, fallback) {
+    const counts = new Map();
+    (Array.isArray(sourceValues) ? sourceValues : []).forEach(function (value) {
+      const item = String(value || "").trim();
+      if (!item) {
+        return;
+      }
+      counts.set(item, (counts.get(item) || 0) + 1);
+    });
+    if (!counts.size) {
+      return fallback || "—";
+    }
+    return Array.from(counts.entries()).sort(function (a, b) {
+      const countDiff = b[1] - a[1];
+      if (countDiff !== 0) {
+        return countDiff;
+      }
+      return a[0].localeCompare(b[0], "cs");
+    })[0][0];
+  }
+
+  function computeDeliveredRecipients(templateGroup, classMembers) {
+    const recipients = templateGroup && Array.isArray(templateGroup.recipientTargets)
+      ? templateGroup.recipientTargets
+      : [];
+    if (!recipients.length) {
+      return Number(templateGroup && templateGroup.recipientCount ? templateGroup.recipientCount : 0);
+    }
+
+    const expanded = new Set();
+    recipients.forEach(function (target) {
+      const type = String(target && target.type ? target.type : "").toLowerCase();
+      const value = String(target && target.value ? target.value : "").trim();
+      if (!value) {
+        return;
+      }
+
+      if (type === "student") {
+        expanded.add(normalizeEmail(value));
+        return;
+      }
+
+      if (type === "class") {
+        const members = classMembers.get(value.toLowerCase());
+        if (members && members.size) {
+          members.forEach(function (email) {
+            expanded.add(email);
+          });
+        } else {
+          expanded.add("class|" + value.toLowerCase());
+        }
+        return;
+      }
+
+      expanded.add(type + "|" + value.toLowerCase());
+    });
+
+    return expanded.size;
+  }
+
+  function computeDashboardStats(templateGroups, classGroups, responses, seenNotificationSet) {
+    const safeTemplates = Array.isArray(templateGroups) ? templateGroups : [];
+    const safeClasses = Array.isArray(classGroups) ? classGroups : [];
+    const safeResponses = Array.isArray(responses) ? responses : [];
+    const seenSet = seenNotificationSet instanceof Set ? seenNotificationSet : new Set();
+    const nowMillis = Date.now();
+    const weekStartMillis = getWeekStartMillis(nowMillis);
+    const studentDirectory = Array.isArray(recipientDirectory.students) ? recipientDirectory.students : [];
+
+    const studentByEmail = new Map();
+    const classMembers = new Map();
+    studentDirectory.forEach(function (student) {
+      const email = normalizeEmail(student && student.email ? student.email : "");
+      if (email) {
+        studentByEmail.set(email, student);
+      }
+      const className = normalizeClassName(student && student.className ? student.className : "");
+      if (!className || !email) {
+        return;
+      }
+      const key = className.toLowerCase();
+      if (!classMembers.has(key)) {
+        classMembers.set(key, new Set());
+      }
+      classMembers.get(key).add(email);
+    });
+
+    const templateTitleById = new Map();
+    safeTemplates.forEach(function (group) {
+      (group && Array.isArray(group.templateIds) ? group.templateIds : []).forEach(function (templateId) {
+        const id = String(templateId || "").trim();
+        if (id) {
+          templateTitleById.set(id, String(group.title || "").trim());
+        }
+      });
+    });
+
+    const responsesNormalized = safeResponses.map(function (response) {
+      const templateId = String(response && response.templateId ? response.templateId : "").trim();
+      const templateTitle = String(response && response.templateTitle ? response.templateTitle : "").trim()
+        || templateTitleById.get(templateId)
+        || "Bez názvu";
+      const userEmail = normalizeEmail(response && response.userEmail ? response.userEmail : "");
+      const updatedAtMillis = toMillis(response && response.updatedAtMillis ? response.updatedAtMillis : 0);
+      const responseKey = String(response && response.responseKey ? response.responseKey : "").trim()
+        || [userEmail || "user", templateId || "template", String(updatedAtMillis || 0)].join("|");
+      return {
+        responseKey: responseKey,
+        templateId: templateId,
+        templateTitle: templateTitle,
+        userEmail: userEmail,
+        updatedAtMillis: updatedAtMillis,
+        subjects: Array.isArray(response && response.subjects) ? response.subjects : [],
+        pillars: Array.isArray(response && response.pillars) ? response.pillars : []
+      };
+    });
+
+    const deliveredTotal = safeTemplates.reduce(function (sum, group) {
+      return sum + computeDeliveredRecipients(group, classMembers);
+    }, 0);
+
+    const responsesThisWeek = responsesNormalized.filter(function (item) {
+      return (item.updatedAtMillis || 0) >= weekStartMillis;
+    }).length;
+
+    const templatesThisWeek = safeTemplates.filter(function (group) {
+      return toMillis(group && group.createdAtMillis ? group.createdAtMillis : 0) >= weekStartMillis;
+    }).length;
+
+    const unreadNotificationsTotal = responsesNormalized.reduce(function (sum, item) {
+      return sum + (seenSet.has(item.responseKey) ? 0 : 1);
+    }, 0);
+
+    const pillarCandidatesFromResponses = [];
+    responsesNormalized.forEach(function (item) {
+      (Array.isArray(item.pillars) ? item.pillars : []).forEach(function (pillar) {
+        pillarCandidatesFromResponses.push(pillar);
+      });
+    });
+    const pillarCandidatesFromTemplates = [];
+    safeTemplates.forEach(function (group) {
+      (group && Array.isArray(group.pillars) ? group.pillars : []).forEach(function (pillar) {
+        pillarCandidatesFromTemplates.push(pillar);
+      });
+    });
+    const topPillar = pickMostFrequentLabel(
+      pillarCandidatesFromResponses.length ? pillarCandidatesFromResponses : pillarCandidatesFromTemplates,
+      "—"
+    );
+
+    const notifications = responsesNormalized.slice(0, 4).map(function (item) {
+      const studentLabel = resolveStudentLabelFromEmail(item.userEmail, studentByEmail);
+      const unread = !seenSet.has(item.responseKey);
+      return {
+        responseKey: item.responseKey,
+        templateId: item.templateId,
+        templateTitle: item.templateTitle,
+        studentLabel: studentLabel,
+        dateLabel: formatDateTime(item.updatedAtMillis),
+        unread: unread
+      };
+    });
+
+    return {
+      weekStartMillis: weekStartMillis,
+      studentsTotal: studentDirectory.length,
+      classesTotal: safeClasses.length,
+      templatesTotal: safeTemplates.length,
+      sendsTotal: safeTemplates.length,
+      templatesThisWeek: templatesThisWeek,
+      responsesThisWeek: responsesThisWeek,
+      responsesTotal: responsesNormalized.length,
+      deliveredTotal: deliveredTotal,
+      topPillar: topPillar,
+      notifications: notifications,
+      unreadNotificationsTotal: unreadNotificationsTotal,
+      updatedAtMillis: nowMillis
+    };
+  }
+
+  function updateDashboardPills(stats) {
+    const data = stats || {};
+
+    const pillDay = $("#pillDay");
+    if (pillDay) {
+      pillDay.textContent = String(data.templatesThisWeek || 0);
+    }
+
+    const pillTemplates = $("#pillTemplates");
+    if (pillTemplates) {
+      pillTemplates.textContent = String(data.templatesTotal || 0);
+    }
+
+    const pillClasses = $("#pillClasses");
+    if (pillClasses) {
+      pillClasses.textContent = String(data.classesTotal || 0);
+    }
+
+    const pillUnread = $("#pillUnread");
+    if (pillUnread) {
+      pillUnread.textContent = String(data.unreadNotificationsTotal || 0);
+    }
+  }
+
+  function renderDashboardMetric(value, label) {
+    return (
+      '<article class="dashMetric">' +
+      '<p class="dashMetricValue">' + esc(value) + '</p>' +
+      '<div class="dashMetricLabel">' + esc(label) + '</div>' +
+      '</article>'
+    );
+  }
+
+  function renderDashboardNotifications(notifications) {
+    const items = Array.isArray(notifications) ? notifications : [];
+    return (
+      '<section>' +
+      '<div class="dashSectionHead">' +
+      '<h4 class="dashSectionTitle">Poslední notifikace</h4>' +
+      '<button class="dashGhostBtn" id="dashOpenNotifications" type="button">Otevřít 🔔</button>' +
+      '</div>' +
+      (items.length
+        ? '<div class="dashNotifList">' +
+          items.map(function (item) {
+            const statusLabel = item.unread ? "Nepřečteno" : "Přečteno";
+            const statusClass = item.unread ? "dashState" : "dashState read";
+            return (
+              '<article class="dashNotifItem">' +
+              '<div>' +
+              '<p class="dashNotifTitle">Dítě vyplnilo šablonu: „' + esc(item.templateTitle) + '“.</p>' +
+              '<div class="dashChips">' +
+              '<span class="dashChip">' + esc(item.studentLabel) + '</span>' +
+              '<span class="dashChip">' + esc(item.templateTitle) + '</span>' +
+              (item.dateLabel ? '<span class="dashChip">' + esc(item.dateLabel) + '</span>' : '') +
+              '</div>' +
+              '</div>' +
+              '<div class="row">' +
+              '<span class="' + statusClass + '">' + statusLabel + '</span>' +
+              '<button class="dashOpenBtn dashNotifOpen" type="button" data-response-key="' + esc(item.responseKey) + '" data-template-id="' + esc(item.templateId) + '">Otevřít</button>' +
+              '</div>' +
+              '</article>'
+            );
+          }).join("") +
+          '</div>'
+        : '<div class="empty">Zatím žádné notifikace o vyplnění.</div>') +
+      '</section>'
+    );
+  }
+
+  function renderDashboardActions() {
+    return (
+      '<section>' +
+      '<div class="dashSectionHead">' +
+      '<h4 class="dashSectionTitle">Rychlé akce</h4>' +
+      '</div>' +
+      '<div class="dashActionList">' +
+      '<article class="dashActionItem">' +
+      '<div>' +
+      '<p class="dashActionTitle">Vytvořit novou šablonu</p>' +
+      '<div class="dashChips"><span class="dashChip">Uložit</span><span class="dashChip">Uložit a odeslat</span></div>' +
+      '</div>' +
+      '<button class="dashActionBtn" id="dashActionNew" type="button">➕ Otevřít</button>' +
+      '</article>' +
+      '<article class="dashActionItem">' +
+      '<div>' +
+      '<p class="dashActionTitle">Spravovat třídy a skupiny</p>' +
+      '<div class="dashChips"><span class="dashChip">Chips</span><span class="dashChip">Autocomplete</span></div>' +
+      '</div>' +
+      '<button class="dashActionBtn neutral" id="dashActionClasses" type="button">👥 Třídy</button>' +
+      '</article>' +
+      '<article class="dashActionItem">' +
+      '<div>' +
+      '<p class="dashActionTitle">Zkontrolovat šablony podle tříd</p>' +
+      '<div class="dashChips"><span class="dashChip">Statusy</span><span class="dashChip">Komentáře</span></div>' +
+      '</div>' +
+      '<button class="dashActionBtn neutral" id="dashActionTemplates" type="button">🗂️ Moje šablony</button>' +
+      '</article>' +
+      '</div>' +
+      '<div class="dashShortcut">🔎 Zkratky: <span class="dashKey">N</span> Notifikace, <span class="dashKey">T</span> Test simulace, <span class="dashKey">Shift</span> + <span class="dashKey">R</span> Reset dat.</div>' +
+      '</section>'
+    );
+  }
+
+  function renderDashboardContent(stats) {
+    const weekLabel = formatDateTime(stats.weekStartMillis);
+    return (
+      '<section class="dashWrap">' +
+      '<div class="dashHead">' +
+      '<div><strong class="dashHeadTitle">Rychlé metriky</strong><span class="dashHeadMeta">aktuální data</span></div>' +
+      '<span class="dashWeekChip">Týden od: ' + esc(weekLabel) + '</span>' +
+      '</div>' +
+      '<div class="dashBody">' +
+      '<div class="dashMetricGrid">' +
+      renderDashboardMetric(String(stats.studentsTotal), "Dětí v databázi") +
+      renderDashboardMetric(String(stats.classesTotal), "Tříd / skupin") +
+      renderDashboardMetric(String(stats.templatesTotal), "Šablon (celkem)") +
+      renderDashboardMetric(String(stats.sendsTotal), "Odeslání (celkem)") +
+      renderDashboardMetric(String(stats.templatesThisWeek), "Odesláno tento týden") +
+      renderDashboardMetric(String(stats.responsesThisWeek), "Vyplněno tento týden") +
+      renderDashboardMetric(String(stats.responsesTotal) + " / " + String(stats.deliveredTotal), "Vyplněno celkem / doručeno") +
+      renderDashboardMetric(String(stats.topPillar), "Nejčastější pilíř") +
+      '</div>' +
+      '<hr class="composeDivider">' +
+      '<div class="dashSplit">' +
+      renderDashboardNotifications(stats.notifications) +
+      renderDashboardActions() +
+      '</div>' +
+      '</div>' +
+      '</section>'
+    );
+  }
+
+  function bindDashboardEvents(stats) {
+    function updateUnreadPillAfterMark(markedKeys) {
+      const pillUnread = $("#pillUnread");
+      if (!pillUnread) {
+        return;
+      }
+      const unreadKeys = new Set(
+        (Array.isArray(stats && stats.notifications) ? stats.notifications : [])
+          .filter(function (item) { return item && item.unread; })
+          .map(function (item) { return String(item.responseKey || "").trim(); })
+          .filter(Boolean)
+      );
+      let nextValue = Number(stats && stats.unreadNotificationsTotal ? stats.unreadNotificationsTotal : 0) || 0;
+      (Array.isArray(markedKeys) ? markedKeys : []).forEach(function (key) {
+        const value = String(key || "").trim();
+        if (!value || !unreadKeys.has(value)) {
+          return;
+        }
+        unreadKeys.delete(value);
+        nextValue -= 1;
+      });
+      pillUnread.textContent = String(Math.max(0, nextValue));
+    }
+
+    const goNotifications = $("#dashOpenNotifications");
+    if (goNotifications) {
+      goNotifications.addEventListener("click", function () {
+        const responseKeys = Array.isArray(stats && stats.notifications)
+          ? stats.notifications.map(function (item) { return item.responseKey; }).filter(Boolean)
+          : [];
+        markDashboardNotificationsSeen(responseKeys);
+        updateUnreadPillAfterMark(responseKeys);
+        setView("notifications");
+      });
+    }
+
+    const notifButtons = document.querySelectorAll(".dashNotifOpen");
+    for (let i = 0; i < notifButtons.length; i += 1) {
+      const button = notifButtons[i];
+      button.addEventListener("click", function () {
+        const responseKey = String(button.dataset && button.dataset.responseKey ? button.dataset.responseKey : "").trim();
+        if (responseKey) {
+          markDashboardNotificationsSeen([responseKey]);
+          updateUnreadPillAfterMark([responseKey]);
+        }
+        setView("myTemplates");
+      });
+    }
+
+    const actionNew = $("#dashActionNew");
+    if (actionNew) {
+      actionNew.addEventListener("click", function () {
+        setView("newTemplate");
+      });
+    }
+
+    const actionClasses = $("#dashActionClasses");
+    if (actionClasses) {
+      actionClasses.addEventListener("click", function () {
+        setView("classes");
+      });
+    }
+
+    const actionTemplates = $("#dashActionTemplates");
+    if (actionTemplates) {
+      actionTemplates.addEventListener("click", function () {
+        setView("myTemplates");
+      });
+    }
+  }
+
+  async function renderDashboardView() {
+    const content = $("#content");
+    if (!content) {
+      return;
+    }
+
+    content.innerHTML =
+      '<div class="card">' +
+      '<h3>Dashboard</h3>' +
+      '<div class="cardBody">Načítám přehled…</div>' +
+      '</div>';
+
+    await Promise.all([loadRecipientDirectory(), loadSubjectDirectory()]);
+
+    let templateGroups = [];
+    try {
+      templateGroups = await loadMyTemplateGroups();
+    } catch (error) {
+      console.error("Dashboard templates load failed:", error);
+      toast("Nepodařilo se načíst šablony do dashboardu.");
+    }
+
+    let responses = [];
+    try {
+      const templateIds = collectTemplateIdsFromGroups(templateGroups);
+      responses = await loadDashboardResponses(templateIds);
+    } catch (error) {
+      console.error("Dashboard responses load failed:", error);
+      toast("Nepodařilo se načíst notifikace vyplnění.");
+    }
+
+    const classGroups = buildClassGroups(recipientDirectory.students);
+    const seenSet = loadDashboardNotificationSeenSet();
+    const stats = computeDashboardStats(templateGroups, classGroups, responses, seenSet);
+    updateDashboardPills(stats);
+
+    if (currentView !== "dashboard") {
+      return;
+    }
+
+    content.innerHTML = renderDashboardContent(stats);
+    bindDashboardEvents(stats);
+  }
+
+  function formatDateTime(value) {
+    if (!value && value !== 0) {
+      return "";
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return day + "." + month + "." + year + " " + hours + ":" + minutes;
+  }
+
+  function collectTemplateValues(data, key, fallbackKey) {
+    if (!data || typeof data !== "object") {
+      return [];
+    }
+    if (Array.isArray(data[key]) && data[key].length) {
+      return uniqueValues(data[key].map(function (item) {
+        return String(item || "").trim();
+      }));
+    }
+    if (fallbackKey && data[fallbackKey]) {
+      return uniqueValues([String(data[fallbackKey]).trim()]);
+    }
+    return [];
+  }
+
+  async function loadMyTemplateGroups() {
+    if (!currentUser || !templatesRef) {
+      return [];
+    }
+
+    const snapshot = await templatesRef.where("createdBy", "==", currentUser.uid).get();
+    const grouped = new Map();
+
+    snapshot.forEach(function (doc) {
+      const data = doc.data() || {};
+      const title = String(data.title || "Bez názvu").trim();
+      const createdAtMillis = data.createdAt && typeof data.createdAt.toMillis === "function"
+        ? data.createdAt.toMillis()
+        : 0;
+      const createdAtClient = Number(data.createdAtClient) || 0;
+      const batchId = String(data.sentBatchId || "").trim();
+      const fallbackKey = createdAtClient
+        ? "client|" + createdAtClient
+        : (createdAtMillis ? "legacy|" + createdAtMillis + "|" + title.toLowerCase() : "doc|" + doc.id);
+      const key = batchId ? "batch|" + batchId : fallbackKey;
+
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          title: title || "Bez názvu",
+          annotation: String(data.annotation || "").trim(),
+          output: String(data.output || "").trim(),
+          createdAtMillis: createdAtMillis || createdAtClient || 0,
+          subjects: new Set(),
+          pillars: new Set(),
+          recipients: new Set(),
+          templateIds: new Set(),
+          recipientTargets: []
+        });
+      }
+
+      const group = grouped.get(key);
+      group.templateIds.add(doc.id);
+      if (createdAtMillis > group.createdAtMillis) {
+        group.createdAtMillis = createdAtMillis;
+      }
+      if (!group.annotation && data.annotation) {
+        group.annotation = String(data.annotation).trim();
+      }
+      if (!group.output && data.output) {
+        group.output = String(data.output).trim();
+      }
+
+      collectTemplateValues(data, "subjects", "subject").forEach(function (subject) {
+        if (subject) {
+          group.subjects.add(subject);
+        }
+      });
+      collectTemplateValues(data, "pillars", "pillar").forEach(function (pillar) {
+        if (pillar) {
+          group.pillars.add(pillar);
+        }
+      });
+
+      const recipientType = String(data.recipientType || "").trim();
+      const recipientValue = String(data.recipientValue || "").trim();
+      if (recipientType || recipientValue) {
+        group.recipients.add((recipientType || "recipient") + "|" + recipientValue);
+        group.recipientTargets.push({
+          type: recipientType || "recipient",
+          value: recipientValue
+        });
+      }
+    });
+
+    return Array.from(grouped.values())
+      .map(function (group) {
+        return {
+          title: group.title,
+          annotation: group.annotation,
+          output: group.output,
+          createdAtMillis: group.createdAtMillis,
+          subjects: Array.from(group.subjects.values()),
+          pillars: Array.from(group.pillars.values()),
+          recipientCount: group.recipients.size,
+          templateIds: Array.from(group.templateIds.values()),
+          recipientTargets: group.recipientTargets.slice()
+        };
+      })
+      .sort(function (a, b) {
+        return b.createdAtMillis - a.createdAtMillis;
+      });
+  }
+
+  function renderMyTemplatesList(groups) {
+    if (!Array.isArray(groups) || !groups.length) {
+      return (
+        '<div class="card">' +
+        '<h3>Moje šablony</h3>' +
+        '<div class="cardBody empty">Zatím tu nejsou žádné odeslané šablony.</div>' +
+        '</div>'
+      );
+    }
+
+    return (
+      '<div class="card">' +
+      '<h3>Moje šablony</h3>' +
+      '<div class="cardBody list">' +
+      groups.map(function (group) {
+        const dateLabel = formatDateTime(group.createdAtMillis);
+        const subjectBadges = (group.subjects || []).slice(0, 3).map(function (subject) {
+          return '<span class="badge">' + esc(subject) + '</span>';
+        }).join("");
+        const pillarBadges = (group.pillars || []).slice(0, 3).map(function (pillar) {
+          return '<span class="badge">' + esc(pillar) + '</span>';
+        }).join("");
+        const recipientBadge = '<span class="badge ok">Příjemci: ' + String(group.recipientCount || 0) + '</span>';
+        const dateBadge = dateLabel ? '<span class="badge">' + esc(dateLabel) + '</span>' : '';
+        const annotation = group.annotation ? '<div class="hint">' + esc(group.annotation) + '</div>' : '';
+
+        return (
+          '<div class="item">' +
+          '<div>' +
+          '<div class="title">' + esc(group.title || "Bez názvu") + '</div>' +
+          annotation +
+          '<div class="meta">' + subjectBadges + pillarBadges + recipientBadge + dateBadge + '</div>' +
+          '</div>' +
+          '<span class="badge unread">Odesláno</span>' +
+          '</div>'
+        );
+      }).join("") +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  async function renderMyTemplatesView() {
+    const content = $("#content");
+    if (!content) {
+      return;
+    }
+
+    content.innerHTML =
+      '<div class="card">' +
+      '<h3>Moje šablony</h3>' +
+      '<div class="cardBody">Načítám odeslané šablony…</div>' +
+      '</div>';
+
+    let groups = [];
+    try {
+      groups = await loadMyTemplateGroups();
+    } catch (error) {
+      console.error("My templates load failed:", error);
+      if (currentView === "myTemplates") {
+        content.innerHTML =
+          '<div class="card">' +
+          '<h3>Moje šablony</h3>' +
+          '<div class="cardBody empty">Nepodařilo se načíst odeslané šablony.</div>' +
+          '</div>';
+      }
+      return;
+    }
+
+    const pillTemplates = $("#pillTemplates");
+    if (pillTemplates) {
+      pillTemplates.textContent = String(groups.length);
+    }
+
+    if (currentView !== "myTemplates") {
+      return;
+    }
+
+    content.innerHTML = renderMyTemplatesList(groups);
+  }
+
   async function handleTemplateSave(sendNow) {
     const data = getFormData();
     const validationError = validateForm(data, sendNow);
@@ -807,20 +2137,22 @@
 
     if (!sendNow) {
       toast(
-        "Sablona pripravena.",
-        data.subjects.length + " predmetu, " + data.pillars.length + " piliru, " + recipients.length + " prijemcu."
+        "Šablona připravena.",
+        data.subjects.length + " předmětů, " + data.pillars.length + " pilířů, " + recipients.length + " příjemců."
       );
       return;
     }
 
     if (!currentUser || !templatesRef || !db) {
-      toast("Neni pripraveno odeslani. Obnov stranku.");
+      toast("Není připraveno odeslání. Obnov stránku.");
       return;
     }
 
-    const instructions = "Anotace:\n" + data.annotation + "\n\nOcekavany vystup:\n" + data.output;
+    const instructions = "Anotace:\n" + data.annotation + "\n\nOčekávaný výstup:\n" + data.output;
 
     try {
+      const sentBatchId = "batch-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+      const createdAtClient = Date.now();
       const basePayload = {
         title: data.title,
         subject: data.subject,
@@ -828,12 +2160,14 @@
         instructions: instructions,
         proofType: "text",
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAtClient: createdAtClient,
         createdBy: currentUser.uid,
         createdByEmail: currentUser.email || "",
         annotation: data.annotation,
         output: data.output,
         pillar: data.pillar,
-        pillars: data.pillars
+        pillars: data.pillars,
+        sentBatchId: sentBatchId
       };
 
       const chunkSize = 400;
@@ -852,11 +2186,21 @@
         await batch.commit();
       }
 
-      toast("Sablona odeslana.", recipients.length + " prijemcu");
+      toast("Šablona odeslána.", recipients.length + " příjemců");
       clearForm();
+      const pillTemplates = $("#pillTemplates");
+      if (pillTemplates) {
+        const currentCount = Number(pillTemplates.textContent || "0") || 0;
+        pillTemplates.textContent = String(currentCount + 1);
+      }
+      const pillDay = $("#pillDay");
+      if (pillDay) {
+        const currentDayCount = Number(pillDay.textContent || "0") || 0;
+        pillDay.textContent = String(currentDayCount + 1);
+      }
     } catch (error) {
       console.error("Template send failed:", error);
-      toast("Odeslani selhalo. Zkus to znovu.");
+      toast("Odeslání selhalo. Zkus to znovu.");
     }
   }
 
@@ -899,7 +2243,30 @@
       });
     } catch (error) {
       console.error("Recipient directory load failed:", error);
-      toast("Nepodarilo se nacist prijemce.");
+      toast("Nepodařilo se načíst příjemce.");
+    }
+  }
+
+  async function loadSubjectDirectory() {
+    subjectDirectory = [];
+    if (!subjectsRef) {
+      return;
+    }
+
+    try {
+      const snapshot = await subjectsRef.orderBy("nameLower").get();
+      const values = [];
+      snapshot.forEach(function (doc) {
+        const data = doc.data() || {};
+        const name = normalizeSubjectName(data.name || data.value || "");
+        if (name) {
+          values.push(name);
+        }
+      });
+      subjectDirectory = uniqueValues(values);
+    } catch (error) {
+      console.error("Subject directory load failed:", error);
+      toast("Nepodařilo se načíst předměty.");
     }
   }
 
@@ -909,10 +2276,28 @@
       return;
     }
 
+    if (currentView === "dashboard") {
+      setHeader("Dashboard", "Rychlý přehled šablon, tříd a příjemců.");
+      renderDashboardView();
+      return;
+    }
+
     if (currentView === "newTemplate") {
-      setHeader("Nova sablona", "Vytvor a odesli sablonu zakum nebo tride.");
+      setHeader("Nová šablona", "Vytvoř a odešli šablonu žákům nebo třídě.");
       content.innerHTML = renderNewTemplate();
       bindTemplateEvents();
+      return;
+    }
+
+    if (currentView === "classes") {
+      setHeader("Třídy", "Přehled tříd, počtu žáků a jejich jmen.");
+      renderClassesView();
+      return;
+    }
+
+    if (currentView === "myTemplates") {
+      setHeader("Moje šablony", "Historie odeslaných šablon.");
+      renderMyTemplatesView();
       return;
     }
 
@@ -926,7 +2311,7 @@
   }
 
   async function denyGuideAccess() {
-    alert("Pristup ma pouze pruvodce.");
+    alert("Přístup má pouze průvodce.");
     try {
       if (window.firebase && firebase.auth) {
         await firebase.auth().signOut();
@@ -938,6 +2323,14 @@
   }
 
   function wireStaticEvents() {
+    const btnTheme = $("#btnTheme");
+    if (btnTheme) {
+      btnTheme.addEventListener("click", function () {
+        const current = document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        applyTheme(current === "dark" ? "light" : "dark");
+      });
+    }
+
     const nav = $("#nav");
     if (nav) {
       nav.addEventListener("click", function (event) {
@@ -972,14 +2365,59 @@
     if (btnReset) {
       btnReset.classList.add("hidden");
     }
+
+    if (!document.body.dataset.shortcutBound) {
+      document.body.dataset.shortcutBound = "1";
+      document.addEventListener("keydown", function (event) {
+        if (!event) {
+          return;
+        }
+        const tag = event.target && event.target.tagName ? event.target.tagName.toLowerCase() : "";
+        const isInputLike = tag === "input" || tag === "textarea" || tag === "select" || (event.target && event.target.isContentEditable);
+        if (isInputLike) {
+          return;
+        }
+
+        const key = String(event.key || "");
+        const normalizedKey = key.toLowerCase();
+
+        if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && normalizedKey === "n") {
+          event.preventDefault();
+          setView("notifications");
+          return;
+        }
+
+        if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && normalizedKey === "t") {
+          event.preventDefault();
+          const simulate = $("#btnSimulate");
+          if (simulate && !simulate.classList.contains("hidden")) {
+            simulate.click();
+          } else {
+            toast("TEST simulace je vypnutá.");
+          }
+          return;
+        }
+
+        if (!event.ctrlKey && !event.metaKey && !event.altKey && event.shiftKey && normalizedKey === "r") {
+          event.preventDefault();
+          const reset = $("#btnReset");
+          if (reset && !reset.classList.contains("hidden")) {
+            reset.click();
+          } else {
+            toast("Reset dat je vypnutý.");
+          }
+        }
+      });
+    }
   }
 
   async function init() {
-    showContentMessage("Admin pristup", "Overuji pristup...");
+    showContentMessage("Admin přístup", "Ověřuji přístup...");
+    applyTheme(getInitialTheme());
     wireStaticEvents();
 
     if (!window.firebase || !firebase.auth || !firebase.firestore) {
-      showContentMessage("Admin pristup", "Firebase knihovny nejsou dostupne.");
+      showContentMessage("Admin přístup", "Firebase knihovny nejsou dostupné.");
       return;
     }
 
@@ -990,9 +2428,10 @@
       db = firebase.firestore();
       templatesRef = db.collection("templates");
       usersRef = db.collection("users");
+      subjectsRef = db.collection("subjects");
     } catch (error) {
       console.error("Firebase init failed:", error);
-      showContentMessage("Admin pristup", "Nepodarilo se inicializovat Firebase.");
+      showContentMessage("Admin přístup", "Nepodařilo se inicializovat Firebase.");
       return;
     }
 
@@ -1008,8 +2447,17 @@
       }
 
       currentUser = user;
-      await loadRecipientDirectory();
-      setView("newTemplate");
+      await Promise.all([loadRecipientDirectory(), loadSubjectDirectory()]);
+      const initialClassGroups = buildClassGroups(recipientDirectory.students);
+      let initialTemplateGroups = [];
+      try {
+        initialTemplateGroups = await loadMyTemplateGroups();
+      } catch (error) {
+        console.warn("Unable to preload my templates count", error);
+      }
+      const initialStats = computeDashboardStats(initialTemplateGroups, initialClassGroups);
+      updateDashboardPills(initialStats);
+      setView("dashboard");
     });
   }
 
