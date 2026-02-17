@@ -400,6 +400,23 @@
                 </select>
             </div>
             <div class="template-field">
+                <span class="student-work-label">Pilir</span>
+                <div class="student-work-select student-work-multi" id="template-pillar" role="group" aria-label="Pilir">
+                    <label class="student-work-chip">
+                        <input type="checkbox" value="zvydavost">
+                        <span>zvydavost</span>
+                    </label>
+                    <label class="student-work-chip">
+                        <input type="checkbox" value="moralni hodnoty">
+                        <span>moralni hodnoty</span>
+                    </label>
+                    <label class="student-work-chip">
+                        <input type="checkbox" value="samostatnost">
+                        <span>samostatnost</span>
+                    </label>
+                </div>
+            </div>
+            <div class="template-field">
                 <label for="template-recipient-type">Komu odeslat</label>
                 <select id="template-recipient-type">
                     <option value="student">Zak</option>
@@ -869,6 +886,47 @@
             return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
         }
 
+        function normalizeSubjectSelectionValue(value) {
+            return formatSubjectLabel(value).toLowerCase();
+        }
+
+        function normalizePillarSelectionValue(value) {
+            const normalized = String(value || '')
+                .trim()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            if (normalized === 'zvedavost' || normalized === 'zvidavost') {
+                return 'zvydavost';
+            }
+            return normalized;
+        }
+
+        function ensureTemplateSubjectOptions(options, selectedValues) {
+            const list = Array.isArray(options) ? options.slice() : [];
+            const existing = new Set(list
+                .map(option => normalizeSubjectSelectionValue(getSubjectValue(option) || getSubjectLabel(option)))
+                .filter(Boolean));
+            (Array.isArray(selectedValues) ? selectedValues : []).forEach(value => {
+                const normalized = normalizeSubjectSelectionValue(value);
+                if (!normalized || existing.has(normalized)) {
+                    return;
+                }
+                const prefixed = ensureSubjectPrefix(value);
+                if (!prefixed) {
+                    return;
+                }
+                list.push({
+                    name: prefixed,
+                    value: prefixed
+                });
+                existing.add(normalized);
+            });
+            return list;
+        }
+
         function getCheckedValues(container) {
             if (!container) {
                 return [];
@@ -1162,7 +1220,12 @@
             group.setAttribute('aria-label', config.label || '');
             field.appendChild(group);
 
-            const selected = new Set((config.selectedValues || []).map(value => String(value).toLowerCase()));
+            const normalizeValue = typeof config.normalizeValue === 'function'
+                ? config.normalizeValue
+                : (value => String(value || '').trim().toLowerCase());
+            const selected = new Set((config.selectedValues || [])
+                .map(value => normalizeValue(value))
+                .filter(Boolean));
             (config.options || []).forEach(option => {
                 const labelText = config.getLabel ? config.getLabel(option) : String(option || '');
                 const value = config.getValue ? config.getValue(option) : String(option || '');
@@ -1176,7 +1239,8 @@
                 const input = document.createElement('input');
                 input.type = 'checkbox';
                 input.value = value;
-                if (selected.has(String(value).toLowerCase())) {
+                const normalizedValue = normalizeValue(value);
+                if (normalizedValue && selected.has(normalizedValue)) {
                     input.checked = true;
                 }
 
@@ -1970,6 +2034,7 @@
           const inputField = document.getElementById('input');
           const subjectSelect = document.getElementById('subject-select');
           const templateSubjectSelect = document.getElementById('template-subject');
+          const templatePillarSelect = document.getElementById('template-pillar');
           const templateRecipientType = document.getElementById('template-recipient-type');
           const templateRecipientValue = document.getElementById('template-recipient-value');
           const templateRecipientLabel = document.getElementById('template-recipient-label');
@@ -2462,6 +2527,7 @@
 
             const title = templateTitleInput.value.trim();
             const subject = templateSubjectSelect.value || '';
+            const pillars = getCheckedValues(templatePillarSelect);
             const instructions = templateInstructionsInput.value.trim();
             const proofType = templateProofSelect.value || '';
             const recipientType = templateRecipientType.value || 'student';
@@ -2485,6 +2551,7 @@
               data: {
                 title,
                 subject,
+                pillars,
                 instructions,
                 proofType,
                 recipientType,
@@ -2521,6 +2588,8 @@
             const payload = {
               title: result.data.title,
               subject: result.data.subject,
+              pillars: Array.isArray(result.data.pillars) ? result.data.pillars : [],
+              pillar: Array.isArray(result.data.pillars) && result.data.pillars.length ? result.data.pillars[0] : '',
               instructions: result.data.instructions,
               proofType: result.data.proofType,
               recipientType: result.data.recipientType,
@@ -2545,6 +2614,7 @@
             templateTitleInput.value = '';
             templateInstructionsInput.value = '';
             templateRecipientValue.value = '';
+            clearCheckboxGroup(templatePillarSelect);
             updateTemplateSaveState();
             if (sentTemplatesPanel && sentTemplatesPanel.classList.contains('open')) {
               await loadSentTemplates();
@@ -3200,10 +3270,16 @@
               meta.className = 'template-card-meta';
               const metaParts = [];
               const templateSubjects = Array.isArray(template.subjects) ? template.subjects.filter(Boolean) : [];
+              const templatePillars = Array.isArray(template.pillars)
+                ? template.pillars.filter(Boolean)
+                : (template.pillar ? [template.pillar] : []);
               if (templateSubjects.length) {
                 metaParts.push(templateSubjects.join(', '));
               } else if (template.subject) {
                 metaParts.push(template.subject);
+              }
+              if (templatePillars.length) {
+                metaParts.push(templatePillars.join(', '));
               }
               if (template.proofType) {
                 metaParts.push(template.proofType);
@@ -3464,10 +3540,16 @@
               meta.className = 'template-card-meta';
               const metaParts = [];
               const templateSubjects = Array.isArray(template.subjects) ? template.subjects.filter(Boolean) : [];
+              const templatePillars = Array.isArray(template.pillars)
+                ? template.pillars.filter(Boolean)
+                : (template.pillar ? [template.pillar] : []);
               if (templateSubjects.length) {
                 metaParts.push(templateSubjects.join(', '));
               } else if (template.subject) {
                 metaParts.push(template.subject);
+              }
+              if (templatePillars.length) {
+                metaParts.push(templatePillars.join(', '));
               }
               if (template.proofType) {
                 metaParts.push(template.proofType);
@@ -3514,13 +3596,22 @@
                 details.appendChild(instructions);
               }
 
-              const availableSubjects = subjectOptions.length ? subjectOptions : defaultSubjectOptions;
+              const baseSubjectOptions = subjectOptions.length ? subjectOptions : defaultSubjectOptions;
               const savedSubjects = responseData && Array.isArray(responseData.subjects) ? responseData.subjects : [];
-              const savedPillars = responseData && Array.isArray(responseData.pillars) ? responseData.pillars : [];
+              const savedPillars = responseData
+                ? (Array.isArray(responseData.pillars)
+                  ? responseData.pillars
+                  : (responseData.pillar ? [responseData.pillar] : []))
+                : [];
               const templateSubjectDefaults = Array.isArray(template.subjects) ? template.subjects.filter(Boolean) : [];
+              const templatePillarDefaults = Array.isArray(template.pillars)
+                ? template.pillars.filter(Boolean)
+                : (template.pillar ? [template.pillar] : []);
               const subjectDefaults = savedSubjects.length
                 ? savedSubjects
                 : (templateSubjectDefaults.length ? templateSubjectDefaults : (template.subject ? [template.subject] : []));
+              const pillarDefaults = savedPillars.length ? savedPillars : templatePillarDefaults;
+              const availableSubjects = ensureTemplateSubjectOptions(baseSubjectOptions, subjectDefaults);
 
               const subjectField = createTemplateChipField({
                 label: 'Predmet',
@@ -3528,12 +3619,14 @@
                 selectedValues: subjectDefaults,
                 getLabel: getSubjectLabel,
                 getValue: getSubjectValue,
-                formatLabel: formatSubjectLabel
+                formatLabel: formatSubjectLabel,
+                normalizeValue: normalizeSubjectSelectionValue
               });
               const pillarField = createTemplateChipField({
                 label: 'Pilir',
                 options: PILLAR_OPTIONS,
-                selectedValues: savedPillars
+                selectedValues: pillarDefaults,
+                normalizeValue: normalizePillarSelectionValue
               });
               details.appendChild(subjectField.field);
               details.appendChild(pillarField.field);
