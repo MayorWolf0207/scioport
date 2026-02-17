@@ -276,6 +276,12 @@
       padding:8px;
       background:#fff;
     }
+    .composeFilterInput{
+      margin-bottom:8px;
+    }
+    .composeCheckEmpty.filterEmpty{
+      margin-top:8px;
+    }
     .composeCheckItem{
       display:flex;
       align-items:flex-start;
@@ -468,6 +474,14 @@
     return String(value || "").trim();
   }
 
+  function normalizeSearchText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  }
+
   function getSubjects() {
     return ["Anglictina", "Cestina", "Matematika", "Prvouka", "Horizont", "Projekt", "Vlastni..."];
   }
@@ -532,14 +546,17 @@
       '<div class="composeCol6">' +
       '<label>Zaci</label>' +
       (students.length
-        ? '<div class="composeCheckList">' +
+        ? '<input id="tplStudentFilter" class="composeFilterInput" type="text" placeholder="Filtrovat podle jmena nebo e-mailu">' +
+          '<div class="composeCheckList" id="tplStudentList">' +
           students.map(function (student) {
             const name = String(student.name || "").trim();
             const classPart = student.className ? " - " + student.className : "";
             const label = (name ? name + " (" + student.email + ")" : student.email) + classPart;
-            return '<label class="composeCheckItem"><input class="tpl-student" type="checkbox" value="' + esc(student.email) + '"><span>' + esc(label) + '</span></label>';
+            const searchText = normalizeSearchText((name ? name + " " : "") + student.email + " " + (student.className || ""));
+            return '<label class="composeCheckItem tpl-student-item" data-search="' + esc(searchText) + '"><input class="tpl-student" type="checkbox" value="' + esc(student.email) + '"><span>' + esc(label) + '</span></label>';
           }).join("") +
-          '</div>'
+          '</div>' +
+          '<div class="composeCheckEmpty filterEmpty hidden" id="tplStudentFilterEmpty">Zadny zak neodpovida filtru.</div>'
         : '<div class="composeCheckEmpty">V databazi zatim nejsou zadni zaci.</div>') +
       '</div>' +
       '<div class="composeCol6">' +
@@ -616,9 +633,33 @@
     return uniqueValues(values);
   }
 
+  function filterTemplateStudents(filterValue) {
+    const list = $("#tplStudentList");
+    if (!list) {
+      return;
+    }
+    const query = normalizeSearchText(filterValue);
+    const items = list.querySelectorAll(".tpl-student-item");
+    let visibleCount = 0;
+    for (let i = 0; i < items.length; i += 1) {
+      const item = items[i];
+      const searchable = String(item.dataset && item.dataset.search ? item.dataset.search : "");
+      const isVisible = !query || searchable.indexOf(query) >= 0;
+      item.style.display = isVisible ? "" : "none";
+      if (isVisible) {
+        visibleCount += 1;
+      }
+    }
+    const empty = $("#tplStudentFilterEmpty");
+    if (empty) {
+      empty.classList.toggle("hidden", visibleCount > 0);
+    }
+  }
+
   function bindTemplateEvents() {
     const saveLocalButton = $("#saveTpl");
     const sendButton = $("#saveSendTpl");
+    const studentFilterInput = $("#tplStudentFilter");
 
     if (saveLocalButton) {
       saveLocalButton.addEventListener("click", function () {
@@ -630,6 +671,13 @@
       sendButton.addEventListener("click", function () {
         handleTemplateSave(true);
       });
+    }
+
+    if (studentFilterInput) {
+      studentFilterInput.addEventListener("input", function () {
+        filterTemplateStudents(studentFilterInput.value);
+      });
+      filterTemplateStudents(studentFilterInput.value);
     }
   }
 
@@ -692,7 +740,7 @@
   }
 
   function clearForm() {
-    const ids = ["tplTitle", "tplAnno", "tplOut", "tplSubjectsCustom"];
+    const ids = ["tplTitle", "tplAnno", "tplOut", "tplSubjectsCustom", "tplStudentFilter"];
     for (let i = 0; i < ids.length; i += 1) {
       const input = $("#" + ids[i]);
       if (input) {
@@ -714,6 +762,8 @@
     if (defaultPillar) {
       defaultPillar.checked = true;
     }
+
+    filterTemplateStudents("");
   }
 
   function buildRecipientTargets(data) {

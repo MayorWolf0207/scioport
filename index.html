@@ -458,7 +458,9 @@
             </div>
             <div class="template-field" id="admin-class-field">
                 <label for="admin-student-email">Zak (email)</label>
-                <input type="email" id="admin-student-email" placeholder="zak@scioskola.cz">
+                <input type="text" id="admin-student-email" placeholder="zak@scioskola.cz" list="admin-student-email-list">
+                <datalist id="admin-student-email-list"></datalist>
+                <p class="template-note">Muzes hledat podle jmena nebo emailu.</p>
             </div>
             <div class="template-field" id="admin-class-field-class">
                 <label for="admin-student-class">Trida</label>
@@ -563,6 +565,7 @@
         let gemCount = null;
         let subjectOptions = [];
         const userEmailCache = new Map();
+        let adminStudentSuggestions = [];
 
         const AVATAR_CHOICES = {
             holcicka: {
@@ -934,6 +937,56 @@
             return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
                 .map(input => input.value)
                 .filter(Boolean);
+        }
+
+        function extractEmailFromText(value) {
+            const text = String(value || '').trim();
+            if (!text) {
+                return '';
+            }
+            const match = text.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+            return match ? match[0].toLowerCase() : '';
+        }
+
+        function renderAdminStudentSuggestions() {
+            const suggestionList = document.getElementById('admin-student-email-list');
+            if (!suggestionList) {
+                return;
+            }
+            suggestionList.innerHTML = '';
+            adminStudentSuggestions.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.display;
+                suggestionList.appendChild(option);
+            });
+        }
+
+        async function loadAdminStudentSuggestions() {
+            if (!isAdmin || !db) {
+                adminStudentSuggestions = [];
+                renderAdminStudentSuggestions();
+                return;
+            }
+            try {
+                const snapshot = await db.collection('users').get();
+                const unique = new Map();
+                snapshot.forEach(doc => {
+                    const data = doc.data() || {};
+                    const email = extractEmailFromText(data.email || data.emailLower || '');
+                    if (!email || unique.has(email)) {
+                        return;
+                    }
+                    const name = String(data.displayName || data.name || '').trim();
+                    const className = String(data.className || '').trim();
+                    const base = name ? `${name} (${email})` : email;
+                    const display = className ? `${base} - ${className}` : base;
+                    unique.set(email, { email, display });
+                });
+                adminStudentSuggestions = Array.from(unique.values()).sort((a, b) => a.display.localeCompare(b.display, 'cs'));
+                renderAdminStudentSuggestions();
+            } catch (error) {
+                console.error('Unable to load student suggestions:', error);
+            }
         }
 
         function setCheckboxGroupDisabled(container, isDisabled) {
@@ -2015,6 +2068,7 @@
               isAdmin = isAdminUser(user);
               applyAdminUi();
               updateTemplateSaveState();
+              await loadAdminStudentSuggestions();
               startTemplateNotificationListeners();
               await renderData();
               await initSubjects();
@@ -2662,16 +2716,17 @@
               return;
             }
 
-            const email = adminStudentEmailInput.value.trim();
+            const email = extractEmailFromText(adminStudentEmailInput.value);
             const className = adminStudentClassInput.value.trim();
             if (!email) {
-              alert('Zadej email zaka.');
+              alert('Zadej zaka (jmeno nebo email).');
               return;
             }
             if (!className) {
               alert('Zadej tridu.');
               return;
             }
+            adminStudentEmailInput.value = email;
 
             const normalizedEmail = email.toLowerCase();
 
@@ -2704,6 +2759,8 @@
               if (adminClassNote) {
                 adminClassNote.textContent = `Trida ulozena pro ${email}.`;
               }
+
+              await loadAdminStudentSuggestions();
 
               if (currentUser && currentUser.email && currentUser.email.toLowerCase() === normalizedEmail) {
                 userProfile.className = className;
