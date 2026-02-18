@@ -1056,29 +1056,29 @@
   }
 
   const CATEGORY_EMOJI_MAP = {
-    matematika: ":abacus:",
-    cestina: ":books:",
-    ceskyjazyk: ":books:",
-    "cesky-jazyk": ":books:",
-    anglictina: ":globe_with_meridians:",
-    samorost: ":seedling:",
-    vlastni: ":sparkles:",
-    zvdavost: ":bulb:",
-    zvidavost: ":bulb:",
-    zvedavost: ":bulb:",
-    hodnoty: ":heart:",
-    moralnihodnoty: ":heart:",
-    "moralni-hodnoty": ":heart:",
-    samostatnost: ":muscle:"
+    matematika: "🧮",
+    cestina: "📚",
+    ceskyjazyk: "📚",
+    "cesky-jazyk": "📚",
+    anglictina: "🌐",
+    samorost: "🌱",
+    vlastni: "✨",
+    zvdavost: "💡",
+    zvidavost: "💡",
+    zvedavost: "💡",
+    hodnoty: "❤️",
+    moralnihodnoty: "❤️",
+    "moralni-hodnoty": "❤️",
+    samostatnost: "💪"
   };
 
   function formatCategoryEmoji(value) {
     const slug = normalizeCategorySlug(value);
     const compactSlug = slug.replace(/-/g, "");
     if (!compactSlug) {
-      return ":house:";
+      return "🏠";
     }
-    return CATEGORY_EMOJI_MAP[slug] || CATEGORY_EMOJI_MAP[compactSlug] || ":house:";
+    return CATEGORY_EMOJI_MAP[slug] || CATEGORY_EMOJI_MAP[compactSlug] || "🏠";
   }
 
   function getSubjects() {
@@ -2642,21 +2642,21 @@
       '<article class="dashActionItem">' +
       '<div>' +
       '<p class="dashActionTitle">Vytvořit novou šablonu</p>' +
-      '<div class="dashChips"><span class="dashChip" title="Uložit">:floppy_disk:</span><span class="dashChip" title="Uložit a odeslat">:rocket:</span></div>' +
+      '<div class="dashChips"><span class="dashChip" title="Uložit">💾</span><span class="dashChip" title="Uložit a odeslat">🚀</span></div>' +
       '</div>' +
       '<button class="dashActionBtn" id="dashActionNew" type="button">➕ Otevřít</button>' +
       '</article>' +
       '<article class="dashActionItem">' +
       '<div>' +
       '<p class="dashActionTitle">Spravovat třídy a skupiny</p>' +
-      '<div class="dashChips"><span class="dashChip" title="Třídy a skupiny">:busts_in_silhouette:</span><span class="dashChip" title="Vyhledávání">:mag:</span></div>' +
+      '<div class="dashChips"><span class="dashChip" title="Třídy a skupiny">👥</span><span class="dashChip" title="Vyhledávání">🔎</span></div>' +
       '</div>' +
       '<button class="dashActionBtn neutral" id="dashActionClasses" type="button">👥 Třídy</button>' +
       '</article>' +
       '<article class="dashActionItem">' +
       '<div>' +
       '<p class="dashActionTitle">Zkontrolovat šablony podle tříd</p>' +
-      '<div class="dashChips"><span class="dashChip" title="Statusy">:traffic_light:</span><span class="dashChip" title="Komentáře">:speech_balloon:</span></div>' +
+      '<div class="dashChips"><span class="dashChip" title="Statusy">🚦</span><span class="dashChip" title="Komentáře">💬</span></div>' +
       '</div>' +
       '<button class="dashActionBtn neutral" id="dashActionTemplates" type="button">🗂️ Moje šablony</button>' +
       '</article>' +
