@@ -946,6 +946,10 @@
   let studentOverviewStudents = [];
   let studentOverviewSelectedEmail = "";
   const studentOverviewCache = new Map();
+  let studentOverviewCurrentStudent = null;
+  let studentOverviewCurrentPortfolio = { entries: [], responses: [] };
+  let studentOverviewSubjectFilters = new Set();
+  let studentOverviewPillarFilters = new Set();
 
   function hasGuideAccess(email) {
     return GUIDE_EMAILS.indexOf(String(email || "").toLowerCase()) >= 0;
@@ -1210,6 +1214,133 @@
     }).filter(Boolean));
   }
 
+  function normalizeCategoryKey(value) {
+    return normalizeSearchText(value);
+  }
+
+  function collectStudentOverviewFilterOptions(portfolio) {
+    const source = portfolio || { entries: [], responses: [] };
+    const subjectMap = new Map();
+    const pillarMap = new Map();
+
+    function addOptions(map, values) {
+      (Array.isArray(values) ? values : []).forEach(function (value) {
+        const label = String(value || "").trim();
+        const key = normalizeCategoryKey(label);
+        if (!label || !key || map.has(key)) {
+          return;
+        }
+        map.set(key, label);
+      });
+    }
+
+    (Array.isArray(source.entries) ? source.entries : []).forEach(function (item) {
+      addOptions(subjectMap, item && item.subjects ? item.subjects : []);
+      addOptions(pillarMap, item && item.pillars ? item.pillars : []);
+    });
+    (Array.isArray(source.responses) ? source.responses : []).forEach(function (item) {
+      addOptions(subjectMap, item && item.subjects ? item.subjects : []);
+      addOptions(pillarMap, item && item.pillars ? item.pillars : []);
+    });
+
+    function sortOptions(map) {
+      return Array.from(map.entries()).map(function (entry) {
+        return { key: entry[0], label: entry[1] };
+      }).sort(function (a, b) {
+        return a.label.localeCompare(b.label, "cs");
+      });
+    }
+
+    return {
+      subjects: sortOptions(subjectMap),
+      pillars: sortOptions(pillarMap)
+    };
+  }
+
+  function itemMatchesStudentOverviewFilters(item, selectedSubjects, selectedPillars) {
+    const subjectSet = selectedSubjects instanceof Set ? selectedSubjects : new Set();
+    const pillarSet = selectedPillars instanceof Set ? selectedPillars : new Set();
+    const itemSubjectKeys = new Set((Array.isArray(item && item.subjects) ? item.subjects : []).map(function (value) {
+      return normalizeCategoryKey(value);
+    }).filter(Boolean));
+    const itemPillarKeys = new Set((Array.isArray(item && item.pillars) ? item.pillars : []).map(function (value) {
+      return normalizeCategoryKey(value);
+    }).filter(Boolean));
+
+    const subjectMatch = !subjectSet.size || Array.from(subjectSet.values()).some(function (key) {
+      return itemSubjectKeys.has(key);
+    });
+    if (!subjectMatch) {
+      return false;
+    }
+
+    const pillarMatch = !pillarSet.size || Array.from(pillarSet.values()).some(function (key) {
+      return itemPillarKeys.has(key);
+    });
+    return pillarMatch;
+  }
+
+  function applyStudentOverviewFilters(portfolio) {
+    const source = portfolio || { entries: [], responses: [] };
+    const entries = (Array.isArray(source.entries) ? source.entries : []).filter(function (item) {
+      return itemMatchesStudentOverviewFilters(item, studentOverviewSubjectFilters, studentOverviewPillarFilters);
+    });
+    const responses = (Array.isArray(source.responses) ? source.responses : []).filter(function (item) {
+      return itemMatchesStudentOverviewFilters(item, studentOverviewSubjectFilters, studentOverviewPillarFilters);
+    });
+    return {
+      entries: entries,
+      responses: responses
+    };
+  }
+
+  function renderStudentOverviewFilterControls(options) {
+    const safe = options || { subjects: [], pillars: [] };
+    const subjectOptions = Array.isArray(safe.subjects) ? safe.subjects : [];
+    const pillarOptions = Array.isArray(safe.pillars) ? safe.pillars : [];
+
+    const subjectList = subjectOptions.length
+      ? '<div class="composeCheckList">' +
+        subjectOptions.map(function (option) {
+          const key = String(option && option.key ? option.key : "").trim();
+          const label = String(option && option.label ? option.label : "").trim();
+          const checked = studentOverviewSubjectFilters.has(key) ? " checked" : "";
+          return '<label class="composeCheckItem"><input type="checkbox" data-filter-type="subject" data-filter-key="' + esc(key) + '"' + checked + '><span title="' + esc(label) + '">' + esc(formatCategoryEmoji(label)) + " " + esc(label) + '</span></label>';
+        }).join("") +
+        '</div>'
+      : '<div class="composeCheckEmpty">Žádné předměty k filtrování.</div>';
+
+    const pillarList = pillarOptions.length
+      ? '<div class="composeCheckList">' +
+        pillarOptions.map(function (option) {
+          const key = String(option && option.key ? option.key : "").trim();
+          const label = String(option && option.label ? option.label : "").trim();
+          const checked = studentOverviewPillarFilters.has(key) ? " checked" : "";
+          return '<label class="composeCheckItem"><input type="checkbox" data-filter-type="pillar" data-filter-key="' + esc(key) + '"' + checked + '><span title="' + esc(label) + '">' + esc(formatCategoryEmoji(label)) + " " + esc(label) + '</span></label>';
+        }).join("") +
+        '</div>'
+      : '<div class="composeCheckEmpty">Žádné pilíře k filtrování.</div>';
+
+    return (
+      '<div class="composeWrap" style="margin-top:12px">' +
+      '<p class="composeSub">Filtry portfolia</p>' +
+      '<div class="composeGrid">' +
+      '<div class="composeCol6">' +
+      '<label>Předměty</label>' +
+      subjectList +
+      '</div>' +
+      '<div class="composeCol6">' +
+      '<label>Pilíře</label>' +
+      pillarList +
+      '</div>' +
+      '</div>' +
+      '<div class="composeActions">' +
+      '<button class="btn" id="studentOverviewFilterReset" type="button">Reset filtrů</button>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
   function renderStudentOverviewLayout(students, selectedEmail) {
     const items = Array.isArray(students) ? students : [];
     const normalizedSelectedEmail = normalizeEmail(selectedEmail);
@@ -1367,10 +1498,10 @@
     };
   }
 
-  function renderStudentPortfolioEntries(entries) {
+  function renderStudentPortfolioEntries(entries, emptyMessage) {
     const items = Array.isArray(entries) ? entries : [];
     if (!items.length) {
-      return '<div class="empty">Žák zatím nemá žádné portfolio záznamy.</div>';
+      return '<div class="empty">' + esc(emptyMessage || "Žák zatím nemá žádné portfolio záznamy.") + '</div>';
     }
     return (
       '<div class="list">' +
@@ -1400,10 +1531,10 @@
     );
   }
 
-  function renderStudentTemplateResponses(responses) {
+  function renderStudentTemplateResponses(responses, emptyMessage) {
     const items = Array.isArray(responses) ? responses : [];
     if (!items.length) {
-      return '<div class="empty">Žák zatím neodeslal žádné odpovědi na šablony.</div>';
+      return '<div class="empty">' + esc(emptyMessage || "Žák zatím neodeslal žádné odpovědi na šablony.") + '</div>';
     }
     return (
       '<div class="list">' +
@@ -1435,13 +1566,23 @@
     );
   }
 
-  function renderStudentOverviewDetail(student, portfolio) {
-    const data = portfolio || { entries: [], responses: [] };
+  function renderStudentOverviewDetail(student, filteredPortfolio, sourcePortfolio) {
+    const data = filteredPortfolio || { entries: [], responses: [] };
+    const source = sourcePortfolio || data;
     const name = getStudentDisplayName(student);
     const email = normalizeEmail(student && student.email ? student.email : "");
     const className = normalizeClassName(student && student.className ? student.className : "");
     const entries = Array.isArray(data.entries) ? data.entries : [];
     const responses = Array.isArray(data.responses) ? data.responses : [];
+    const totalEntries = Array.isArray(source.entries) ? source.entries.length : entries.length;
+    const totalResponses = Array.isArray(source.responses) ? source.responses.length : responses.length;
+    const filterOptions = collectStudentOverviewFilterOptions(source);
+    const entriesEmptyMessage = totalEntries
+      ? "Žádné portfolio záznamy neodpovídají filtru."
+      : "Žák zatím nemá žádné portfolio záznamy.";
+    const responsesEmptyMessage = totalResponses
+      ? "Žádné odpovědi na šablony neodpovídají filtru."
+      : "Žák zatím neodeslal žádné odpovědi na šablony.";
 
     return (
       '<div class="card">' +
@@ -1451,17 +1592,39 @@
       '<div class="meta">' +
       (email ? '<span class="badge">' + esc(email) + '</span>' : "") +
       (className ? '<span class="badge ok">Třída: ' + esc(className) + '</span>' : "") +
-      '<span class="badge">Záznamy: ' + String(entries.length) + '</span>' +
-      '<span class="badge">Odpovědi: ' + String(responses.length) + '</span>' +
+      '<span class="badge">Záznamy: ' + String(entries.length) + " / " + String(totalEntries) + '</span>' +
+      '<span class="badge">Odpovědi: ' + String(responses.length) + " / " + String(totalResponses) + '</span>' +
       '</div>' +
+      renderStudentOverviewFilterControls(filterOptions) +
       '<hr class="composeDivider">' +
       '<h3>Portfolio záznamy</h3>' +
-      renderStudentPortfolioEntries(entries) +
+      renderStudentPortfolioEntries(entries, entriesEmptyMessage) +
       '<hr class="composeDivider">' +
       '<h3>Odpovědi na šablony</h3>' +
-      renderStudentTemplateResponses(responses) +
+      renderStudentTemplateResponses(responses, responsesEmptyMessage) +
       '</div>' +
       '</div>'
+    );
+  }
+
+  function renderStudentOverviewCurrentDetail() {
+    const detail = $("#studentOverviewDetail");
+    if (!detail) {
+      return;
+    }
+    if (!studentOverviewCurrentStudent) {
+      detail.innerHTML =
+        '<div class="card">' +
+        '<h3>Portfolio</h3>' +
+        '<div class="cardBody empty">Vyber žáka vlevo.</div>' +
+        '</div>';
+      return;
+    }
+    const filteredPortfolio = applyStudentOverviewFilters(studentOverviewCurrentPortfolio);
+    detail.innerHTML = renderStudentOverviewDetail(
+      studentOverviewCurrentStudent,
+      filteredPortfolio,
+      studentOverviewCurrentPortfolio
     );
   }
 
@@ -1493,6 +1656,10 @@
     });
 
     if (!selectedStudent) {
+      studentOverviewCurrentStudent = null;
+      studentOverviewCurrentPortfolio = { entries: [], responses: [] };
+      studentOverviewSubjectFilters = new Set();
+      studentOverviewPillarFilters = new Set();
       detail.innerHTML =
         '<div class="card">' +
         '<h3>Portfolio</h3>' +
@@ -1507,6 +1674,11 @@
       '<div class="cardBody">Načítám portfolio…</div>' +
       '</div>';
 
+    studentOverviewCurrentStudent = selectedStudent;
+    studentOverviewCurrentPortfolio = { entries: [], responses: [] };
+    studentOverviewSubjectFilters = new Set();
+    studentOverviewPillarFilters = new Set();
+
     let portfolio = studentOverviewCache.get(normalizedEmail);
     if (!portfolio) {
       portfolio = await loadStudentPortfolio(selectedStudent);
@@ -1516,7 +1688,8 @@
     if (currentView !== "studentOverview") {
       return;
     }
-    detail.innerHTML = renderStudentOverviewDetail(selectedStudent, portfolio);
+    studentOverviewCurrentPortfolio = portfolio || { entries: [], responses: [] };
+    renderStudentOverviewCurrentDetail();
   }
 
   function bindStudentOverviewEvents() {
@@ -1539,6 +1712,39 @@
         openStudentOverviewStudent(email);
       });
     }
+
+    const detail = $("#studentOverviewDetail");
+    if (detail) {
+      detail.addEventListener("change", function (event) {
+        const input = event.target && event.target.closest ? event.target.closest("input[data-filter-type][data-filter-key]") : null;
+        if (!input || !input.dataset) {
+          return;
+        }
+        const filterType = String(input.dataset.filterType || "").trim();
+        const filterKey = String(input.dataset.filterKey || "").trim();
+        if (!filterKey) {
+          return;
+        }
+        const targetSet = filterType === "pillar" ? studentOverviewPillarFilters : studentOverviewSubjectFilters;
+        if (input.checked) {
+          targetSet.add(filterKey);
+        } else {
+          targetSet.delete(filterKey);
+        }
+        renderStudentOverviewCurrentDetail();
+      });
+
+      detail.addEventListener("click", function (event) {
+        const resetButton = event.target && event.target.closest ? event.target.closest("#studentOverviewFilterReset") : null;
+        if (!resetButton) {
+          return;
+        }
+        event.preventDefault();
+        studentOverviewSubjectFilters = new Set();
+        studentOverviewPillarFilters = new Set();
+        renderStudentOverviewCurrentDetail();
+      });
+    }
   }
 
   async function renderStudentOverviewView() {
@@ -1559,6 +1765,10 @@
       : [];
     studentOverviewStudents = students;
     studentOverviewCache.clear();
+    studentOverviewCurrentStudent = null;
+    studentOverviewCurrentPortfolio = { entries: [], responses: [] };
+    studentOverviewSubjectFilters = new Set();
+    studentOverviewPillarFilters = new Set();
 
     if (currentView !== "studentOverview") {
       return;
