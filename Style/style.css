@@ -1161,7 +1161,9 @@ body.theme-dark .student-work[data-gender="kluk"] {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     background: var(--orbit-bg);
-    min-height: 280px;
+    min-height: 0;
+    height: auto;
+    transition: border-color 0.25s ease, background 0.25s ease;
 }
 
 .student-work-track {
@@ -1177,6 +1179,10 @@ body.theme-dark .student-work[data-gender="kluk"] {
 
 .student-work-stage.is-add-active .student-work-track {
     transition-delay: 0.12s;
+}
+
+.student-work-stage:not(.is-active) .student-work-panel--form {
+    display: none;
 }
 
 .student-work-stage.is-readonly .student-work-field,
@@ -1771,6 +1777,324 @@ body.theme-dark .student-work-input {
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+}
+
+.student-work-panel--form {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 251, 255, 0.9));
+}
+
+.student-work-panel--form::after {
+    content: none;
+}
+
+.student-work-form {
+    width: min(760px, 100%);
+    padding: 10px;
+    border-radius: 26px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+.student-work-form-header-copy {
+    display: grid;
+    gap: 6px;
+}
+
+.student-work-form-header h3 {
+    margin: 0;
+    font-size: clamp(1.45rem, 2vw, 1.8rem);
+    letter-spacing: -0.01em;
+}
+
+.student-work-form-subtitle {
+    margin: 0;
+    color: rgba(15, 23, 42, 0.66);
+    font-size: 0.96rem;
+}
+
+.student-work-form-body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+}
+
+.student-work-log {
+    grid-column: 1 / -1;
+}
+
+.student-work-form-body > .student-work-field {
+    grid-column: 1 / -1;
+}
+
+.student-work-field--subject,
+.student-work-field--pillar {
+    grid-column: auto;
+}
+
+.student-work-field {
+    gap: 9px;
+}
+
+.student-work-label {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(15, 23, 42, 0.8);
+}
+
+.student-work-title-input {
+    width: 100%;
+    font-family: 'Scio', sans-serif;
+    font-size: 1.02rem;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    border-radius: 999px;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+}
+
+.student-work-title-input:focus {
+    outline: none;
+    border-color: rgba(0, 154, 222, 0.5);
+    box-shadow: 0 0 0 4px rgba(0, 154, 222, 0.14), 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+.student-work-multi {
+    border-radius: 16px;
+    border-color: rgba(15, 23, 42, 0.14);
+    background: rgba(255, 255, 255, 0.82);
+    padding: 10px;
+}
+
+.student-work-chip span {
+    border-color: rgba(15, 23, 42, 0.12);
+    background: rgba(255, 255, 255, 0.84);
+    padding: 7px 13px;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.student-work-chip input:checked + span {
+    color: #0f172a;
+    background: #ffffff;
+    border-color: rgba(0, 154, 222, 0.5);
+    box-shadow: 0 0 0 5px rgba(0, 154, 222, 0.18);
+}
+
+.student-work-field--note .student-work-input {
+    border-radius: 20px;
+    align-items: flex-start;
+    min-height: 130px;
+    padding: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.student-work-field--note .student-work-icon-btn {
+    margin-top: 2px;
+}
+
+.student-work-field--note .student-work-input-area {
+    min-height: 96px;
+    line-height: 1.45;
+    font-size: 1rem;
+}
+
+.student-work-field--note .student-work-icon-btn.is-send {
+    align-self: flex-end;
+    background: linear-gradient(180deg, rgba(251, 146, 60, 0.32), rgba(245, 158, 11, 0.3));
+    border: 1px solid rgba(245, 158, 11, 0.36);
+}
+
+.student-work-drop {
+    position: relative;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    border-radius: 18px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.student-work-drop:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+}
+
+.student-work-drop:focus-visible {
+    outline: 2px solid rgba(0, 154, 222, 0.65);
+    outline-offset: 2px;
+}
+
+.student-work-drop.is-dragover {
+    border-color: rgba(16, 185, 129, 0.55);
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.17), 0 14px 28px rgba(15, 23, 42, 0.1);
+}
+
+.student-work-drop.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.student-work-drop-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.student-work-drop-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(15, 23, 42, 0.05);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.student-work-drop-title {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 700;
+}
+
+.student-work-drop-hint {
+    margin: 3px 0 0;
+    color: rgba(15, 23, 42, 0.62);
+    font-size: 0.9rem;
+}
+
+.student-work-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.student-work-file-list {
+    margin-top: 8px;
+    display: grid;
+    gap: 8px;
+}
+
+.student-work-file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+    padding: 9px 11px;
+}
+
+.student-work-file-name {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.86rem;
+}
+
+.student-work-file-meta {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.student-work-file-remove {
+    font-family: 'Scio', sans-serif;
+    font-size: 0.78rem;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 999px;
+    padding: 5px 9px;
+    background: rgba(255, 255, 255, 0.82);
+    cursor: pointer;
+}
+
+.student-work-file-remove:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.student-work-form-footer {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    padding-top: 12px;
+}
+
+.student-work-note {
+    margin: 0;
+    font-size: 0.86rem;
+    color: rgba(15, 23, 42, 0.6);
+}
+
+.student-work-clear {
+    font-family: 'Scio', sans-serif;
+    font-size: 0.88rem;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 14px;
+    padding: 8px 13px;
+    background: rgba(255, 255, 255, 0.86);
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1);
+}
+
+.student-work-clear:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+body.theme-dark .student-work-panel--form {
+    background: linear-gradient(180deg, rgba(20, 30, 40, 0.96), rgba(18, 27, 37, 0.94));
+}
+
+body.theme-dark .student-work-form {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(17, 26, 36, 0.9);
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+}
+
+body.theme-dark .student-work-form-subtitle,
+body.theme-dark .student-work-note,
+body.theme-dark .student-work-drop-hint {
+    color: rgba(236, 244, 253, 0.68);
+}
+
+body.theme-dark .student-work-label {
+    color: rgba(236, 244, 253, 0.82);
+}
+
+body.theme-dark .student-work-title-input,
+body.theme-dark .student-work-multi,
+body.theme-dark .student-work-chip span,
+body.theme-dark .student-work-field--note .student-work-input,
+body.theme-dark .student-work-drop,
+body.theme-dark .student-work-file-item,
+body.theme-dark .student-work-clear,
+body.theme-dark .student-work-file-remove {
+    background: rgba(16, 24, 33, 0.9);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .student-work-chip input:checked + span {
+    color: #f9fbff;
+    border-color: rgba(0, 154, 222, 0.7);
+    box-shadow: 0 0 0 5px rgba(0, 154, 222, 0.24);
 }
 
 .template-panel {
@@ -2505,6 +2829,24 @@ body.theme-dark .ai-chat-status.is-error {
     }
 
     .student-work-form-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .student-work-form {
+        padding: 14px;
+    }
+
+    .student-work-form-body {
+        grid-template-columns: 1fr;
+    }
+
+    .student-work-field--subject,
+    .student-work-field--pillar {
+        grid-column: 1 / -1;
+    }
+
+    .student-work-form-footer {
         flex-direction: column;
         align-items: flex-start;
     }

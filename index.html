@@ -171,14 +171,19 @@
                     <div class="student-work-panel student-work-panel--form">
                         <div class="student-work-form">
                             <div class="student-work-form-header">
-                                <div>
+                                <div class="student-work-form-header-copy">
                                     <h3 id="student-work-form-title">Pridat zaznam</h3>
+                                    <p class="student-work-form-subtitle">Vloz, co se ti dnes povedlo nebo co jsi objevila/objevil.</p>
                                 </div>
                                 <button class="student-work-back" id="student-work-back" type="button">Zpet</button>
                             </div>
                             <div class="student-work-form-body">
                                 <div class="data-log student-work-log" id="student-work-log"></div>
-                                <div class="student-work-field">
+                                <div class="student-work-field student-work-field--title">
+                                    <label class="student-work-label" for="student-work-title-input">Nazev</label>
+                                    <input class="student-work-title-input" id="student-work-title-input" type="text" maxlength="120" placeholder='Napriklad "Experiment s magnety"'>
+                                </div>
+                                <div class="student-work-field student-work-field--subject">
                                     <span class="student-work-label">Predmet</span>
                                     <div class="student-work-select student-work-multi" id="student-work-subject" role="group" aria-label="Predmet">
                                         <label class="student-work-chip">
@@ -199,7 +204,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="student-work-field">
+                                <div class="student-work-field student-work-field--pillar">
                                     <span class="student-work-label">Pilir</span>
                                     <div class="student-work-select student-work-multi" id="student-work-pillar" role="group" aria-label="Pilir">
                                         <label class="student-work-chip">
@@ -220,8 +225,10 @@
                                     <span class="student-work-label">Jak se ti pracovalo</span>
                                     <div class="student-work-select student-work-multi student-work-mood" id="student-work-mood" role="group" aria-label="Jak se ti pracovalo"></div>
                                 </div>
-                                <div class="student-work-input">
-                                    <button class="student-work-icon-btn" type="button" aria-label="Nahrat">
+                                <div class="student-work-field student-work-field--note">
+                                    <span class="student-work-label">Anotace</span>
+                                    <div class="student-work-input">
+                                    <button class="student-work-icon-btn" id="student-work-attach-button" type="button" aria-label="Nahrat">
                                         <svg class="student-work-input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                             <path d="M12 16V6"></path>
                                             <path d="M8 10l4-4 4 4"></path>
@@ -231,7 +238,7 @@
                                     <button class="student-work-icon-btn" type="button" aria-label="Zminit">
                                         <span class="student-work-at">@</span>
                                     </button>
-                                    <div id="student-work-input" class="student-work-input-area" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Type here..." aria-label="Text"></div>
+                                    <div id="student-work-input" class="student-work-input-area" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Kratce popis, co se povedlo..." aria-label="Text"></div>
                                     <div class="student-work-emoji-bar" id="student-work-emoji-bar">
                                         <button class="student-work-icon-btn student-work-emoji-toggle" id="student-work-emoji-toggle" type="button" aria-label="Emoji" aria-expanded="false" aria-controls="student-work-emoji-picker">
                                             <img class="student-work-emoji" src="Media/emoji/scio_decko_happy.png" alt="">
@@ -353,6 +360,25 @@
                                             <path d="M13 6l6 6-6 6"></path>
                                         </svg>
                                     </button>
+                                </div>
+                                </div>
+                                <div class="student-work-field student-work-field--files">
+                                    <span class="student-work-label">Soubory</span>
+                                    <div class="student-work-drop" id="student-work-drop" role="button" tabindex="0" aria-label="Pridat soubory">
+                                        <div class="student-work-drop-row">
+                                            <span class="student-work-drop-icon" aria-hidden="true">+</span>
+                                            <div>
+                                                <p class="student-work-drop-title">Pridat soubory</p>
+                                                <p class="student-work-drop-hint">Pretahni nebo klikni pro nahrani</p>
+                                            </div>
+                                        </div>
+                                        <input type="file" id="student-work-file-input" class="student-work-file-input" multiple>
+                                    </div>
+                                    <div class="student-work-file-list" id="student-work-file-list"></div>
+                                </div>
+                                <div class="student-work-form-footer">
+                                    <p class="student-work-note">Tip: odesles sipkou nebo klavesou Ctrl+Enter.</p>
+                                    <button class="student-work-clear" id="student-work-clear" type="button">Vycistit</button>
                                 </div>
                             </div>
                         </div>
@@ -575,6 +601,8 @@
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
         let studentWorkMoodSelection = new Set();
+        let studentWorkFiles = [];
+        let studentWorkStageHeightRaf = 0;
         let studentWorkGender = '';
         let studentWorkGenderSelectionLocked = false;
         let studentWorkGenderToast = null;
@@ -2075,6 +2103,7 @@
             } else {
               renderList([], 'User not authenticated');
             }
+            scheduleStudentWorkStageHeightSync();
           }
 
           firebase.auth().onAuthStateChanged(async function(user) {
@@ -2162,6 +2191,8 @@
           const themeToggle = document.getElementById('theme-toggle');
           const studentWork = document.getElementById('student-work');
           const studentWorkStage = document.getElementById('student-work-stage');
+          const studentWorkButtonsPanel = document.querySelector('#student-work .student-work-panel--buttons');
+          const studentWorkFormPanel = document.querySelector('#student-work .student-work-panel--form');
           const studentWorkIllustration = document.querySelector('.student-work-illustration');
           const studentWorkLog = document.getElementById('student-work-log');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
@@ -2170,10 +2201,16 @@
           const studentWorkPillarFilterButtonThree = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-3"]');
           const studentWorkBack = document.getElementById('student-work-back');
           const studentWorkFormTitle = document.getElementById('student-work-form-title');
+          const studentWorkTitleInput = document.getElementById('student-work-title-input');
           const studentWorkInput = document.getElementById('student-work-input');
+          const studentWorkAttachButton = document.getElementById('student-work-attach-button');
           const studentWorkSubject = document.getElementById('student-work-subject');
           const studentWorkPillar = document.getElementById('student-work-pillar');
           const studentWorkMood = document.getElementById('student-work-mood');
+          const studentWorkDrop = document.getElementById('student-work-drop');
+          const studentWorkFileInput = document.getElementById('student-work-file-input');
+          const studentWorkFileList = document.getElementById('student-work-file-list');
+          const studentWorkClearButton = document.getElementById('student-work-clear');
           const studentWorkEmojiBar = document.getElementById('student-work-emoji-bar');
           const studentWorkEmojiToggle = document.getElementById('student-work-emoji-toggle');
           const studentWorkEmojiPicker = document.getElementById('student-work-emoji-picker');
@@ -2189,6 +2226,7 @@
           if (studentWorkMood) {
             refreshEmojiLookup(studentWorkMood);
           }
+          renderStudentWorkFiles();
 
           function getStoredAiApiKey() {
             try {
@@ -2489,6 +2527,34 @@
             }
           }
 
+          function syncStudentWorkStageHeight() {
+            if (!studentWorkStage) {
+              return;
+            }
+            const isExpanded = studentWorkStage.classList.contains('is-active');
+            const activePanel = isExpanded
+              ? (studentWorkFormPanel || studentWorkButtonsPanel)
+              : (studentWorkButtonsPanel || studentWorkFormPanel);
+            if (!activePanel) {
+              studentWorkStage.style.removeProperty('--student-work-stage-height');
+              return;
+            }
+            const minHeight = isExpanded ? 340 : 280;
+            const measured = Math.ceil(activePanel.scrollHeight || activePanel.getBoundingClientRect().height || 0);
+            const targetHeight = Math.max(minHeight, measured);
+            studentWorkStage.style.setProperty('--student-work-stage-height', `${targetHeight}px`);
+          }
+
+          function scheduleStudentWorkStageHeightSync() {
+            if (studentWorkStageHeightRaf) {
+              cancelAnimationFrame(studentWorkStageHeightRaf);
+            }
+            studentWorkStageHeightRaf = requestAnimationFrame(() => {
+              studentWorkStageHeightRaf = 0;
+              syncStudentWorkStageHeight();
+            });
+          }
+
           function openStudentWork(title) {
             if (!studentWorkStage) {
               return;
@@ -2498,6 +2564,7 @@
             if (studentWorkFormTitle) {
               studentWorkFormTitle.textContent = title || 'Prace';
             }
+            scheduleStudentWorkStageHeightSync();
           }
 
           function closeStudentWork() {
@@ -2506,6 +2573,7 @@
             }
             studentWorkStage.classList.remove('is-active');
             studentWorkStage.classList.remove('is-add-active');
+            scheduleStudentWorkStageHeightSync();
           }
 
           function setStudentWorkReadOnly(isReadOnly) {
@@ -2525,6 +2593,11 @@
               inputRow.hidden = studentWorkReadOnly;
               inputRow.style.display = displayValue;
             }
+            const footerRow = document.querySelector('#student-work .student-work-form-footer');
+            if (footerRow) {
+              footerRow.hidden = studentWorkReadOnly;
+              footerRow.style.display = displayValue;
+            }
             if (studentWorkInput) {
               studentWorkInput.contentEditable = studentWorkReadOnly ? 'false' : 'true';
               studentWorkInput.setAttribute('aria-readonly', studentWorkReadOnly ? 'true' : 'false');
@@ -2541,6 +2614,25 @@
             inputButtons.forEach(button => {
               button.disabled = studentWorkReadOnly;
             });
+            if (studentWorkTitleInput) {
+              studentWorkTitleInput.disabled = studentWorkReadOnly;
+            }
+            if (studentWorkClearButton) {
+              studentWorkClearButton.disabled = studentWorkReadOnly;
+            }
+            if (studentWorkDrop) {
+              studentWorkDrop.classList.toggle('is-disabled', studentWorkReadOnly);
+              studentWorkDrop.setAttribute('aria-disabled', studentWorkReadOnly ? 'true' : 'false');
+            }
+            if (studentWorkFileInput) {
+              studentWorkFileInput.disabled = studentWorkReadOnly;
+            }
+            if (studentWorkFileList) {
+              studentWorkFileList.querySelectorAll('button').forEach(button => {
+                button.disabled = studentWorkReadOnly;
+              });
+            }
+            scheduleStudentWorkStageHeightSync();
           }
 
           function setStudentWorkMoods(codes) {
@@ -2570,12 +2662,99 @@
             setStudentWorkMoods(Array.from(next));
           }
 
+          function formatStudentWorkBytes(size) {
+            const bytes = Number(size);
+            if (!Number.isFinite(bytes) || bytes < 0) {
+              return '';
+            }
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let value = bytes;
+            let unit = 0;
+            while (value >= 1024 && unit < units.length - 1) {
+              value /= 1024;
+              unit += 1;
+            }
+            return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
+          }
+
+          function getStudentWorkFileKey(file) {
+            if (!file) {
+              return '';
+            }
+            return `${file.name || ''}__${file.size || 0}__${file.lastModified || 0}`;
+          }
+
+          function renderStudentWorkFiles() {
+            if (!studentWorkFileList) {
+              return;
+            }
+            studentWorkFileList.innerHTML = '';
+            if (!studentWorkFiles.length) {
+              scheduleStudentWorkStageHeightSync();
+              return;
+            }
+            studentWorkFiles.forEach((file, index) => {
+              const item = document.createElement('div');
+              item.className = 'student-work-file-item';
+
+              const name = document.createElement('span');
+              name.className = 'student-work-file-name';
+              name.textContent = file.name || 'soubor';
+              item.appendChild(name);
+
+              const meta = document.createElement('span');
+              meta.className = 'student-work-file-meta';
+              const typeText = file.type ? ` ${file.type}` : '';
+              meta.textContent = `${formatStudentWorkBytes(file.size)}${typeText}`.trim();
+              item.appendChild(meta);
+
+              const removeButton = document.createElement('button');
+              removeButton.type = 'button';
+              removeButton.className = 'student-work-file-remove';
+              removeButton.textContent = 'Odebrat';
+              removeButton.addEventListener('click', () => {
+                studentWorkFiles.splice(index, 1);
+                renderStudentWorkFiles();
+              });
+              item.appendChild(removeButton);
+
+              studentWorkFileList.appendChild(item);
+            });
+            scheduleStudentWorkStageHeightSync();
+          }
+
+          function clearStudentWorkFiles() {
+            studentWorkFiles = [];
+            if (studentWorkFileInput) {
+              studentWorkFileInput.value = '';
+            }
+            renderStudentWorkFiles();
+          }
+
+          function addStudentWorkFiles(fileList) {
+            const incoming = Array.from(fileList || []);
+            if (!incoming.length) {
+              return;
+            }
+            const existing = new Set(studentWorkFiles.map(getStudentWorkFileKey));
+            incoming.forEach(file => {
+              const key = getStudentWorkFileKey(file);
+              if (!key || existing.has(key)) {
+                return;
+              }
+              studentWorkFiles.push(file);
+              existing.add(key);
+            });
+            renderStudentWorkFiles();
+          }
+
           function setStudentWorkLogVisible(isVisible) {
             if (!studentWorkLog) {
               return;
             }
             studentWorkLog.hidden = !isVisible;
             studentWorkLog.style.display = isVisible ? '' : 'none';
+            scheduleStudentWorkStageHeightSync();
           }
 
           function setStudentWorkGender(value) {
@@ -2800,6 +2979,19 @@
           setStudentWorkGender(defaultGender || 'holcicka');
           setStudentWorkGenderButtonsVisible(false);
 
+          function clearStudentWorkComposer() {
+            if (studentWorkTitleInput) {
+              studentWorkTitleInput.value = '';
+            }
+            if (studentWorkInput) {
+              studentWorkInput.textContent = '';
+            }
+            clearCheckboxGroup(studentWorkSubject);
+            clearCheckboxGroup(studentWorkPillar);
+            setStudentWorkMoods([]);
+            clearStudentWorkFiles();
+          }
+
           async function sendStudentWorkMessage() {
             const user = firebase.auth().currentUser;
             if (!user || !studentWorkInput || !studentWorkSubject || !studentWorkPillar) {
@@ -2809,6 +3001,7 @@
               return;
             }
 
+            const titleValue = studentWorkTitleInput ? String(studentWorkTitleInput.value || '').trim() : '';
             const inputValue = getEmojiInputValue(studentWorkInput).trim();
             const subjectValues = getCheckedValues(studentWorkSubject);
             const pillarValues = getCheckedValues(studentWorkPillar);
@@ -2817,8 +3010,17 @@
             const subjectTokens = subjectValues.map(ensureSubjectPrefix).filter(Boolean);
             const subjectLabels = subjectTokens.map(label => formatSubjectLabel(label)).filter(Boolean);
             const pillarLabels = pillarValues.map(label => String(label || '').trim()).filter(Boolean);
+            const attachments = (studentWorkFiles || []).map(file => ({
+              name: String(file && file.name ? file.name : ''),
+              size: Number(file && Number.isFinite(file.size) ? file.size : 0),
+              type: String(file && file.type ? file.type : ''),
+              lastModified: Number(file && Number.isFinite(file.lastModified) ? file.lastModified : 0)
+            })).filter(item => item.name);
+            const messageBody = titleValue && cleanedValue
+              ? `${titleValue}\n${cleanedValue}`
+              : (titleValue || cleanedValue);
 
-            if (!cleanedValue || !subjectTokens.length || !pillarLabels.length) {
+            if (!messageBody || !subjectTokens.length || !pillarLabels.length) {
               return;
             }
 
@@ -2827,24 +3029,25 @@
               if (subjectTokens.length) {
                 valueParts.push(subjectTokens.join(' '));
               }
-              valueParts.push(cleanedValue);
+              valueParts.push(messageBody);
               const value = valueParts.join(' ');
 
               await db.collection('users').doc(user.uid).collection('data').add({
                 value,
+                title: titleValue,
+                note: cleanedValue,
                 pillar: pillarLabels[0] || '',
                 pillars: pillarLabels,
                 subjects: subjectLabels,
                 workMood: moodCodes[0] || '',
                 workMoods: moodCodes,
+                attachments,
+                attachmentCount: attachments.length,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
               });
               await incrementUserGems(user);
               await renderData();
-              studentWorkInput.textContent = '';
-              clearCheckboxGroup(studentWorkSubject);
-              clearCheckboxGroup(studentWorkPillar);
-              setStudentWorkMoods([]);
+              clearStudentWorkComposer();
             } catch (error) {
               console.error('Error saving data:', error);
             }
@@ -4125,6 +4328,7 @@
               studentWorkFilterPillar = '';
               setStudentWorkReadOnly(false);
               setStudentWorkLogVisible(false);
+              clearStudentWorkComposer();
               const title = studentWorkAddButton.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
               await renderData();
@@ -4228,6 +4432,10 @@
             });
           }
 
+          if (studentWorkStage) {
+            window.addEventListener('resize', scheduleStudentWorkStageHeightSync);
+          }
+
           if (studentWorkBack) {
             studentWorkBack.addEventListener('click', closeStudentWork);
           }
@@ -4236,9 +4444,13 @@
             studentWorkSendButton.addEventListener('click', sendStudentWorkMessage);
           }
 
+          if (studentWorkClearButton) {
+            studentWorkClearButton.addEventListener('click', clearStudentWorkComposer);
+          }
+
           if (studentWorkInput) {
             studentWorkInput.addEventListener('keydown', function(event) {
-              if (event.key === 'Enter') {
+              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
                 event.preventDefault();
                 sendStudentWorkMessage();
               }
@@ -4252,6 +4464,61 @@
               renderEmojiContent(studentWorkInput, value);
               placeCaretAtEnd(studentWorkInput);
               studentWorkEmojiUpdating = false;
+            });
+          }
+
+          if (studentWorkFileInput) {
+            studentWorkFileInput.addEventListener('change', function(event) {
+              addStudentWorkFiles(event.target ? event.target.files : null);
+            });
+          }
+
+          if (studentWorkAttachButton) {
+            studentWorkAttachButton.addEventListener('click', function() {
+              if (studentWorkReadOnly || !studentWorkFileInput) {
+                return;
+              }
+              studentWorkFileInput.click();
+            });
+          }
+
+          if (studentWorkDrop) {
+            studentWorkDrop.addEventListener('click', function() {
+              if (studentWorkReadOnly || !studentWorkFileInput) {
+                return;
+              }
+              studentWorkFileInput.click();
+            });
+            studentWorkDrop.addEventListener('keydown', function(event) {
+              if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+              }
+              event.preventDefault();
+              if (studentWorkReadOnly || !studentWorkFileInput) {
+                return;
+              }
+              studentWorkFileInput.click();
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+              studentWorkDrop.addEventListener(eventName, function(event) {
+                event.preventDefault();
+                if (studentWorkReadOnly) {
+                  return;
+                }
+                studentWorkDrop.classList.add('is-dragover');
+              });
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+              studentWorkDrop.addEventListener(eventName, function(event) {
+                event.preventDefault();
+                studentWorkDrop.classList.remove('is-dragover');
+              });
+            });
+            studentWorkDrop.addEventListener('drop', function(event) {
+              if (studentWorkReadOnly) {
+                return;
+              }
+              addStudentWorkFiles(event.dataTransfer ? event.dataTransfer.files : null);
             });
           }
 
