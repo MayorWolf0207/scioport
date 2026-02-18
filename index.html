@@ -191,7 +191,7 @@
                                         <path d="M9 13h2M10 12v2M15 13h.01"></path>
                                     </svg>
                                 </button>
-                                <button class="student-work-button is-purple" type="button" data-title="Prace 6" aria-label="Prace 6">
+                                <button class="student-work-button is-purple" type="button" data-action="shop-red-shirt" data-title="Obchod" aria-label="Obchod - cervene tricko">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M6 6h2l2.5 9h7.5l2-6H9"></path>
                                         <circle cx="12" cy="19" r="1.4"></circle>
@@ -671,7 +671,7 @@
         let gisReady = false;
         let isAdmin = false;
         let currentUser = null;
-        let userProfile = { className: '', gender: '', gems: 0 };
+        let userProfile = { className: '', gender: '', gems: 0, avatarOutfit: 'default', redShirtUnlocked: false };
         let studentWorkFilterPillar = '';
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
@@ -679,6 +679,7 @@
         let studentWorkFiles = [];
         let studentWorkStageHeightRaf = 0;
         let studentWorkGender = '';
+        let studentWorkOutfit = 'default';
         let studentWorkGenderSelectionLocked = false;
         let studentWorkGenderToast = null;
         let avatarSelection = null;
@@ -710,6 +711,9 @@
                 image: 'Media/emoji/scio_kluk_usmev.png'
             }
         };
+        const STUDENT_OUTFIT_DEFAULT = 'default';
+        const STUDENT_OUTFIT_RED_SHIRT = 'red-shirt';
+        const STUDENT_OUTFIT_RED_SHIRT_COST = 1;
 
         function isAdminUser(user) {
             const email = user && user.email ? user.email.toLowerCase() : '';
@@ -737,11 +741,11 @@
         }
 
         function updateGemDisplay(nextValue) {
-            if (!gemCount) {
-                return;
-            }
             const resolvedValue = Number.isFinite(nextValue) ? nextValue : Number(userProfile.gems) || 0;
-            gemCount.textContent = String(resolvedValue);
+            if (gemCount) {
+              gemCount.textContent = String(resolvedValue);
+            }
+            updateStudentWorkShopButton();
         }
 
         function applyAdminUi() {
@@ -2188,8 +2192,9 @@
             stopTemplateNotificationListeners();
             if (!user) {
               initTemplateNotificationState(null);
-              userProfile = { className: '', gender: '', gems: 0 };
+              userProfile = { className: '', gender: '', gems: 0, avatarOutfit: 'default', redShirtUnlocked: false };
               updateGemDisplay(0);
+              setStudentWorkOutfit(STUDENT_OUTFIT_DEFAULT);
               studentWorkGenderSelectionLocked = false;
               setAvatarSelectionState(false);
               setAvatarOverlayVisible(false);
@@ -2275,6 +2280,7 @@
           const studentWorkLog = document.getElementById('student-work-log');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
           const studentWorkReflectButton = document.querySelector('.student-work-button[data-action="reflect-daily"]');
+          const studentWorkShopButton = document.querySelector('.student-work-button[data-action="shop-red-shirt"]');
           const studentWorkPillarFilterButton = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-1"]');
           const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-2"]');
           const studentWorkPillarFilterButtonThree = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-3"]');
@@ -3042,6 +3048,38 @@
                 button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
               });
             }
+            updateStudentWorkShopButton();
+          }
+
+          function getNormalizedStudentWorkOutfit(value) {
+            return value === STUDENT_OUTFIT_RED_SHIRT ? STUDENT_OUTFIT_RED_SHIRT : STUDENT_OUTFIT_DEFAULT;
+          }
+
+          function setStudentWorkOutfit(value) {
+            const nextOutfit = getNormalizedStudentWorkOutfit(value);
+            studentWorkOutfit = nextOutfit;
+            if (studentWork) {
+              studentWork.setAttribute('data-outfit', nextOutfit);
+            }
+            updateStudentWorkShopButton();
+          }
+
+          function updateStudentWorkShopButton() {
+            if (!studentWorkShopButton) {
+              return;
+            }
+            const hasUnlocked = Boolean(userProfile.redShirtUnlocked);
+            const isEquipped = studentWorkOutfit === STUDENT_OUTFIT_RED_SHIRT;
+            const canAfford = (Number(userProfile.gems) || 0) >= STUDENT_OUTFIT_RED_SHIRT_COST;
+            const title = hasUnlocked
+              ? (isEquipped ? 'Cervene tricko je nasazene' : 'Nasadit cervene tricko')
+              : `Koupit cervene tricko za ${STUDENT_OUTFIT_RED_SHIRT_COST} gem`;
+            studentWorkShopButton.dataset.title = title;
+            studentWorkShopButton.title = title;
+            studentWorkShopButton.setAttribute('aria-label', title);
+            studentWorkShopButton.classList.toggle('is-owned', hasUnlocked);
+            studentWorkShopButton.classList.toggle('is-equipped', hasUnlocked && isEquipped);
+            studentWorkShopButton.classList.toggle('is-locked', !hasUnlocked && !canAfford);
           }
 
           function getNormalizedStudentWorkGender(value) {
@@ -3190,6 +3228,102 @@
             }
           }
 
+          async function saveStudentWorkOutfitSelection(value) {
+            if (!currentUser) {
+              return false;
+            }
+            const normalized = getNormalizedStudentWorkOutfit(value);
+            try {
+              await db.collection('users').doc(currentUser.uid).set({
+                avatarOutfit: normalized
+              }, { merge: true });
+              userProfile.avatarOutfit = normalized;
+              return true;
+            } catch (error) {
+              console.error('Error saving avatar outfit:', error);
+              return false;
+            }
+          }
+
+          async function handleStudentWorkRedShirtShop() {
+            if (!currentUser) {
+              return;
+            }
+            const hasUnlocked = Boolean(userProfile.redShirtUnlocked);
+            if (hasUnlocked) {
+              const nextOutfit = studentWorkOutfit === STUDENT_OUTFIT_RED_SHIRT
+                ? STUDENT_OUTFIT_DEFAULT
+                : STUDENT_OUTFIT_RED_SHIRT;
+              const saved = await saveStudentWorkOutfitSelection(nextOutfit);
+              if (!saved) {
+                alert('Nepodarilo se ulozit vyber obleceni.');
+                return;
+              }
+              setStudentWorkOutfit(nextOutfit);
+              alert(nextOutfit === STUDENT_OUTFIT_RED_SHIRT ? 'Cervene tricko je nasazene.' : 'Vraceno na puvodni tricko.');
+              return;
+            }
+
+            const currentGems = Number(userProfile.gems) || 0;
+            if (currentGems < STUDENT_OUTFIT_RED_SHIRT_COST) {
+              alert(`Na cervene tricko potrebujes ${STUDENT_OUTFIT_RED_SHIRT_COST} gem.`);
+              return;
+            }
+
+            const shouldBuy = window.confirm(`Koupit cervene tricko za ${STUDENT_OUTFIT_RED_SHIRT_COST} gem?`);
+            if (!shouldBuy) {
+              return;
+            }
+
+            if (studentWorkShopButton) {
+              studentWorkShopButton.disabled = true;
+            }
+
+            try {
+              const userRef = db.collection('users').doc(currentUser.uid);
+              const result = await db.runTransaction(async (transaction) => {
+                const snapshot = await transaction.get(userRef);
+                const data = snapshot.exists ? (snapshot.data() || {}) : {};
+                const gems = Number(data.gems) || 0;
+                const alreadyUnlocked = Boolean(data.redShirtUnlocked);
+                if (!alreadyUnlocked && gems < STUDENT_OUTFIT_RED_SHIRT_COST) {
+                  throw new Error('not-enough-gems');
+                }
+                transaction.set(userRef, {
+                  redShirtUnlocked: true,
+                  avatarOutfit: STUDENT_OUTFIT_RED_SHIRT,
+                  gems: alreadyUnlocked
+                    ? gems
+                    : (gems - STUDENT_OUTFIT_RED_SHIRT_COST)
+                }, { merge: true });
+                return alreadyUnlocked ? 'already-unlocked' : 'purchased';
+              });
+
+              if (result === 'purchased') {
+                userProfile.gems = Math.max(0, (Number(userProfile.gems) || 0) - STUDENT_OUTFIT_RED_SHIRT_COST);
+              }
+              userProfile.redShirtUnlocked = true;
+              userProfile.avatarOutfit = STUDENT_OUTFIT_RED_SHIRT;
+              updateGemDisplay(userProfile.gems);
+              setStudentWorkOutfit(STUDENT_OUTFIT_RED_SHIRT);
+              alert(result === 'purchased'
+                ? `Koupeno! Cervene tricko je tvoje za ${STUDENT_OUTFIT_RED_SHIRT_COST} gem.`
+                : 'Cervene tricko uz mas odemcene, jen se nasadilo.');
+            } catch (error) {
+              if (error && error.message === 'not-enough-gems') {
+                alert(`Na cervene tricko potrebujes ${STUDENT_OUTFIT_RED_SHIRT_COST} gem.`);
+              } else {
+                console.error('Error purchasing red shirt:', error);
+                alert('Nepodarilo se dokoncit nakup.');
+              }
+            } finally {
+              if (studentWorkShopButton) {
+                studentWorkShopButton.disabled = false;
+              }
+              updateStudentWorkShopButton();
+            }
+          }
+
           function applyStudentWorkGenderProfile() {
             const storedGender = getNormalizedStudentWorkGender(userProfile.gender);
             if (storedGender) {
@@ -3202,6 +3336,16 @@
             studentWorkGenderSelectionLocked = false;
             setStudentWorkGender(studentWorkGender || 'holcicka');
             setStudentWorkGenderButtonsVisible(true);
+          }
+
+          function applyStudentWorkOutfitProfile() {
+            const isUnlocked = Boolean(userProfile.redShirtUnlocked);
+            const preferred = getNormalizedStudentWorkOutfit(userProfile.avatarOutfit);
+            if (isUnlocked && preferred === STUDENT_OUTFIT_RED_SHIRT) {
+              setStudentWorkOutfit(STUDENT_OUTFIT_RED_SHIRT);
+              return;
+            }
+            setStudentWorkOutfit(STUDENT_OUTFIT_DEFAULT);
           }
 
           let studentWorkEyeRaf = 0;
@@ -3251,7 +3395,9 @@
           }
 
           const defaultGender = studentWork ? studentWork.getAttribute('data-gender') : '';
+          const defaultOutfit = studentWork ? studentWork.getAttribute('data-outfit') : '';
           setStudentWorkGender(defaultGender || 'holcicka');
+          setStudentWorkOutfit(defaultOutfit || STUDENT_OUTFIT_DEFAULT);
           setStudentWorkGenderButtonsVisible(false);
 
           function clearStudentWorkComposer() {
@@ -3481,10 +3627,14 @@
             }, { merge: true });
             const snapshot = await userRef.get();
             const data = snapshot.data() || {};
+            const normalizedOutfit = getNormalizedStudentWorkOutfit(data.avatarOutfit);
+            const redShirtUnlocked = Boolean(data.redShirtUnlocked) || normalizedOutfit === STUDENT_OUTFIT_RED_SHIRT;
             userProfile = {
               className: data.className || '',
               gender: data.gender || '',
-              gems: Number(data.gems) || 0
+              gems: Number(data.gems) || 0,
+              avatarOutfit: redShirtUnlocked ? normalizedOutfit : STUDENT_OUTFIT_DEFAULT,
+              redShirtUnlocked
             };
             updateGemDisplay(userProfile.gems);
 
@@ -3496,6 +3646,7 @@
                 ? `Prirazena trida: ${userProfile.className}.`
                 : 'Tridu prideluje pruvodce.';
             }
+            applyStudentWorkOutfitProfile();
             applyStudentWorkGenderProfile();
           }
 
@@ -4612,6 +4763,11 @@
 
           if (studentWorkReflectButton) {
             studentWorkReflectButton.addEventListener('click', openStudentReflectPanel);
+          }
+
+          if (studentWorkShopButton) {
+            studentWorkShopButton.addEventListener('click', handleStudentWorkRedShirtShop);
+            updateStudentWorkShopButton();
           }
 
           if (studentReflectClose) {

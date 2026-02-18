@@ -1181,6 +1181,20 @@ body.theme-dark .student-work[data-gender="kluk"] {
     --student-blush: rgba(0, 0, 0, 0);
 }
 
+.student-work[data-outfit="red-shirt"] {
+    --student-shirt: #c7353b;
+    --student-shirt-inner: #ffecee;
+    --student-boy-shirt: #c12e34;
+    --student-boy-collar: #fff4f4;
+}
+
+body.theme-dark .student-work[data-outfit="red-shirt"] {
+    --student-shirt: #b83137;
+    --student-shirt-inner: #f7dede;
+    --student-boy-shirt: #ab2a2f;
+    --student-boy-collar: #fce9e9;
+}
+
 .student-work-header {
     display: grid;
     gap: 4px;
@@ -1551,6 +1565,18 @@ body.theme-dark .student-work[data-gender="kluk"] {
 
 .student-work-button.is-purple {
     --student-btn: var(--blue-33);
+}
+
+.student-work-button.is-purple.is-owned {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.58), 0 14px 22px rgba(16, 24, 38, 0.2);
+}
+
+.student-work-button.is-purple.is-equipped {
+    --student-btn: #c7353b;
+}
+
+.student-work-button.is-purple.is-locked {
+    opacity: 0.8;
 }
 
 .student-work-icon {
