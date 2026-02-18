@@ -1102,6 +1102,10 @@ a:hover {
     --student-shirt: #363636;
     --student-shirt-inner: #f8f6f0;
     --student-boy-hair: #494f59;
+    --student-boy-cap: #2f6ea6;
+    --student-boy-cap-brim: #255987;
+    --student-boy-cap-line: #d8ebff;
+    --student-boy-shirt-base: #2f5778;
     --student-boy-shirt: #2f5778;
     --student-boy-collar: #f8f9fb;
     --student-hair-strand: rgba(251, 244, 230, 0.72);
@@ -1127,6 +1131,10 @@ a:hover {
     --student-shirt: #1f4f7a;
     --student-shirt-inner: #e8eef8;
     --student-boy-hair: #2d333d;
+    --student-boy-cap: #2a79b8;
+    --student-boy-cap-brim: #1f5f94;
+    --student-boy-cap-line: #e3f1ff;
+    --student-boy-shirt-base: #2f5f8f;
     --student-boy-shirt: #2f5f8f;
     --student-boy-collar: #eaf1fb;
     --student-hair-strand: rgba(0, 0, 0, 0);
@@ -1148,6 +1156,10 @@ body.theme-dark .student-work {
     --student-shirt: #1b1f24;
     --student-shirt-inner: #e9e3d9;
     --student-boy-hair: #5c6574;
+    --student-boy-cap: #316290;
+    --student-boy-cap-brim: #24486b;
+    --student-boy-cap-line: #d9e9fb;
+    --student-boy-shirt-base: #36587a;
     --student-boy-shirt: #36587a;
     --student-boy-collar: #ecf3ff;
     --student-hair-strand: rgba(234, 223, 201, 0.58);
@@ -1170,6 +1182,10 @@ body.theme-dark .student-work[data-gender="kluk"] {
     --student-shirt: #10293d;
     --student-shirt-inner: #dce7f5;
     --student-boy-hair: #6d7686;
+    --student-boy-cap: #3d79b2;
+    --student-boy-cap-brim: #2c5b88;
+    --student-boy-cap-line: #e0eeff;
+    --student-boy-shirt-base: #3f6288;
     --student-boy-shirt: #3f6288;
     --student-boy-collar: #eff5ff;
     --student-hair-strand: rgba(0, 0, 0, 0);
@@ -1184,6 +1200,7 @@ body.theme-dark .student-work[data-gender="kluk"] {
 .student-work[data-outfit="red-shirt"] {
     --student-shirt: #c7353b;
     --student-shirt-inner: #ffecee;
+    --student-boy-shirt-base: #c12e34;
     --student-boy-shirt: #c12e34;
     --student-boy-collar: #fff4f4;
 }
@@ -1191,8 +1208,25 @@ body.theme-dark .student-work[data-gender="kluk"] {
 body.theme-dark .student-work[data-outfit="red-shirt"] {
     --student-shirt: #b83137;
     --student-shirt-inner: #f7dede;
+    --student-boy-shirt-base: #ab2a2f;
     --student-boy-shirt: #ab2a2f;
     --student-boy-collar: #fce9e9;
+}
+
+.student-work[data-outfit="red-blue-shirt"] {
+    --student-shirt: #2f6ea6;
+    --student-shirt-inner: #d23d44;
+    --student-boy-shirt-base: #2f6ea6;
+    --student-boy-shirt: #d23d44;
+    --student-boy-collar: #f8f3f3;
+}
+
+body.theme-dark .student-work[data-outfit="red-blue-shirt"] {
+    --student-shirt: #2b5f8e;
+    --student-shirt-inner: #bf353d;
+    --student-boy-shirt-base: #2b5f8e;
+    --student-boy-shirt: #bf353d;
+    --student-boy-collar: #f1e8e8;
 }
 
 .student-work-header {
@@ -1405,6 +1439,27 @@ body.theme-dark .student-work[data-outfit="red-shirt"] {
     fill: var(--student-boy-hair);
 }
 
+.student-boy-cap {
+    fill: var(--student-boy-cap);
+}
+
+.student-boy-cap-brim {
+    fill: var(--student-boy-cap-brim);
+}
+
+.student-boy-cap-seam {
+    fill: none;
+    stroke: var(--student-boy-cap-line);
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    opacity: 0.62;
+}
+
+.student-boy-cap-dot {
+    fill: var(--student-boy-cap-line);
+    opacity: 0.72;
+}
+
 .student-fringe {
     fill: var(--student-hair);
 }
@@ -1447,7 +1502,7 @@ body.theme-dark .student-work[data-outfit="red-shirt"] {
 }
 
 .student-boy-shirt-base {
-    fill: var(--student-boy-shirt);
+    fill: var(--student-boy-shirt-base, var(--student-boy-shirt));
 }
 
 .student-boy-collar {
@@ -1572,7 +1627,7 @@ body.theme-dark .student-work[data-outfit="red-shirt"] {
 }
 
 .student-work-button.is-purple.is-equipped {
-    --student-btn: #c7353b;
+    --student-btn: var(--blue-21);
 }
 
 .student-work-button.is-purple.is-locked {
@@ -2051,6 +2106,44 @@ body.theme-dark .student-work-input {
     color: rgba(15, 23, 42, 0.72);
 }
 
+.student-work-shop-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.student-work-shop-item {
+    display: grid;
+    gap: 10px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.84);
+    padding: 12px;
+}
+
+.student-work-shop-item.is-equipped {
+    border-color: rgba(0, 154, 222, 0.45);
+    box-shadow: 0 0 0 4px rgba(0, 154, 222, 0.14);
+}
+
+.student-work-shop-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.student-work-shop-item-head h5 {
+    margin: 0;
+    font-size: 0.98rem;
+}
+
+.student-work-shop-item-head span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: rgba(15, 23, 42, 0.66);
+}
+
 .student-work-shop-preview {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2087,6 +2180,20 @@ body.theme-dark .student-work-input {
 
 .student-work-shop-preview[data-outfit="red-shirt"] .student-work-shop-shirt {
     background: linear-gradient(140deg, #db4a50, #c12e34);
+}
+
+.student-work-shop-preview[data-outfit="red-blue-shirt"] .student-work-shop-shirt {
+    background: linear-gradient(105deg, #db4a50 0%, #db4a50 50%, #2f6ea6 50%, #2f6ea6 100%);
+}
+
+.student-work-shop-item-status {
+    min-height: 1.2em;
+    font-size: 0.8rem;
+    color: rgba(15, 23, 42, 0.66);
+}
+
+.student-work-shop-item-status.is-error {
+    color: var(--red-11);
 }
 
 .student-work-shop-footer {
@@ -2402,7 +2509,8 @@ body.theme-dark .student-work-file-item,
 body.theme-dark .student-work-clear,
 body.theme-dark .student-work-file-remove,
 body.theme-dark .student-work-shop,
-body.theme-dark .student-work-shop-avatar {
+body.theme-dark .student-work-shop-avatar,
+body.theme-dark .student-work-shop-item {
     background: rgba(16, 24, 33, 0.9);
     border-color: rgba(255, 255, 255, 0.12);
 }
@@ -2412,6 +2520,11 @@ body.theme-dark .student-work-shop p,
 body.theme-dark .student-work-shop-gems,
 body.theme-dark .student-work-shop-status {
     color: rgba(236, 244, 253, 0.72);
+}
+
+body.theme-dark .student-work-shop-item-head span,
+body.theme-dark .student-work-shop-item-status {
+    color: rgba(236, 244, 253, 0.68);
 }
 
 body.theme-dark .student-work-shop-badge {
@@ -3341,6 +3454,10 @@ body.theme-dark .ai-chat-status.is-error {
     }
 
     .student-work-shop-preview {
+        grid-template-columns: 1fr;
+    }
+
+    .student-work-shop-list {
         grid-template-columns: 1fr;
     }
 
