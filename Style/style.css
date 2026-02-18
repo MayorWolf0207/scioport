@@ -1999,6 +1999,146 @@ body.theme-dark .student-work-input {
     grid-column: 1 / -1;
 }
 
+.student-work-shop {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+    padding: 16px;
+}
+
+.student-work-shop-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.student-work-shop-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, 0.16);
+    background: rgba(15, 23, 42, 0.05);
+    padding: 5px 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.student-work-shop-badge.is-unlocked {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.14);
+    color: #0f5132;
+}
+
+.student-work-shop-price {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(15, 23, 42, 0.7);
+}
+
+.student-work-shop h4 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.student-work-shop p {
+    margin: 0;
+    color: rgba(15, 23, 42, 0.72);
+}
+
+.student-work-shop-preview {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.student-work-shop-avatar {
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.86);
+    padding: 10px;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+}
+
+.student-work-shop-avatar img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.student-work-shop-shirt {
+    width: 100%;
+    text-align: center;
+    border-radius: 999px;
+    padding: 7px 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f8fbff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: linear-gradient(140deg, #3578b8, #2f5f8f);
+}
+
+.student-work-shop-preview[data-outfit="red-shirt"] .student-work-shop-shirt {
+    background: linear-gradient(140deg, #db4a50, #c12e34);
+}
+
+.student-work-shop-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.student-work-shop-gems {
+    font-size: 0.9rem;
+    color: rgba(15, 23, 42, 0.72);
+}
+
+.student-work-shop-gems strong {
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.student-work-shop-action {
+    font-family: 'Scio', sans-serif;
+    border: 1px solid rgba(0, 154, 222, 0.28);
+    background: linear-gradient(180deg, rgba(0, 154, 222, 0.2), rgba(0, 154, 222, 0.12));
+    color: var(--text);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.student-work-shop-action:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.15);
+}
+
+.student-work-shop-action:disabled {
+    opacity: 0.56;
+    cursor: not-allowed;
+}
+
+.student-work-shop-status {
+    min-height: 1.3em;
+    font-size: 0.84rem;
+    color: rgba(15, 23, 42, 0.72);
+}
+
+.student-work-shop-status.is-error {
+    color: var(--red-11);
+}
+
 .student-work-form-body > .student-work-field {
     grid-column: 1 / -1;
 }
@@ -2260,9 +2400,34 @@ body.theme-dark .student-work-field--note .student-work-input,
 body.theme-dark .student-work-drop,
 body.theme-dark .student-work-file-item,
 body.theme-dark .student-work-clear,
-body.theme-dark .student-work-file-remove {
+body.theme-dark .student-work-file-remove,
+body.theme-dark .student-work-shop,
+body.theme-dark .student-work-shop-avatar {
     background: rgba(16, 24, 33, 0.9);
     border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .student-work-shop-price,
+body.theme-dark .student-work-shop p,
+body.theme-dark .student-work-shop-gems,
+body.theme-dark .student-work-shop-status {
+    color: rgba(236, 244, 253, 0.72);
+}
+
+body.theme-dark .student-work-shop-badge {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(236, 244, 253, 0.9);
+}
+
+body.theme-dark .student-work-shop-badge.is-unlocked {
+    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.2);
+    color: #c4f3dc;
+}
+
+body.theme-dark .student-work-shop-gems strong {
+    color: rgba(248, 252, 255, 0.95);
 }
 
 body.theme-dark .student-work-chip input:checked + span {
@@ -3173,6 +3338,19 @@ body.theme-dark .ai-chat-status.is-error {
 
     .student-work-form-body {
         grid-template-columns: 1fr;
+    }
+
+    .student-work-shop-preview {
+        grid-template-columns: 1fr;
+    }
+
+    .student-work-shop-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .student-work-shop-action {
+        width: 100%;
     }
 
     .student-work-field--subject,
