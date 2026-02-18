@@ -1095,21 +1095,44 @@ a:hover {
     order: 5;
     --student-blob: #ff9f43;
     --student-hair: #7a6458;
+    --student-hair-bottom: #d1c4a8;
     --student-face: #f2e2d2;
     --student-neck: #f0d2bf;
+    --student-ear: #eadac8;
     --student-shirt: #363636;
+    --student-shirt-inner: #f8f6f0;
+    --student-boy-hair: #494f59;
+    --student-boy-shirt: #2f5778;
+    --student-boy-collar: #f8f9fb;
+    --student-hair-strand: rgba(251, 244, 230, 0.72);
+    --student-hair-bow: #4db0ff;
+    --student-hair-bow-dot: #eff8ff;
+    --student-boy-jaw: rgba(26, 27, 31, 0.26);
     --student-glasses: rgba(216, 210, 200, 0.9);
     --student-eye: #1a1b1f;
     --student-blush: rgba(241, 178, 178, 0.6);
     --orbit-bg: rgba(255, 255, 255, 0.92);
+    --avatar-shift-x: 0px;
+    --avatar-shift-y: 0px;
+    --avatar-tilt: 0deg;
 }
 
 .student-work[data-gender="kluk"] {
     --student-blob: #7bc4ff;
     --student-hair: #3f3f46;
+    --student-hair-bottom: #737983;
     --student-face: #f3decc;
     --student-neck: #e4c7b3;
+    --student-ear: #e9ccb8;
     --student-shirt: #1f4f7a;
+    --student-shirt-inner: #e8eef8;
+    --student-boy-hair: #2d333d;
+    --student-boy-shirt: #2f5f8f;
+    --student-boy-collar: #eaf1fb;
+    --student-hair-strand: rgba(0, 0, 0, 0);
+    --student-hair-bow: #6ec2ff;
+    --student-hair-bow-dot: #f0f7ff;
+    --student-boy-jaw: rgba(20, 22, 27, 0.32);
     --student-glasses: rgba(0, 0, 0, 0);
     --student-eye: #14161b;
     --student-blush: rgba(0, 0, 0, 0);
@@ -1118,9 +1141,19 @@ a:hover {
 body.theme-dark .student-work {
     --student-blob: #e58734;
     --student-hair: #5f4d43;
+    --student-hair-bottom: #9f8f73;
     --student-face: #e4d5c7;
     --student-neck: #d5b8a5;
+    --student-ear: #dac9b8;
     --student-shirt: #1b1f24;
+    --student-shirt-inner: #e9e3d9;
+    --student-boy-hair: #5c6574;
+    --student-boy-shirt: #36587a;
+    --student-boy-collar: #ecf3ff;
+    --student-hair-strand: rgba(234, 223, 201, 0.58);
+    --student-hair-bow: #67beff;
+    --student-hair-bow-dot: #e9f2ff;
+    --student-boy-jaw: rgba(14, 16, 19, 0.34);
     --student-glasses: rgba(230, 230, 230, 0.5);
     --student-eye: #0e1013;
     --student-blush: rgba(226, 146, 146, 0.5);
@@ -1130,9 +1163,19 @@ body.theme-dark .student-work {
 body.theme-dark .student-work[data-gender="kluk"] {
     --student-blob: #4f8fc7;
     --student-hair: #2c2f36;
+    --student-hair-bottom: #636a75;
     --student-face: #e0cbb8;
     --student-neck: #d2b6a3;
+    --student-ear: #d6baa7;
     --student-shirt: #10293d;
+    --student-shirt-inner: #dce7f5;
+    --student-boy-hair: #6d7686;
+    --student-boy-shirt: #3f6288;
+    --student-boy-collar: #eff5ff;
+    --student-hair-strand: rgba(0, 0, 0, 0);
+    --student-hair-bow: #77c8ff;
+    --student-hair-bow-dot: #eff6ff;
+    --student-boy-jaw: rgba(14, 16, 19, 0.4);
     --student-glasses: rgba(0, 0, 0, 0);
     --student-eye: #0e1013;
     --student-blush: rgba(0, 0, 0, 0);
@@ -1308,20 +1351,69 @@ body.theme-dark .student-work[data-gender="kluk"] {
 
 .student-blob {
     fill: var(--student-blob);
+    opacity: 0.98;
+}
+
+.student-avatar-character {
+    transform-origin: 150px 145px;
+    transform: translate(var(--avatar-shift-x, 0px), var(--avatar-shift-y, 0px)) rotate(var(--avatar-tilt, 0deg));
+    transition: transform 0.1s ease-out;
+}
+
+.student-girl-only {
+    display: initial;
+}
+
+.student-boy-only {
+    display: none;
+}
+
+.student-work[data-gender="kluk"] .student-girl-only {
+    display: none;
+}
+
+.student-work[data-gender="kluk"] .student-boy-only {
+    display: initial;
 }
 
 .student-hair {
-    fill: var(--student-hair);
-    transform-box: fill-box;
-    transform-origin: center;
+    fill: url(#student-hair-gradient);
 }
 
-.student-work[data-gender="kluk"] .student-hair {
-    transform: translateY(6px) scaleY(0.82);
+.student-hair-strand {
+    fill: none;
+    stroke: var(--student-hair-strand);
+    stroke-width: 8;
+    stroke-linecap: round;
+}
+
+.student-boy-hair {
+    fill: var(--student-boy-hair);
+}
+
+.student-fringe {
+    fill: var(--student-hair);
+}
+
+.student-boy-fringe {
+    fill: var(--student-boy-hair);
+    opacity: 0.94;
+}
+
+.student-hair-bow {
+    fill: var(--student-hair-bow);
+}
+
+.student-hair-bow-dot {
+    fill: var(--student-hair-bow-dot);
 }
 
 .student-face {
     fill: var(--student-face);
+}
+
+.student-ear {
+    fill: var(--student-ear);
 }
 
 .student-neck {
@@ -1330,6 +1422,22 @@ body.theme-dark .student-work[data-gender="kluk"] {
 
 .student-shirt {
     fill: var(--student-shirt);
+}
+
+.student-shirt-inner {
+    fill: var(--student-shirt-inner);
+}
+
+.student-boy-shirt {
+    fill: var(--student-boy-shirt);
+}
+
+.student-boy-shirt-base {
+    fill: var(--student-boy-shirt);
+}
+
+.student-boy-collar {
+    fill: var(--student-boy-collar);
 }
 
 .student-eye {
@@ -1351,8 +1459,48 @@ body.theme-dark .student-work[data-gender="kluk"] {
     stroke-linecap: round;
 }
 
+.student-mouth-boy {
+    stroke-width: 3.4;
+    opacity: 0.9;
+}
+
+.student-brow {
+    fill: none;
+    stroke: var(--student-eye);
+    opacity: 0.35;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.student-girl-only.student-brow {
+    opacity: 0.3;
+    stroke-width: 2.6;
+}
+
+.student-boy-only.student-brow {
+    opacity: 0.58;
+    stroke-width: 3.8;
+}
+
+.student-nose {
+    fill: none;
+    stroke: var(--student-eye);
+    opacity: 0.22;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.student-boy-jaw {
+    fill: none;
+    stroke: var(--student-boy-jaw);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
 .student-glasses,
-.student-glasses-bridge {
+.student-glasses-bridge,
+.student-glasses-arm {
     fill: none;
     stroke: var(--student-glasses);
     stroke-width: 4;
