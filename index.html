@@ -121,7 +121,7 @@
                                         <path d="M6 12l4 4 8-8"></path>
                                     </svg>
                                 </button>
-                                <button class="student-work-button is-green-3" type="button" data-title="Prace 3" aria-label="Prace 3">
+                                <button class="student-work-button is-green-3" type="button" data-action="reflect-daily" data-title="Reflektuj" aria-label="Reflektuj">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M9 21h6M10 17h4"></path>
                                         <path d="M6.5 10a5.5 5.5 0 1 1 11 0c0 2-1.1 3.3-2.4 4.4-.6.5-1 1.1-1 1.8H9.9c0-.7-.4-1.3-1-1.8C7.6 13.3 6.5 12 6.5 10z"></path>
@@ -406,6 +406,48 @@
                 </div>
             </div>
         </section>
+        <section class="student-reflect-panel" id="student-reflect-panel" aria-hidden="true">
+            <div class="student-reflect-card">
+                <div class="student-reflect-header">
+                    <h3>Reflektuj</h3>
+                    <button class="student-reflect-close" id="student-reflect-close" type="button">&larr; zpet</button>
+                </div>
+                <p class="student-reflect-intro">Jak to dnes mas se zvidavosti, hodnotami a samostatnosti?</p>
+                <div class="student-reflect-row">
+                    <div class="student-reflect-row-head">
+                        <span>zvidavost</span>
+                        <strong id="student-reflect-curiosity-value">50 %</strong>
+                    </div>
+                    <input id="student-reflect-curiosity" type="range" min="0" max="100" step="1" value="50">
+                </div>
+                <div class="student-reflect-row">
+                    <div class="student-reflect-row-head">
+                        <span>hodnoty</span>
+                        <strong id="student-reflect-values-value">50 %</strong>
+                    </div>
+                    <input id="student-reflect-values" type="range" min="0" max="100" step="1" value="50">
+                </div>
+                <div class="student-reflect-row">
+                    <div class="student-reflect-row-head">
+                        <span>samostatnost</span>
+                        <strong id="student-reflect-independence-value">50 %</strong>
+                    </div>
+                    <input id="student-reflect-independence" type="range" min="0" max="100" step="1" value="50">
+                </div>
+                <div class="student-reflect-mood-wrap">
+                    <p>Jak se dnes citis?</p>
+                    <div class="student-reflect-moods" id="student-reflect-moods" role="group" aria-label="Nalada">
+                        <button type="button" data-mood="smutne" aria-pressed="false"><img class="student-work-emoji" src="Media/emoji/scio_sad.png" alt="smutne"></button>
+                        <button type="button" data-mood="v-pohode" aria-pressed="false"><img class="student-work-emoji" src="Media/emoji/scio_happy.png" alt="v pohode"></button>
+                        <button type="button" data-mood="sebevedome" aria-pressed="false"><img class="student-work-emoji" src="Media/emoji/scio_kluk_usmev.png" alt="sebevedome"></button>
+                        <button type="button" data-mood="prekvapene" aria-pressed="false"><img class="student-work-emoji" src="Media/emoji/scio_prekvapeny.png" alt="prekvapene"></button>
+                        <button type="button" data-mood="oslavne" aria-pressed="false"><img class="student-work-emoji" src="Media/emoji/scio_party_usmev.png" alt="oslavne"></button>
+                    </div>
+                </div>
+                <p class="student-reflect-status" id="student-reflect-status"></p>
+                <button class="student-reflect-save" id="student-reflect-save" type="button">Potvrdit</button>
+            </div>
+        </section>
         <a id="data-tests-link" href="data.html">data tests</a>
         <section class="template-panel" id="template-panel" aria-hidden="true">
             <div class="template-header">
@@ -621,6 +663,9 @@
         let adminStudentSuggestions = [];
         let aiChatMessages = [];
         let aiChatSending = false;
+        let studentReflectMood = '';
+        let studentReflectSaving = false;
+        let studentReflectTodaySaved = false;
 
         const AVATAR_CHOICES = {
             holcicka: {
@@ -2196,6 +2241,7 @@
           const studentWorkIllustration = document.querySelector('.student-work-illustration');
           const studentWorkLog = document.getElementById('student-work-log');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
+          const studentWorkReflectButton = document.querySelector('.student-work-button[data-action="reflect-daily"]');
           const studentWorkPillarFilterButton = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-1"]');
           const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-2"]');
           const studentWorkPillarFilterButtonThree = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-3"]');
@@ -2216,6 +2262,17 @@
           const studentWorkEmojiPicker = document.getElementById('student-work-emoji-picker');
           const studentWorkGenderButtons = document.querySelectorAll('.student-work-gender-button');
           const studentWorkSendButton = document.querySelector('#student-work .student-work-icon-btn.is-send');
+          const studentReflectPanel = document.getElementById('student-reflect-panel');
+          const studentReflectClose = document.getElementById('student-reflect-close');
+          const studentReflectSave = document.getElementById('student-reflect-save');
+          const studentReflectStatus = document.getElementById('student-reflect-status');
+          const studentReflectMoods = document.getElementById('student-reflect-moods');
+          const studentReflectCuriosity = document.getElementById('student-reflect-curiosity');
+          const studentReflectValues = document.getElementById('student-reflect-values');
+          const studentReflectIndependence = document.getElementById('student-reflect-independence');
+          const studentReflectCuriosityValue = document.getElementById('student-reflect-curiosity-value');
+          const studentReflectValuesValue = document.getElementById('student-reflect-values-value');
+          const studentReflectIndependenceValue = document.getElementById('student-reflect-independence-value');
           if (studentWorkMood && studentWorkEmojiPicker) {
             studentWorkMood.innerHTML = studentWorkEmojiPicker.innerHTML;
             studentWorkMood.querySelectorAll('.student-work-emoji-btn').forEach(button => {
@@ -2227,6 +2284,7 @@
             refreshEmojiLookup(studentWorkMood);
           }
           renderStudentWorkFiles();
+          updateStudentReflectRangeLabels();
 
           function getStoredAiApiKey() {
             try {
@@ -2524,6 +2582,187 @@
               localStorage.setItem('theme', isDark ? 'dark' : 'light');
             } catch (error) {
               // ignore storage failures
+            }
+          }
+
+          function getLocalDateKey(dateValue = new Date()) {
+            const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          }
+
+          function updateStudentReflectRangeLabels() {
+            if (studentReflectCuriosityValue && studentReflectCuriosity) {
+              studentReflectCuriosityValue.textContent = `${studentReflectCuriosity.value} %`;
+            }
+            if (studentReflectValuesValue && studentReflectValues) {
+              studentReflectValuesValue.textContent = `${studentReflectValues.value} %`;
+            }
+            if (studentReflectIndependenceValue && studentReflectIndependence) {
+              studentReflectIndependenceValue.textContent = `${studentReflectIndependence.value} %`;
+            }
+          }
+
+          function setStudentReflectStatus(message, isError) {
+            if (!studentReflectStatus) {
+              return;
+            }
+            studentReflectStatus.textContent = message || '';
+            studentReflectStatus.classList.toggle('is-error', Boolean(isError));
+          }
+
+          function setStudentReflectMood(value) {
+            studentReflectMood = String(value || '').trim();
+            if (!studentReflectMoods) {
+              return;
+            }
+            studentReflectMoods.querySelectorAll('button[data-mood]').forEach(button => {
+              const mood = String(button.dataset.mood || '').trim();
+              const isSelected = Boolean(studentReflectMood) && mood === studentReflectMood;
+              button.classList.toggle('is-selected', isSelected);
+              button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+            });
+          }
+
+          function setStudentReflectControlsDisabled(isDisabled) {
+            const disabled = Boolean(isDisabled);
+            [studentReflectCuriosity, studentReflectValues, studentReflectIndependence].forEach(input => {
+              if (input) {
+                input.disabled = disabled;
+              }
+            });
+            if (studentReflectMoods) {
+              studentReflectMoods.querySelectorAll('button[data-mood]').forEach(button => {
+                button.disabled = disabled;
+              });
+            }
+            if (studentReflectSave) {
+              studentReflectSave.disabled = disabled || studentReflectSaving;
+            }
+          }
+
+          function resetStudentReflectForm() {
+            if (studentReflectCuriosity) {
+              studentReflectCuriosity.value = '50';
+            }
+            if (studentReflectValues) {
+              studentReflectValues.value = '50';
+            }
+            if (studentReflectIndependence) {
+              studentReflectIndependence.value = '50';
+            }
+            setStudentReflectMood('');
+            updateStudentReflectRangeLabels();
+            setStudentReflectStatus('', false);
+          }
+
+          async function loadStudentReflectToday() {
+            if (!currentUser) {
+              resetStudentReflectForm();
+              setStudentReflectControlsDisabled(true);
+              setStudentReflectStatus('Nejsi prihlaseny.', true);
+              studentReflectTodaySaved = false;
+              return;
+            }
+
+            const dateKey = getLocalDateKey();
+            const docRef = db.collection('users').doc(currentUser.uid).collection('dailyReflections').doc(dateKey);
+            const snapshot = await docRef.get();
+
+            if (!snapshot.exists) {
+              resetStudentReflectForm();
+              setStudentReflectControlsDisabled(false);
+              setStudentReflectStatus('Dnes muzes ulozit jednu reflexi.', false);
+              studentReflectTodaySaved = false;
+              return;
+            }
+
+            const data = snapshot.data() || {};
+            if (studentReflectCuriosity) {
+              studentReflectCuriosity.value = String(data.curiosity ?? 50);
+            }
+            if (studentReflectValues) {
+              studentReflectValues.value = String(data.values ?? 50);
+            }
+            if (studentReflectIndependence) {
+              studentReflectIndependence.value = String(data.independence ?? 50);
+            }
+            setStudentReflectMood(data.mood || '');
+            updateStudentReflectRangeLabels();
+            setStudentReflectControlsDisabled(true);
+            setStudentReflectStatus('Dnes uz mas reflexi ulozenou. Dalsi muzes ulozit zitra.', false);
+            studentReflectTodaySaved = true;
+          }
+
+          async function openStudentReflectPanel() {
+            if (!studentReflectPanel) {
+              return;
+            }
+            studentReflectPanel.classList.add('open');
+            studentReflectPanel.setAttribute('aria-hidden', 'false');
+            setStudentReflectStatus('Nacitam...', false);
+            try {
+              await loadStudentReflectToday();
+            } catch (error) {
+              console.error('Error loading daily reflection:', error);
+              setStudentReflectStatus('Nepodarilo se nacist denni reflexi.', true);
+              setStudentReflectControlsDisabled(true);
+            }
+          }
+
+          function closeStudentReflectPanel() {
+            if (!studentReflectPanel) {
+              return;
+            }
+            studentReflectPanel.classList.remove('open');
+            studentReflectPanel.setAttribute('aria-hidden', 'true');
+          }
+
+          async function saveStudentReflect() {
+            if (!currentUser || studentReflectSaving || studentReflectTodaySaved) {
+              if (studentReflectTodaySaved) {
+                setStudentReflectStatus('Dnes uz mas reflexi ulozenou. Dalsi muzes ulozit zitra.', true);
+              }
+              return;
+            }
+            const dateKey = getLocalDateKey();
+            const payload = {
+              dateKey,
+              curiosity: Number(studentReflectCuriosity ? studentReflectCuriosity.value : 50),
+              values: Number(studentReflectValues ? studentReflectValues.value : 50),
+              independence: Number(studentReflectIndependence ? studentReflectIndependence.value : 50),
+              mood: studentReflectMood || '',
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            const docRef = db.collection('users').doc(currentUser.uid).collection('dailyReflections').doc(dateKey);
+            studentReflectSaving = true;
+            setStudentReflectControlsDisabled(true);
+            setStudentReflectStatus('Ukladam...', false);
+            try {
+              await db.runTransaction(async transaction => {
+                const existing = await transaction.get(docRef);
+                if (existing.exists) {
+                  throw new Error('already_saved_today');
+                }
+                transaction.set(docRef, payload);
+              });
+              studentReflectTodaySaved = true;
+              setStudentReflectStatus('Ulozeno. Dnes je povolena jen jedna reflexe.', false);
+            } catch (error) {
+              if (error && error.message === 'already_saved_today') {
+                studentReflectTodaySaved = true;
+                setStudentReflectStatus('Dnes uz mas reflexi ulozenou. Dalsi muzes ulozit zitra.', true);
+              } else {
+                console.error('Error saving daily reflection:', error);
+                setStudentReflectStatus('Nepodarilo se ulozit reflexi.', true);
+                setStudentReflectControlsDisabled(false);
+              }
+            } finally {
+              studentReflectSaving = false;
+              setStudentReflectControlsDisabled(studentReflectTodaySaved);
             }
           }
 
@@ -4335,6 +4574,48 @@
             });
           }
 
+          if (studentWorkReflectButton) {
+            studentWorkReflectButton.addEventListener('click', openStudentReflectPanel);
+          }
+
+          if (studentReflectClose) {
+            studentReflectClose.addEventListener('click', closeStudentReflectPanel);
+          }
+
+          if (studentReflectSave) {
+            studentReflectSave.addEventListener('click', saveStudentReflect);
+          }
+
+          if (studentReflectPanel) {
+            studentReflectPanel.addEventListener('click', function(event) {
+              if (event.target === studentReflectPanel) {
+                closeStudentReflectPanel();
+              }
+            });
+          }
+
+          if (studentReflectMoods) {
+            studentReflectMoods.addEventListener('click', function(event) {
+              const button = event.target.closest('button[data-mood]');
+              if (!button || button.disabled) {
+                return;
+              }
+              const mood = String(button.dataset.mood || '').trim();
+              if (!mood) {
+                return;
+              }
+              setStudentReflectMood(mood === studentReflectMood ? '' : mood);
+            });
+          }
+
+          [studentReflectCuriosity, studentReflectValues, studentReflectIndependence].forEach(input => {
+            if (!input) {
+              return;
+            }
+            input.addEventListener('input', updateStudentReflectRangeLabels);
+            input.addEventListener('change', updateStudentReflectRangeLabels);
+          });
+
           if (studentWorkPillarFilterButton) {
             studentWorkPillarFilterButton.addEventListener('click', async () => {
               studentWorkFilterPillar = 'zvydavost';
@@ -4573,6 +4854,15 @@
               return;
             }
             setEmojiPickerOpen(false);
+          });
+
+          document.addEventListener('keydown', function(event) {
+            if (event.key !== 'Escape') {
+              return;
+            }
+            if (studentReflectPanel && studentReflectPanel.classList.contains('open')) {
+              closeStudentReflectPanel();
+            }
           });
 
           if (adminStudentClassSave) {

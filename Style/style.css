@@ -2097,6 +2097,166 @@ body.theme-dark .student-work-chip input:checked + span {
     box-shadow: 0 0 0 5px rgba(0, 154, 222, 0.24);
 }
 
+.student-reflect-panel {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(9, 15, 24, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 30;
+}
+
+.student-reflect-panel.open {
+    display: flex;
+}
+
+.student-reflect-card {
+    width: min(820px, 96vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 30px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+    padding: 28px;
+    display: grid;
+    gap: 16px;
+}
+
+.student-reflect-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.student-reflect-header h3 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.student-reflect-close {
+    font-family: 'Scio', sans-serif;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 10px 14px;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.student-reflect-intro {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.student-reflect-row {
+    display: grid;
+    gap: 8px;
+}
+
+.student-reflect-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.student-reflect-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--scio-blue);
+}
+
+.student-reflect-mood-wrap p {
+    margin: 0 0 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.student-reflect-moods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.student-reflect-moods button {
+    width: 54px;
+    height: 54px;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: #ffffff;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.student-reflect-moods .student-work-emoji {
+    width: 1.7em;
+    height: 1.7em;
+}
+
+.student-reflect-moods button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+}
+
+.student-reflect-moods button.is-selected {
+    border-color: rgba(0, 154, 222, 0.65);
+    box-shadow: 0 0 0 4px rgba(0, 154, 222, 0.18);
+}
+
+.student-reflect-status {
+    margin: 0;
+    min-height: 1.25rem;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.student-reflect-status.is-error {
+    color: var(--red-11);
+}
+
+.student-reflect-save {
+    justify-self: start;
+    font-family: 'Scio', sans-serif;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 20px;
+    font-size: 1.05rem;
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.95), rgba(245, 158, 11, 0.95));
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 14px 30px rgba(245, 158, 11, 0.28);
+}
+
+.student-reflect-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+body.theme-dark .student-reflect-panel {
+    background: rgba(4, 9, 14, 0.62);
+}
+
+body.theme-dark .student-reflect-card {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(16, 24, 33, 0.97);
+}
+
+body.theme-dark .student-reflect-close,
+body.theme-dark .student-reflect-moods button {
+    color: var(--text);
+    background: rgba(18, 28, 38, 0.95);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
 .template-panel {
     position: fixed;
     right: 3vw;
@@ -2880,6 +3040,25 @@ body.theme-dark .ai-chat-status.is-error {
     .student-work-icon-btn {
         width: 36px;
         height: 36px;
+    }
+
+    .student-reflect-panel {
+        padding: 12px;
+    }
+
+    .student-reflect-card {
+        padding: 18px;
+        border-radius: 22px;
+        max-height: 88vh;
+    }
+
+    .student-reflect-header h3 {
+        font-size: 1.6rem;
+    }
+
+    .student-reflect-close {
+        font-size: 1rem;
+        padding: 8px 12px;
     }
 
     .template-card-header {
