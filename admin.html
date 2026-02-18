@@ -45,6 +45,12 @@
       gap:16px;
       padding:16px;
     }
+    .app.sidebar-collapsed{
+      grid-template-columns:1fr;
+    }
+    .app.sidebar-collapsed .sidebar{
+      display:none;
+    }
     @media (max-width:980px){
       .app{grid-template-columns:1fr}
     }
@@ -842,12 +848,12 @@
         <p>Šablony a portfolia</p>
       </div>
       <div class="nav" id="nav">
-        <button class="active" data-view="dashboard"><span>Dashboard</span><span class="pill" id="pillDay">..</span></button>
-        <button data-view="newTemplate"><span>Nová šablona</span><span class="pill">Form</span></button>
-        <button data-view="myTemplates"><span>Moje šablony</span><span class="pill" id="pillTemplates">0</span></button>
-        <button data-view="classes"><span>Třídy</span><span class="pill" id="pillClasses">0</span></button>
-        <button data-view="studentOverview"><span>Přehled dítěte</span><span class="pill">Search</span></button>
-        <button data-view="notifications"><span>Notifikace</span><span class="pill" id="pillUnread">0</span></button>
+        <button class="active" data-view="dashboard" title="Dashboard" aria-label="Dashboard"><span>🏠</span><span class="pill" id="pillDay">..</span></button>
+        <button data-view="newTemplate" title="Nová šablona" aria-label="Nová šablona"><span>📝</span><span class="pill">Form</span></button>
+        <button data-view="myTemplates" title="Moje šablony" aria-label="Moje šablony"><span>🗂️</span><span class="pill" id="pillTemplates">0</span></button>
+        <button data-view="classes" title="Třídy" aria-label="Třídy"><span>👥</span><span class="pill" id="pillClasses">0</span></button>
+        <button data-view="studentOverview" title="Přehled dítěte" aria-label="Přehled dítěte"><span>🔎</span><span class="pill">Search</span></button>
+        <button data-view="notifications" title="Notifikace" aria-label="Notifikace"><span>🔔</span><span class="pill" id="pillUnread">0</span></button>
       </div>
       <div class="actions">
         <button class="btn warn" id="btnSimulate">🧪 TEST: simulovat vyplnění</button>
@@ -937,6 +943,9 @@
   let currentView = "newTemplate";
   let recipientDirectory = { students: [], classes: [] };
   let subjectDirectory = [];
+  let studentOverviewStudents = [];
+  let studentOverviewSelectedEmail = "";
+  const studentOverviewCache = new Map();
 
   function hasGuideAccess(email) {
     return GUIDE_EMAILS.indexOf(String(email || "").toLowerCase()) >= 0;
@@ -996,6 +1005,14 @@
     }
   }
 
+  function syncSidebarVisibility() {
+    const app = $(".app");
+    if (!app) {
+      return;
+    }
+    app.classList.remove("sidebar-collapsed");
+  }
+
   function showContentMessage(title, text) {
     const content = $("#content");
     if (!content) {
@@ -1026,6 +1043,38 @@
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .trim();
+  }
+
+  function normalizeCategorySlug(value) {
+    return normalizeSearchText(value)
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  const CATEGORY_EMOJI_MAP = {
+    matematika: ":abacus:",
+    cestina: ":books:",
+    ceskyjazyk: ":books:",
+    "cesky-jazyk": ":books:",
+    anglictina: ":globe_with_meridians:",
+    samorost: ":seedling:",
+    vlastni: ":sparkles:",
+    zvdavost: ":bulb:",
+    zvidavost: ":bulb:",
+    zvedavost: ":bulb:",
+    hodnoty: ":heart:",
+    moralnihodnoty: ":heart:",
+    "moralni-hodnoty": ":heart:",
+    samostatnost: ":muscle:"
+  };
+
+  function formatCategoryEmoji(value) {
+    const slug = normalizeCategorySlug(value);
+    const compactSlug = slug.replace(/-/g, "");
+    if (!compactSlug) {
+      return ":house:";
+    }
+    return CATEGORY_EMOJI_MAP[slug] || CATEGORY_EMOJI_MAP[compactSlug] || ":house:";
   }
 
   function getSubjects() {
@@ -1072,7 +1121,8 @@
       '<div class="composeCheckList">' +
       defaultSubjects.map(function (subject, index) {
         const checked = index === 0 ? ' checked' : '';
-        return '<label class="composeCheckItem"><input class="tpl-subject" type="checkbox" value="' + esc(subject) + '"' + checked + '><span>' + esc(subject) + '</span></label>';
+        const subjectEmoji = formatCategoryEmoji(subject);
+        return '<label class="composeCheckItem"><input class="tpl-subject" type="checkbox" value="' + esc(subject) + '"' + checked + '><span title="' + esc(subject) + '">' + esc(subjectEmoji) + '</span></label>';
       }).join("") +
       '</div>' +
       '<input id="tplSubjectsCustom" type="text" placeholder="Vlastní předměty odděl čárkou">' +
@@ -1083,7 +1133,8 @@
       '<div class="composeCheckList">' +
       pillars.map(function (pillar) {
         const checked = pillar === "Zvídavost" ? ' checked' : '';
-        return '<label class="composeCheckItem"><input class="tpl-pillar" type="checkbox" value="' + esc(pillar) + '"' + checked + '><span>' + esc(pillar) + '</span></label>';
+        const pillarEmoji = formatCategoryEmoji(pillar);
+        return '<label class="composeCheckItem"><input class="tpl-pillar" type="checkbox" value="' + esc(pillar) + '"' + checked + '><span title="' + esc(pillar) + '">' + esc(pillarEmoji) + '</span></label>';
       }).join("") +
       '</div>' +
       '<p class="composeHint">Můžeš vybrat více pilířů.</p>' +
@@ -1142,6 +1193,396 @@
     const label = labels[view] || ["Admin", "Správa"];
     setHeader(label[0], label[1]);
     showContentMessage(label[0], "Tato část bude doplněna. Pro odeslání použij Novou šablonu.");
+  }
+
+  function normalizePortfolioText(value) {
+    return String(value || "")
+      .replace(/<a\s+[^>]*>(.*?)<\/a>/gi, "$1")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function extractSubjectsFromPortfolioValue(value) {
+    const matches = String(value || "").match(/@[^\s,.;:!?]+/g) || [];
+    return uniqueValues(matches.map(function (item) {
+      return normalizeSubjectName(item);
+    }).filter(Boolean));
+  }
+
+  function renderStudentOverviewLayout(students, selectedEmail) {
+    const items = Array.isArray(students) ? students : [];
+    const normalizedSelectedEmail = normalizeEmail(selectedEmail);
+    return (
+      '<div class="split">' +
+      '<div class="card">' +
+      '<h3>Přehled dítěte</h3>' +
+      '<div class="cardBody">' +
+      '<input id="studentOverviewSearch" type="text" placeholder="Hledat podle jména, e-mailu nebo třídy">' +
+      '<div style="margin-top:10px" id="studentOverviewList">' +
+      items.map(function (student) {
+        const email = normalizeEmail(student && student.email ? student.email : "");
+        const className = normalizeClassName(student && student.className ? student.className : "");
+        const name = getStudentDisplayName(student);
+        const searchText = normalizeSearchText(name + " " + email + " " + className);
+        const activeClass = email === normalizedSelectedEmail ? " active" : "";
+        return (
+          '<button class="classBtn studentOverviewBtn' + activeClass + '" type="button" data-email="' + esc(email) + '" data-search="' + esc(searchText) + '">' +
+          '<div class="title">' + esc(name) + '</div>' +
+          '<div class="hint">' + esc(email) + (className ? " - " + esc(className) : "") + '</div>' +
+          '</button>'
+        );
+      }).join("") +
+      '</div>' +
+      '<div class="empty hidden" id="studentOverviewEmpty">Žádný žák neodpovídá filtru.</div>' +
+      '</div>' +
+      '</div>' +
+      '<div id="studentOverviewDetail">' +
+      '<div class="card">' +
+      '<h3>Portfolio</h3>' +
+      '<div class="cardBody">Vyber žáka vlevo.</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  function filterStudentOverviewList(filterValue) {
+    const list = $("#studentOverviewList");
+    if (!list) {
+      return;
+    }
+    const query = normalizeSearchText(filterValue);
+    const items = list.querySelectorAll(".studentOverviewBtn");
+    let visibleCount = 0;
+    for (let i = 0; i < items.length; i += 1) {
+      const item = items[i];
+      const searchText = String(item.dataset && item.dataset.search ? item.dataset.search : "");
+      const visible = !query || searchText.indexOf(query) >= 0;
+      item.style.display = visible ? "" : "none";
+      if (visible) {
+        visibleCount += 1;
+      }
+    }
+    const empty = $("#studentOverviewEmpty");
+    if (empty) {
+      empty.classList.toggle("hidden", visibleCount > 0);
+    }
+  }
+
+  async function resolveUserDocRefByStudent(student) {
+    if (!usersRef || !student) {
+      return null;
+    }
+    const uid = String(student.uid || "").trim();
+    if (uid) {
+      return usersRef.doc(uid);
+    }
+    const email = normalizeEmail(student.email || "");
+    if (!email) {
+      return null;
+    }
+    try {
+      let snapshot = await usersRef.where("emailLower", "==", email).limit(1).get();
+      if (snapshot.empty) {
+        snapshot = await usersRef.where("email", "==", email).limit(1).get();
+      }
+      if (!snapshot.empty) {
+        return snapshot.docs[0].ref;
+      }
+    } catch (error) {
+      console.warn("Student overview email lookup failed:", error);
+    }
+    return null;
+  }
+
+  async function loadStudentPortfolio(student) {
+    const userRef = await resolveUserDocRefByStudent(student);
+    if (!userRef) {
+      return { entries: [], responses: [] };
+    }
+
+    const entries = [];
+    const responses = [];
+
+    try {
+      let dataSnapshot;
+      try {
+        dataSnapshot = await userRef.collection("data").orderBy("timestamp", "desc").limit(200).get();
+      } catch (error) {
+        dataSnapshot = await userRef.collection("data").limit(200).get();
+      }
+      dataSnapshot.forEach(function (doc) {
+        const data = doc.data() || {};
+        const rawValue = String(data.value || "").trim();
+        const text = normalizePortfolioText(rawValue);
+        const subjects = collectTemplateValues(data, "subjects", "subject");
+        const pillars = collectTemplateValues(data, "pillars", "pillar");
+        const derivedSubjects = subjects.length ? subjects : extractSubjectsFromPortfolioValue(rawValue);
+        const timestampMillis = toMillis(data.timestamp || data.updatedAt || data.createdAt || 0);
+        entries.push({
+          id: doc.id,
+          text: text,
+          subjects: derivedSubjects,
+          pillars: pillars,
+          timestampMillis: timestampMillis
+        });
+      });
+    } catch (error) {
+      console.error("Student overview data load failed:", error);
+    }
+
+    try {
+      let responseSnapshot;
+      try {
+        responseSnapshot = await userRef.collection("templateResponses").orderBy("updatedAt", "desc").limit(200).get();
+      } catch (error) {
+        responseSnapshot = await userRef.collection("templateResponses").limit(200).get();
+      }
+      responseSnapshot.forEach(function (doc) {
+        const data = doc.data() || {};
+        responses.push({
+          id: doc.id,
+          templateTitle: String(data.templateTitle || data.title || "Bez názvu").trim(),
+          response: String(data.response || data.value || "").trim(),
+          subjects: collectTemplateValues(data, "subjects", "subject"),
+          pillars: collectTemplateValues(data, "pillars", "pillar"),
+          updatedAtMillis: toMillis(data.updatedAt || data.timestamp || data.createdAt || 0)
+        });
+      });
+    } catch (error) {
+      console.error("Student overview responses load failed:", error);
+    }
+
+    entries.sort(function (a, b) {
+      return (b.timestampMillis || 0) - (a.timestampMillis || 0);
+    });
+    responses.sort(function (a, b) {
+      return (b.updatedAtMillis || 0) - (a.updatedAtMillis || 0);
+    });
+
+    return {
+      entries: entries,
+      responses: responses
+    };
+  }
+
+  function renderStudentPortfolioEntries(entries) {
+    const items = Array.isArray(entries) ? entries : [];
+    if (!items.length) {
+      return '<div class="empty">Žák zatím nemá žádné portfolio záznamy.</div>';
+    }
+    return (
+      '<div class="list">' +
+      items.slice(0, 80).map(function (item) {
+        const text = String(item.text || "").trim();
+        const dateLabel = formatDateTime(item.timestampMillis);
+        const subjectBadges = (item.subjects || []).slice(0, 3).map(function (subject) {
+          return '<span class="badge" title="' + esc(subject) + '">' + esc(formatCategoryEmoji(subject)) + '</span>';
+        }).join("");
+        const pillarBadges = (item.pillars || []).slice(0, 3).map(function (pillar) {
+          return '<span class="badge" title="' + esc(pillar) + '">' + esc(formatCategoryEmoji(pillar)) + '</span>';
+        }).join("");
+        return (
+          '<article class="item">' +
+          '<div>' +
+          '<div class="title">' + esc(text || "Bez obsahu") + '</div>' +
+          '<div class="meta">' +
+          (dateLabel ? '<span class="badge">' + esc(dateLabel) + '</span>' : "") +
+          subjectBadges +
+          pillarBadges +
+          '</div>' +
+          '</div>' +
+          '</article>'
+        );
+      }).join("") +
+      '</div>'
+    );
+  }
+
+  function renderStudentTemplateResponses(responses) {
+    const items = Array.isArray(responses) ? responses : [];
+    if (!items.length) {
+      return '<div class="empty">Žák zatím neodeslal žádné odpovědi na šablony.</div>';
+    }
+    return (
+      '<div class="list">' +
+      items.slice(0, 80).map(function (item) {
+        const title = String(item.templateTitle || "Bez názvu").trim();
+        const value = String(item.response || "").trim();
+        const dateLabel = formatDateTime(item.updatedAtMillis);
+        const subjectBadges = (item.subjects || []).slice(0, 3).map(function (subject) {
+          return '<span class="badge" title="' + esc(subject) + '">' + esc(formatCategoryEmoji(subject)) + '</span>';
+        }).join("");
+        const pillarBadges = (item.pillars || []).slice(0, 3).map(function (pillar) {
+          return '<span class="badge" title="' + esc(pillar) + '">' + esc(formatCategoryEmoji(pillar)) + '</span>';
+        }).join("");
+        return (
+          '<article class="item">' +
+          '<div>' +
+          '<div class="title">' + esc(title) + '</div>' +
+          '<div class="hint" style="margin-top:4px">' + esc(value || "Bez textu odpovědi") + '</div>' +
+          '<div class="meta">' +
+          (dateLabel ? '<span class="badge">' + esc(dateLabel) + '</span>' : "") +
+          subjectBadges +
+          pillarBadges +
+          '</div>' +
+          '</div>' +
+          '</article>'
+        );
+      }).join("") +
+      '</div>'
+    );
+  }
+
+  function renderStudentOverviewDetail(student, portfolio) {
+    const data = portfolio || { entries: [], responses: [] };
+    const name = getStudentDisplayName(student);
+    const email = normalizeEmail(student && student.email ? student.email : "");
+    const className = normalizeClassName(student && student.className ? student.className : "");
+    const entries = Array.isArray(data.entries) ? data.entries : [];
+    const responses = Array.isArray(data.responses) ? data.responses : [];
+
+    return (
+      '<div class="card">' +
+      '<h3>Portfolio žáka</h3>' +
+      '<div class="cardBody">' +
+      '<div class="title">' + esc(name) + '</div>' +
+      '<div class="meta">' +
+      (email ? '<span class="badge">' + esc(email) + '</span>' : "") +
+      (className ? '<span class="badge ok">Třída: ' + esc(className) + '</span>' : "") +
+      '<span class="badge">Záznamy: ' + String(entries.length) + '</span>' +
+      '<span class="badge">Odpovědi: ' + String(responses.length) + '</span>' +
+      '</div>' +
+      '<hr class="composeDivider">' +
+      '<h3>Portfolio záznamy</h3>' +
+      renderStudentPortfolioEntries(entries) +
+      '<hr class="composeDivider">' +
+      '<h3>Odpovědi na šablony</h3>' +
+      renderStudentTemplateResponses(responses) +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  function setStudentOverviewActive(email) {
+    const normalized = normalizeEmail(email);
+    const buttons = document.querySelectorAll(".studentOverviewBtn");
+    for (let i = 0; i < buttons.length; i += 1) {
+      const button = buttons[i];
+      const buttonEmail = normalizeEmail(button.dataset && button.dataset.email ? button.dataset.email : "");
+      button.classList.toggle("active", Boolean(normalized) && buttonEmail === normalized);
+    }
+  }
+
+  async function openStudentOverviewStudent(email) {
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail) {
+      return;
+    }
+    studentOverviewSelectedEmail = normalizedEmail;
+    setStudentOverviewActive(normalizedEmail);
+
+    const detail = $("#studentOverviewDetail");
+    if (!detail) {
+      return;
+    }
+
+    const selectedStudent = studentOverviewStudents.find(function (student) {
+      return normalizeEmail(student && student.email ? student.email : "") === normalizedEmail;
+    });
+
+    if (!selectedStudent) {
+      detail.innerHTML =
+        '<div class="card">' +
+        '<h3>Portfolio</h3>' +
+        '<div class="cardBody empty">Vybraného žáka se nepodařilo načíst.</div>' +
+        '</div>';
+      return;
+    }
+
+    detail.innerHTML =
+      '<div class="card">' +
+      '<h3>Portfolio žáka</h3>' +
+      '<div class="cardBody">Načítám portfolio…</div>' +
+      '</div>';
+
+    let portfolio = studentOverviewCache.get(normalizedEmail);
+    if (!portfolio) {
+      portfolio = await loadStudentPortfolio(selectedStudent);
+      studentOverviewCache.set(normalizedEmail, portfolio);
+    }
+
+    if (currentView !== "studentOverview") {
+      return;
+    }
+    detail.innerHTML = renderStudentOverviewDetail(selectedStudent, portfolio);
+  }
+
+  function bindStudentOverviewEvents() {
+    const searchInput = $("#studentOverviewSearch");
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        filterStudentOverviewList(searchInput.value);
+      });
+      filterStudentOverviewList(searchInput.value);
+    }
+
+    const list = $("#studentOverviewList");
+    if (list) {
+      list.addEventListener("click", function (event) {
+        const button = event.target && event.target.closest ? event.target.closest(".studentOverviewBtn") : null;
+        if (!button || !button.dataset) {
+          return;
+        }
+        const email = String(button.dataset.email || "").trim();
+        openStudentOverviewStudent(email);
+      });
+    }
+  }
+
+  async function renderStudentOverviewView() {
+    const content = $("#content");
+    if (!content) {
+      return;
+    }
+
+    content.innerHTML =
+      '<div class="card">' +
+      '<h3>Přehled dítěte</h3>' +
+      '<div class="cardBody">Načítám žáky a portfolio…</div>' +
+      '</div>';
+
+    await loadRecipientDirectory();
+    const students = Array.isArray(recipientDirectory.students)
+      ? recipientDirectory.students.slice()
+      : [];
+    studentOverviewStudents = students;
+    studentOverviewCache.clear();
+
+    if (currentView !== "studentOverview") {
+      return;
+    }
+
+    if (!students.length) {
+      content.innerHTML =
+        '<div class="card">' +
+        '<h3>Přehled dítěte</h3>' +
+        '<div class="cardBody empty">V databázi zatím nejsou žádní žáci.</div>' +
+        '</div>';
+      return;
+    }
+
+    const hasSelected = students.some(function (student) {
+      return normalizeEmail(student && student.email ? student.email : "") === normalizeEmail(studentOverviewSelectedEmail);
+    });
+    if (!hasSelected) {
+      studentOverviewSelectedEmail = normalizeEmail(students[0].email);
+    }
+
+    content.innerHTML = renderStudentOverviewLayout(students, studentOverviewSelectedEmail);
+    bindStudentOverviewEvents();
+    await openStudentOverviewStudent(studentOverviewSelectedEmail);
   }
 
   function uniqueValues(values) {
@@ -1991,21 +2432,21 @@
       '<article class="dashActionItem">' +
       '<div>' +
       '<p class="dashActionTitle">Vytvořit novou šablonu</p>' +
-      '<div class="dashChips"><span class="dashChip">Uložit</span><span class="dashChip">Uložit a odeslat</span></div>' +
+      '<div class="dashChips"><span class="dashChip" title="Uložit">:floppy_disk:</span><span class="dashChip" title="Uložit a odeslat">:rocket:</span></div>' +
       '</div>' +
       '<button class="dashActionBtn" id="dashActionNew" type="button">➕ Otevřít</button>' +
       '</article>' +
       '<article class="dashActionItem">' +
       '<div>' +
       '<p class="dashActionTitle">Spravovat třídy a skupiny</p>' +
-      '<div class="dashChips"><span class="dashChip">Chips</span><span class="dashChip">Autocomplete</span></div>' +
+      '<div class="dashChips"><span class="dashChip" title="Třídy a skupiny">:busts_in_silhouette:</span><span class="dashChip" title="Vyhledávání">:mag:</span></div>' +
       '</div>' +
       '<button class="dashActionBtn neutral" id="dashActionClasses" type="button">👥 Třídy</button>' +
       '</article>' +
       '<article class="dashActionItem">' +
       '<div>' +
       '<p class="dashActionTitle">Zkontrolovat šablony podle tříd</p>' +
-      '<div class="dashChips"><span class="dashChip">Statusy</span><span class="dashChip">Komentáře</span></div>' +
+      '<div class="dashChips"><span class="dashChip" title="Statusy">:traffic_light:</span><span class="dashChip" title="Komentáře">:speech_balloon:</span></div>' +
       '</div>' +
       '<button class="dashActionBtn neutral" id="dashActionTemplates" type="button">🗂️ Moje šablony</button>' +
       '</article>' +
@@ -2032,7 +2473,7 @@
       renderDashboardMetric(String(stats.templatesThisWeek), "Odesláno tento týden") +
       renderDashboardMetric(String(stats.responsesThisWeek), "Vyplněno tento týden") +
       renderDashboardMetric(String(stats.responsesTotal) + " / " + String(stats.deliveredTotal), "Vyplněno celkem / doručeno") +
-      renderDashboardMetric(String(stats.topPillar), "Nejčastější pilíř") +
+      renderDashboardMetric(stats.topPillar === "Neurčeno" ? "—" : formatCategoryEmoji(stats.topPillar), "Nejčastější pilíř") +
       '</div>' +
       '<hr class="composeDivider">' +
       '<div class="dashSplit">' +
@@ -2533,10 +2974,10 @@
       groups.map(function (group) {
         const dateLabel = formatDateTime(group.createdAtMillis);
         const subjectBadges = (group.subjects || []).slice(0, 3).map(function (subject) {
-          return '<span class="badge">' + esc(subject) + '</span>';
+          return '<span class="badge" title="' + esc(subject) + '">' + esc(formatCategoryEmoji(subject)) + '</span>';
         }).join("");
         const pillarBadges = (group.pillars || []).slice(0, 3).map(function (pillar) {
-          return '<span class="badge">' + esc(pillar) + '</span>';
+          return '<span class="badge" title="' + esc(pillar) + '">' + esc(formatCategoryEmoji(pillar)) + '</span>';
         }).join("");
         const recipientBadge = '<span class="badge ok">Příjemci: ' + String(group.recipientCount || 0) + '</span>';
         const dateBadge = dateLabel ? '<span class="badge">' + esc(dateLabel) + '</span>' : '';
@@ -2701,6 +3142,7 @@
         }
 
         studentMap.set(email, {
+          uid: doc.id,
           email: email,
           name: String(data.displayName || data.name || email.split("@")[0] || "").trim(),
           className: className
@@ -2767,6 +3209,12 @@
       return;
     }
 
+    if (currentView === "studentOverview") {
+      setHeader("Přehled dítěte", "Přístup do portfolií žáků.");
+      renderStudentOverviewView();
+      return;
+    }
+
     if (currentView === "myTemplates") {
       setHeader("Moje šablony", "Historie odeslaných šablon.");
       renderMyTemplatesView();
@@ -2785,6 +3233,7 @@
   function setView(view) {
     currentView = view;
     setNavActive(view);
+    syncSidebarVisibility(view);
     render();
   }
 
