@@ -3816,6 +3816,18 @@
             }
           }
 
+          function isGuideCommentAuthor(email, role) {
+            const normalizedRole = String(role || '').trim().toLowerCase();
+            if (normalizedRole === 'guide' || normalizedRole === 'admin') {
+              return true;
+            }
+            const normalizedEmail = String(email || '').trim().toLowerCase();
+            if (!normalizedEmail) {
+              return false;
+            }
+            return ADMIN_EMAILS.includes(normalizedEmail);
+          }
+
           function renderStudentWorkComments(comments) {
             if (!studentWorkPostCommentsList || !studentWorkPostCommentsEmpty) {
               return;
@@ -3830,14 +3842,29 @@
             items.forEach(comment => {
               const item = document.createElement('article');
               item.className = 'student-work-post-comment';
+              if (comment.isGuide) {
+                item.classList.add('is-guide');
+              }
 
               const head = document.createElement('div');
               head.className = 'student-work-post-comment-head';
 
+              const authorWrap = document.createElement('div');
+              authorWrap.className = 'student-work-post-comment-author-wrap';
+
               const author = document.createElement('strong');
               author.className = 'student-work-post-comment-author';
               author.textContent = String(comment.authorEmail || 'Uzivatel');
-              head.appendChild(author);
+              authorWrap.appendChild(author);
+
+              if (comment.isGuide) {
+                const badge = document.createElement('span');
+                badge.className = 'student-work-post-comment-badge';
+                badge.textContent = 'Pruvodce';
+                authorWrap.appendChild(badge);
+              }
+
+              head.appendChild(authorWrap);
 
               const dateText = formatStudentWorkCommentDate(comment.createdAt);
               if (dateText) {
@@ -3880,7 +3907,8 @@
                       id: doc.id,
                       text: String(data.text || '').trim(),
                       authorEmail: String(data.authorEmail || '').trim(),
-                      createdAt: data.createdAt || null
+                      createdAt: data.createdAt || null,
+                      isGuide: isGuideCommentAuthor(data.authorEmail, data.authorRole)
                     };
                   })
                   .filter(item => item.text);
@@ -3980,6 +4008,7 @@
                   text: commentText,
                   authorEmail: String(user.email || '').trim(),
                   authorUid: user.uid,
+                  authorRole: isAdminUser(user) ? 'guide' : 'student',
                   createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
               if (studentWorkPostCommentInput) {

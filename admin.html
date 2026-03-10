@@ -181,6 +181,136 @@
       align-items:flex-start;
       gap:10px;
     }
+    .studentEntryActions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-shrink:0;
+    }
+    .studentOverviewPostModal{
+      position:fixed;
+      inset:0;
+      z-index:120;
+      background:rgba(15,23,42,.58);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+    }
+    .studentOverviewPostDialog{
+      width:min(820px,100%);
+      max-height:min(92vh,920px);
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 22px 48px rgba(2,6,23,.35);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .studentOverviewPostHead{
+      border-bottom:1px solid var(--border);
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .studentOverviewPostHead h3{
+      margin:0;
+      font-size:14px;
+    }
+    .studentOverviewPostBody{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      max-height:36vh;
+      overflow:auto;
+      display:grid;
+      gap:8px;
+    }
+    .studentOverviewPostMeta{
+      margin:0;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .studentOverviewPostText{
+      margin:0;
+      font-size:13px;
+      line-height:1.45;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .studentOverviewPostComments{
+      padding:12px 14px 14px;
+      display:grid;
+      gap:8px;
+    }
+    .studentOverviewPostComments h4{
+      margin:0;
+      font-size:13px;
+    }
+    .studentOverviewCommentList{
+      max-height:230px;
+      overflow:auto;
+      margin:0;
+    }
+    .studentOverviewCommentItem{
+      display:grid;
+      gap:6px;
+    }
+    .studentOverviewCommentItem.guide{
+      border-color:rgba(22,163,74,.45);
+      background:linear-gradient(180deg, rgba(22,163,74,.11), #fff);
+    }
+    .studentOverviewCommentHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .studentOverviewCommentAuthorWrap{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-width:0;
+    }
+    .studentOverviewCommentAuthor{
+      font-size:12px;
+      font-weight:600;
+    }
+    .studentOverviewCommentBadge{
+      border:1px solid rgba(22,163,74,.4);
+      background:rgba(22,163,74,.12);
+      color:#166534;
+      border-radius:999px;
+      padding:2px 7px;
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:.01em;
+    }
+    .studentOverviewCommentTime{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .studentOverviewCommentText{
+      margin:0;
+      font-size:13px;
+      line-height:1.4;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .studentOverviewCommentStatus{
+      margin:0;
+      min-height:1.2em;
+    }
+    .studentOverviewCommentStatus.error{
+      color:#b91c1c;
+    }
+    body.modal-open{
+      overflow:hidden;
+    }
     .title{font-size:13px;font-weight:600}
     .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
     .badge{
@@ -665,6 +795,13 @@
       .notifItem{flex-direction:column}
       .notifPanelControls{margin-left:0}
       .notifSearch{width:100%}
+      .studentEntryActions{width:100%}
+      .studentEntryActions .btn{width:100%}
+      .studentOverviewPostModal{padding:10px}
+      .studentOverviewPostDialog{max-height:95vh}
+      .studentOverviewPostBody,
+      .studentOverviewPostComments,
+      .studentOverviewPostHead{padding-left:10px;padding-right:10px}
     }
     body[data-theme="dark"] .main{
       background:#0b1220;
@@ -835,6 +972,33 @@
       background:#0f172a;
       border-color:#334155;
     }
+    body[data-theme="dark"] .studentOverviewPostModal{
+      background:rgba(2,6,23,.74);
+    }
+    body[data-theme="dark"] .studentOverviewPostDialog{
+      background:#0f172a;
+      border-color:#334155;
+      box-shadow:0 24px 50px rgba(2,6,23,.72);
+    }
+    body[data-theme="dark"] .studentOverviewPostHead,
+    body[data-theme="dark"] .studentOverviewPostBody{
+      border-bottom-color:#334155;
+    }
+    body[data-theme="dark"] .studentOverviewCommentTime{
+      color:#94a3b8;
+    }
+    body[data-theme="dark"] .studentOverviewCommentItem.guide{
+      border-color:rgba(74,222,128,.58);
+      background:linear-gradient(180deg, rgba(22,163,74,.3), #0f172a);
+    }
+    body[data-theme="dark"] .studentOverviewCommentBadge{
+      border-color:rgba(74,222,128,.5);
+      background:rgba(22,163,74,.34);
+      color:#dcfce7;
+    }
+    body[data-theme="dark"] .studentOverviewCommentStatus.error{
+      color:#fecaca;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -879,6 +1043,29 @@
   </div>
 
   <div class="toastWrap" id="toastWrap"></div>
+  <section class="studentOverviewPostModal hidden" id="studentOverviewPostModal" aria-hidden="true">
+    <div class="studentOverviewPostDialog" role="dialog" aria-modal="true" aria-labelledby="studentOverviewPostTitle">
+      <header class="studentOverviewPostHead">
+        <h3 id="studentOverviewPostTitle">Detail příspěvku</h3>
+        <button class="btn" id="studentOverviewPostClose" type="button">Zavřít</button>
+      </header>
+      <div class="studentOverviewPostBody">
+        <p class="studentOverviewPostMeta" id="studentOverviewPostMeta"></p>
+        <p class="studentOverviewPostText" id="studentOverviewPostText"></p>
+      </div>
+      <section class="studentOverviewPostComments" aria-label="Komentáře">
+        <h4>Komentáře</h4>
+        <div class="list studentOverviewCommentList" id="studentOverviewCommentList"></div>
+        <div class="empty hidden" id="studentOverviewCommentEmpty">Zatím žádné komentáře.</div>
+        <label for="studentOverviewCommentInput">Přidat komentář</label>
+        <textarea id="studentOverviewCommentInput" rows="3" maxlength="600" placeholder="Napiš komentář..."></textarea>
+        <div class="composeActions">
+          <button class="btn primary" id="studentOverviewCommentSend" type="button">Uložit komentář</button>
+        </div>
+        <p class="hint studentOverviewCommentStatus" id="studentOverviewCommentStatus"></p>
+      </section>
+    </div>
+  </section>
 
   <script>
   const $ = (selector, root) => (root || document).querySelector(selector);
@@ -950,6 +1137,10 @@
   let studentOverviewCurrentPortfolio = { entries: [], responses: [] };
   let studentOverviewSubjectFilters = new Set();
   let studentOverviewPillarFilters = new Set();
+  const studentOverviewEntryLookup = new Map();
+  let studentOverviewActiveEntry = null;
+  let studentOverviewCommentUnsubscribe = null;
+  let studentOverviewCommentSending = false;
 
   function hasGuideAccess(email) {
     return GUIDE_EMAILS.indexOf(String(email || "").toLowerCase()) >= 0;
@@ -1207,6 +1398,16 @@
       .trim();
   }
 
+  function normalizePortfolioLongText(value) {
+    return String(value || "")
+      .replace(/<a\s+[^>]*>(.*?)<\/a>/gi, "$1")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\r/g, "")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
   function extractSubjectsFromPortfolioValue(value) {
     const matches = String(value || "").match(/@[^\s,.;:!?]+/g) || [];
     return uniqueValues(matches.map(function (item) {
@@ -1447,6 +1648,12 @@
         const data = doc.data() || {};
         const rawValue = String(data.value || "").trim();
         const text = normalizePortfolioText(rawValue);
+        const title = String(data.title || "").trim();
+        const note = String(data.note || "").trim();
+        const fullTextSource = title && note
+          ? title + "\n" + note
+          : (title || note || rawValue);
+        const fullText = normalizePortfolioLongText(fullTextSource);
         const subjects = collectTemplateValues(data, "subjects", "subject");
         const pillars = collectTemplateValues(data, "pillars", "pillar");
         const derivedSubjects = subjects.length ? subjects : extractSubjectsFromPortfolioValue(rawValue);
@@ -1454,9 +1661,11 @@
         entries.push({
           id: doc.id,
           text: text,
+          fullText: fullText || text,
           subjects: derivedSubjects,
           pillars: pillars,
-          timestampMillis: timestampMillis
+          timestampMillis: timestampMillis,
+          ownerUid: userRef.id
         });
       });
     } catch (error) {
@@ -1508,15 +1717,22 @@
       items.slice(0, 80).map(function (item) {
         const text = String(item.text || "").trim();
         const dateLabel = formatDateTime(item.timestampMillis);
+        const entryId = String(item && item.id ? item.id : "").trim();
+        const canOpenComments = Boolean(entryId && item && item.ownerUid);
         const subjectBadges = (item.subjects || []).slice(0, 3).map(function (subject) {
           return '<span class="badge" title="' + esc(subject) + '">' + esc(formatCategoryEmoji(subject)) + '</span>';
         }).join("");
         const pillarBadges = (item.pillars || []).slice(0, 3).map(function (pillar) {
           return '<span class="badge" title="' + esc(pillar) + '">' + esc(formatCategoryEmoji(pillar)) + '</span>';
         }).join("");
+        const actionHtml = canOpenComments
+          ? '<div class="studentEntryActions">' +
+            '<button class="btn primary" type="button" data-entry-action="open-entry-comments" data-entry-id="' + esc(entryId) + '">Detail + komentáře</button>' +
+            '</div>'
+          : "";
         return (
           '<article class="item">' +
-          '<div>' +
+          '<div style="flex:1;min-width:0">' +
           '<div class="title">' + esc(text || "Bez obsahu") + '</div>' +
           '<div class="meta">' +
           (dateLabel ? '<span class="badge">' + esc(dateLabel) + '</span>' : "") +
@@ -1524,6 +1740,7 @@
           pillarBadges +
           '</div>' +
           '</div>' +
+          actionHtml +
           '</article>'
         );
       }).join("") +
@@ -1574,6 +1791,14 @@
     const className = normalizeClassName(student && student.className ? student.className : "");
     const entries = Array.isArray(data.entries) ? data.entries : [];
     const responses = Array.isArray(data.responses) ? data.responses : [];
+    studentOverviewEntryLookup.clear();
+    entries.forEach(function (entry) {
+      const entryId = String(entry && entry.id ? entry.id : "").trim();
+      if (!entryId) {
+        return;
+      }
+      studentOverviewEntryLookup.set(entryId, entry);
+    });
     const totalEntries = Array.isArray(source.entries) ? source.entries.length : entries.length;
     const totalResponses = Array.isArray(source.responses) ? source.responses.length : responses.length;
     const filterOptions = collectStudentOverviewFilterOptions(source);
@@ -1612,7 +1837,9 @@
     if (!detail) {
       return;
     }
+    closeStudentOverviewPostModal();
     if (!studentOverviewCurrentStudent) {
+      studentOverviewEntryLookup.clear();
       detail.innerHTML =
         '<div class="card">' +
         '<h3>Portfolio</h3>' +
@@ -1626,6 +1853,264 @@
       filteredPortfolio,
       studentOverviewCurrentPortfolio
     );
+  }
+
+  function detachStudentOverviewCommentListener() {
+    if (!studentOverviewCommentUnsubscribe) {
+      return;
+    }
+    studentOverviewCommentUnsubscribe();
+    studentOverviewCommentUnsubscribe = null;
+  }
+
+  function isStudentOverviewPostModalOpen() {
+    const modal = $("#studentOverviewPostModal");
+    return Boolean(modal && !modal.classList.contains("hidden"));
+  }
+
+  function setStudentOverviewPostModalVisible(isVisible) {
+    const modal = $("#studentOverviewPostModal");
+    if (!modal) {
+      return;
+    }
+    const isOpen = Boolean(isVisible);
+    modal.classList.toggle("hidden", !isOpen);
+    modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+    document.body.classList.toggle("modal-open", isOpen);
+  }
+
+  function setStudentOverviewCommentStatus(message, isError) {
+    const status = $("#studentOverviewCommentStatus");
+    if (!status) {
+      return;
+    }
+    status.textContent = String(message || "");
+    status.classList.toggle("error", Boolean(isError));
+  }
+
+  function setStudentOverviewCommentSending(isSending) {
+    studentOverviewCommentSending = Boolean(isSending);
+    const input = $("#studentOverviewCommentInput");
+    const send = $("#studentOverviewCommentSend");
+    const hasActiveEntry = Boolean(studentOverviewActiveEntry && studentOverviewActiveEntry.id && studentOverviewActiveEntry.ownerUid);
+    const disabled = studentOverviewCommentSending || !hasActiveEntry;
+    if (input) {
+      input.disabled = disabled;
+    }
+    if (send) {
+      send.disabled = disabled;
+    }
+  }
+
+  function renderStudentOverviewCommentList(comments) {
+    const list = $("#studentOverviewCommentList");
+    const empty = $("#studentOverviewCommentEmpty");
+    if (!list || !empty) {
+      return;
+    }
+    list.innerHTML = "";
+    const items = Array.isArray(comments) ? comments : [];
+    if (!items.length) {
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+    items.forEach(function (comment) {
+      const article = document.createElement("article");
+      article.className = "item studentOverviewCommentItem";
+      if (comment.isGuide) {
+        article.classList.add("guide");
+      }
+
+      const head = document.createElement("div");
+      head.className = "studentOverviewCommentHead";
+
+      const authorWrap = document.createElement("div");
+      authorWrap.className = "studentOverviewCommentAuthorWrap";
+
+      const author = document.createElement("strong");
+      author.className = "studentOverviewCommentAuthor";
+      author.textContent = String(comment.authorEmail || "uživatel");
+      authorWrap.appendChild(author);
+
+      if (comment.isGuide) {
+        const badge = document.createElement("span");
+        badge.className = "studentOverviewCommentBadge";
+        badge.textContent = "Průvodce";
+        authorWrap.appendChild(badge);
+      }
+
+      head.appendChild(authorWrap);
+
+      const dateLabel = formatDateTime(comment.createdAtMillis);
+      if (dateLabel) {
+        const time = document.createElement("span");
+        time.className = "studentOverviewCommentTime";
+        time.textContent = dateLabel;
+        head.appendChild(time);
+      }
+
+      const body = document.createElement("p");
+      body.className = "studentOverviewCommentText";
+      body.textContent = String(comment.text || "");
+
+      article.appendChild(head);
+      article.appendChild(body);
+      list.appendChild(article);
+    });
+  }
+
+  function subscribeStudentOverviewComments(entry) {
+    detachStudentOverviewCommentListener();
+    if (!usersRef || !entry || !entry.ownerUid || !entry.id) {
+      renderStudentOverviewCommentList([]);
+      return;
+    }
+    const commentsRef = usersRef
+      .doc(String(entry.ownerUid))
+      .collection("data")
+      .doc(String(entry.id))
+      .collection("comments");
+
+    studentOverviewCommentUnsubscribe = commentsRef
+      .orderBy("createdAt", "asc")
+      .limit(200)
+      .onSnapshot(function (snapshot) {
+        const comments = [];
+        snapshot.forEach(function (doc) {
+          const data = doc.data() || {};
+          const text = String(data.text || "").trim();
+          if (!text) {
+            return;
+          }
+          comments.push({
+            id: doc.id,
+            text: text,
+            authorEmail: String(data.authorEmail || "").trim(),
+            createdAtMillis: toMillis(data.createdAt || data.createdAtClient || 0),
+            isGuide: String(data.authorRole || "").trim().toLowerCase() === "guide"
+              || hasGuideAccess(data.authorEmail)
+          });
+        });
+        comments.sort(function (a, b) {
+          return (a.createdAtMillis || 0) - (b.createdAtMillis || 0);
+        });
+        renderStudentOverviewCommentList(comments);
+      }, function (error) {
+        console.error("Student overview comments load failed:", error);
+        renderStudentOverviewCommentList([]);
+        setStudentOverviewCommentStatus("Komentáře se nepodařilo načíst.", true);
+      });
+  }
+
+  function openStudentOverviewEntryComments(entryId) {
+    const normalizedId = String(entryId || "").trim();
+    if (!normalizedId) {
+      return;
+    }
+    const entry = studentOverviewEntryLookup.get(normalizedId);
+    if (!entry) {
+      toast("Záznam už není v aktuálním výpisu.");
+      return;
+    }
+    studentOverviewActiveEntry = entry;
+    const textEl = $("#studentOverviewPostText");
+    const metaEl = $("#studentOverviewPostMeta");
+    const input = $("#studentOverviewCommentInput");
+
+    const subjectText = (entry.subjects || []).slice(0, 3).join(", ");
+    const pillarText = (entry.pillars || []).slice(0, 3).join(", ");
+    const dateLabel = formatDateTime(entry.timestampMillis);
+    const metaParts = [];
+    if (dateLabel) {
+      metaParts.push(dateLabel);
+    }
+    if (subjectText) {
+      metaParts.push("Předměty: " + subjectText);
+    }
+    if (pillarText) {
+      metaParts.push("Pilíře: " + pillarText);
+    }
+    if (metaEl) {
+      metaEl.textContent = metaParts.join(" · ");
+    }
+    if (textEl) {
+      textEl.textContent = String(entry.fullText || entry.text || "Bez obsahu");
+    }
+    if (input) {
+      input.value = "";
+    }
+    setStudentOverviewCommentStatus("", false);
+    setStudentOverviewCommentSending(false);
+    renderStudentOverviewCommentList([]);
+    setStudentOverviewPostModalVisible(true);
+    subscribeStudentOverviewComments(entry);
+    window.setTimeout(function () {
+      if (input && !input.disabled) {
+        input.focus();
+      }
+    }, 0);
+  }
+
+  function closeStudentOverviewPostModal() {
+    detachStudentOverviewCommentListener();
+    studentOverviewActiveEntry = null;
+    setStudentOverviewCommentSending(false);
+    setStudentOverviewCommentStatus("", false);
+    const input = $("#studentOverviewCommentInput");
+    if (input) {
+      input.value = "";
+    }
+    renderStudentOverviewCommentList([]);
+    setStudentOverviewPostModalVisible(false);
+  }
+
+  async function submitStudentOverviewComment() {
+    if (studentOverviewCommentSending) {
+      return;
+    }
+    if (!currentUser || !usersRef || !studentOverviewActiveEntry || !studentOverviewActiveEntry.ownerUid || !studentOverviewActiveEntry.id) {
+      return;
+    }
+    const input = $("#studentOverviewCommentInput");
+    const text = String(input && input.value ? input.value : "").trim();
+    if (!text) {
+      setStudentOverviewCommentStatus("Napiš nejdřív komentář.", true);
+      if (input) {
+        input.focus();
+      }
+      return;
+    }
+
+    setStudentOverviewCommentSending(true);
+    setStudentOverviewCommentStatus("Ukládám komentář...", false);
+    try {
+      await usersRef
+        .doc(String(studentOverviewActiveEntry.ownerUid))
+        .collection("data")
+        .doc(String(studentOverviewActiveEntry.id))
+        .collection("comments")
+        .add({
+          text: text,
+          authorEmail: String(currentUser.email || "").trim(),
+          authorUid: currentUser.uid,
+          authorRole: "guide",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdAtClient: Date.now()
+        });
+      if (input) {
+        input.value = "";
+      }
+      setStudentOverviewCommentStatus("Komentář uložen.", false);
+    } catch (error) {
+      console.error("Student overview comment save failed:", error);
+      setStudentOverviewCommentStatus("Komentář se nepodařilo uložit.", true);
+    } finally {
+      setStudentOverviewCommentSending(false);
+      if (input && !input.disabled) {
+        input.focus();
+      }
+    }
   }
 
   function setStudentOverviewActive(email) {
@@ -1643,6 +2128,7 @@
     if (!normalizedEmail) {
       return;
     }
+    closeStudentOverviewPostModal();
     studentOverviewSelectedEmail = normalizedEmail;
     setStudentOverviewActive(normalizedEmail);
 
@@ -1735,6 +2221,12 @@
       });
 
       detail.addEventListener("click", function (event) {
+        const openButton = event.target && event.target.closest ? event.target.closest("[data-entry-action='open-entry-comments'][data-entry-id]") : null;
+        if (openButton && openButton.dataset) {
+          event.preventDefault();
+          openStudentOverviewEntryComments(openButton.dataset.entryId);
+          return;
+        }
         const resetButton = event.target && event.target.closest ? event.target.closest("#studentOverviewFilterReset") : null;
         if (!resetButton) {
           return;
@@ -3441,6 +3933,7 @@
   }
 
   function setView(view) {
+    closeStudentOverviewPostModal();
     currentView = view;
     setNavActive(view);
     syncSidebarVisibility(view);
@@ -3510,10 +4003,49 @@
       btnReset.classList.add("hidden");
     }
 
+    const postModal = $("#studentOverviewPostModal");
+    if (postModal) {
+      postModal.addEventListener("click", function (event) {
+        if (event.target === postModal) {
+          closeStudentOverviewPostModal();
+        }
+      });
+    }
+
+    const postClose = $("#studentOverviewPostClose");
+    if (postClose) {
+      postClose.addEventListener("click", function () {
+        closeStudentOverviewPostModal();
+      });
+    }
+
+    const commentSend = $("#studentOverviewCommentSend");
+    if (commentSend) {
+      commentSend.addEventListener("click", function () {
+        submitStudentOverviewComment();
+      });
+    }
+
+    const commentInput = $("#studentOverviewCommentInput");
+    if (commentInput) {
+      commentInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+          event.preventDefault();
+          submitStudentOverviewComment();
+        }
+      });
+    }
+
     if (!document.body.dataset.shortcutBound) {
       document.body.dataset.shortcutBound = "1";
       document.addEventListener("keydown", function (event) {
         if (!event) {
+          return;
+        }
+        const key = String(event.key || "");
+        if (key === "Escape" && isStudentOverviewPostModalOpen()) {
+          event.preventDefault();
+          closeStudentOverviewPostModal();
           return;
         }
         const tag = event.target && event.target.tagName ? event.target.tagName.toLowerCase() : "";
@@ -3522,7 +4054,6 @@
           return;
         }
 
-        const key = String(event.key || "");
         const normalizedKey = key.toLowerCase();
 
         if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && normalizedKey === "n") {
@@ -3581,6 +4112,7 @@
 
     firebase.auth().onAuthStateChanged(async function (user) {
       if (!user) {
+        closeStudentOverviewPostModal();
         window.location.replace(loginUrl);
         return;
       }
