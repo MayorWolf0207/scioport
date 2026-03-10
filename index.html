@@ -3923,7 +3923,7 @@
               });
           }
 
-          function closeStudentWorkPostModalView() {
+          function closeStudentWorkPostModalView(returnToHome) {
             detachStudentWorkCommentsListener();
             studentWorkActiveDetailEntryId = '';
             setStudentWorkCommentSending(false);
@@ -3936,6 +3936,9 @@
             renderStudentWorkComments([]);
             setStudentWorkPostCommentStatus('', false);
             setStudentWorkPostModalVisible(false);
+            if (returnToHome) {
+              closeStudentWork();
+            }
           }
 
           function openStudentWorkDetailByEntryId(entryId) {
@@ -5387,13 +5390,15 @@
           }
 
           if (studentWorkPostClose) {
-            studentWorkPostClose.addEventListener('click', closeStudentWorkPostModalView);
+            studentWorkPostClose.addEventListener('click', function() {
+              closeStudentWorkPostModalView(true);
+            });
           }
 
           if (studentWorkPostModal) {
             studentWorkPostModal.addEventListener('click', function(event) {
               if (event.target === studentWorkPostModal) {
-                closeStudentWorkPostModalView();
+                closeStudentWorkPostModalView(true);
               }
             });
           }
@@ -5737,7 +5742,7 @@
               return;
             }
             if (studentWorkPostModal && !studentWorkPostModal.hidden) {
-              closeStudentWorkPostModalView();
+              closeStudentWorkPostModalView(true);
               return;
             }
             if (studentReflectPanel && studentReflectPanel.classList.contains('open')) {
