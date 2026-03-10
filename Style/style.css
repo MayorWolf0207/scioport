@@ -949,6 +949,21 @@ body.theme-dark .info {
     word-break: break-word;
 }
 
+.data-entry--interactive {
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.data-entry--interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.14);
+}
+
+.data-entry--interactive:focus-visible {
+    outline: 2px solid rgba(53, 105, 255, 0.55);
+    outline-offset: 2px;
+}
+
 .data-entry-header {
     display: flex;
     align-items: flex-start;
@@ -997,6 +1012,10 @@ body.theme-dark .data-entry-delete {
 
 body.theme-dark .data-entry-delete:hover {
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
+}
+
+body.theme-dark .data-entry--interactive:hover {
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.5);
 }
 
 .data-title {
@@ -1060,6 +1079,222 @@ body.theme-dark .data-entry-delete:hover {
     color: var(--text-muted);
     grid-column: 1 / -1;
     text-align: center;
+}
+
+.student-work-post-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    padding: 24px;
+    background: rgba(10, 16, 24, 0.56);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.student-work-post-modal[hidden] {
+    display: none;
+}
+
+.student-work-post-dialog {
+    width: min(760px, 100%);
+    max-height: min(90vh, 900px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: linear-gradient(165deg, var(--surface-strong), var(--surface));
+    box-shadow: 0 34px 70px rgba(12, 18, 28, 0.35);
+}
+
+.student-work-post-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.student-work-post-head h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.student-work-post-close {
+    border: 1px solid var(--border);
+    background: var(--surface-strong);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: 'Scio', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.student-work-post-close:hover {
+    background: rgba(53, 105, 255, 0.08);
+}
+
+.student-work-post-preview {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    overflow-y: auto;
+    max-height: 40vh;
+}
+
+.student-work-post-preview .data-entry {
+    margin: 0;
+    min-height: 0;
+}
+
+.student-work-post-preview .data-title,
+.student-work-post-preview .data-description {
+    display: block;
+    -webkit-line-clamp: initial;
+    -webkit-box-orient: initial;
+    overflow: visible;
+}
+
+.student-work-post-preview .data-description {
+    white-space: pre-wrap;
+}
+
+.student-work-post-comments {
+    padding: 16px 20px 20px;
+    display: grid;
+    gap: 10px;
+}
+
+.student-work-post-comments h4 {
+    margin: 0;
+    font-size: 0.96rem;
+}
+
+.student-work-post-comments-list {
+    max-height: 240px;
+    overflow-y: auto;
+    display: grid;
+    gap: 8px;
+}
+
+.student-work-post-comment {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: var(--surface-strong);
+    display: grid;
+    gap: 6px;
+}
+
+.student-work-post-comment-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.student-work-post-comment-author {
+    font-size: 0.78rem;
+    color: var(--text);
+}
+
+.student-work-post-comment-time {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.student-work-post-comment-text {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--text);
+    white-space: pre-wrap;
+}
+
+.student-work-post-comments-empty {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.student-work-post-comment-compose {
+    display: grid;
+    gap: 8px;
+}
+
+.student-work-post-comment-compose textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font-family: 'Scio', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    padding: 10px 12px;
+    resize: vertical;
+    min-height: 88px;
+}
+
+.student-work-post-comment-compose textarea:focus {
+    outline: none;
+    border-color: rgba(53, 105, 255, 0.55);
+    box-shadow: 0 0 0 2px rgba(53, 105, 255, 0.2);
+}
+
+.student-work-post-comment-send {
+    justify-self: end;
+    border: 1px solid transparent;
+    background: linear-gradient(130deg, var(--accent-2), #4a8dff);
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-family: 'Scio', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.student-work-post-comment-send:disabled {
+    opacity: 0.56;
+    cursor: default;
+}
+
+.student-work-post-comment-status {
+    margin: 0;
+    min-height: 1.1em;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.student-work-post-comment-status.is-error {
+    color: #b3204c;
+}
+
+body.theme-dark .student-work-post-modal {
+    background: rgba(4, 8, 14, 0.7);
+}
+
+body.theme-dark .student-work-post-dialog {
+    background: linear-gradient(170deg, rgba(18, 25, 34, 0.98), rgba(12, 18, 26, 0.96));
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.theme-dark .student-work-post-close,
+body.theme-dark .student-work-post-comment-compose textarea,
+body.theme-dark .student-work-post-comment {
+    background: rgba(23, 31, 42, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .student-work-post-comment-status.is-error {
+    color: #f1b5c7;
+}
+
+body.is-student-work-post-open {
+    overflow: hidden;
 }
 
 a {
@@ -3483,6 +3718,31 @@ body.theme-dark .ai-chat-status.is-error {
     .data-entry {
         min-height: 0;
         padding: 12px;
+    }
+
+    .student-work-post-modal {
+        padding: 12px;
+    }
+
+    .student-work-post-dialog {
+        max-height: 94vh;
+        border-radius: 18px;
+    }
+
+    .student-work-post-head,
+    .student-work-post-preview,
+    .student-work-post-comments {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .student-work-post-comments-list {
+        max-height: 200px;
+    }
+
+    .student-work-post-comment-send {
+        width: 100%;
+        justify-self: stretch;
     }
 
     .data-title {

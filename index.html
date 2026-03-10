@@ -678,6 +678,25 @@
     </main>
     <div class="template-toast-stack" id="template-toast-stack" aria-live="polite" aria-atomic="true"></div>
     <div class="template-toast-stack student-work-toast-stack" id="student-work-toast-stack" aria-live="polite" aria-atomic="true"></div>
+    <section class="student-work-post-modal" id="student-work-post-modal" aria-hidden="true" hidden>
+        <div class="student-work-post-dialog" role="dialog" aria-modal="true" aria-labelledby="student-work-post-title">
+            <header class="student-work-post-head">
+                <h3 id="student-work-post-title">Detail prispevku</h3>
+                <button class="student-work-post-close" id="student-work-post-close" type="button">Zavrit</button>
+            </header>
+            <div class="student-work-post-preview" id="student-work-post-preview"></div>
+            <section class="student-work-post-comments" aria-label="Komentare">
+                <h4>Komentare</h4>
+                <div class="student-work-post-comments-list" id="student-work-post-comments-list"></div>
+                <p class="student-work-post-comments-empty" id="student-work-post-comments-empty">Zatim zadne komentare.</p>
+                <div class="student-work-post-comment-compose">
+                    <textarea id="student-work-post-comment-input" rows="3" maxlength="600" placeholder="Napis komentar..."></textarea>
+                    <button class="student-work-post-comment-send" id="student-work-post-comment-send" type="button">Pridat komentar</button>
+                </div>
+                <p class="student-work-post-comment-status" id="student-work-post-comment-status"></p>
+            </section>
+        </div>
+    </section>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -737,6 +756,17 @@
         let studentWorkOutfit = 'default';
         let studentWorkGenderSelectionLocked = false;
         let studentWorkGenderToast = null;
+        let studentWorkActiveDetailEntryId = '';
+        let studentWorkCommentsUnsubscribe = null;
+        let studentWorkCommentSending = false;
+        let studentWorkPostModal = null;
+        let studentWorkPostClose = null;
+        let studentWorkPostPreview = null;
+        let studentWorkPostCommentsList = null;
+        let studentWorkPostCommentsEmpty = null;
+        let studentWorkPostCommentInput = null;
+        let studentWorkPostCommentSend = null;
+        let studentWorkPostCommentStatus = null;
         let avatarSelection = null;
         let avatarSelectionSelect = null;
         let avatarSelectionSuccess = null;
@@ -2114,6 +2144,13 @@
 
                 const headerEl = document.createElement('div');
                 headerEl.className = 'data-entry-header';
+                const canOpenDetail = Boolean(entryData && typeof entryData === 'object' && entryData.id && document.getElementById('student-work-post-modal'));
+                if (canOpenDetail) {
+                    entry.classList.add('data-entry--interactive');
+                    entry.tabIndex = 0;
+                    entry.setAttribute('role', 'button');
+                    entry.setAttribute('aria-label', 'Otevrit detail prispevku');
+                }
 
                 const titleEl = document.createElement('h4');
                 titleEl.className = 'data-title';
@@ -2191,6 +2228,25 @@
                     entry.appendChild(tagsEl);
                 }
 
+                if (canOpenDetail) {
+                    entry.addEventListener('click', event => {
+                        if (event.target.closest('a') || event.target.closest('.data-entry-delete')) {
+                            return;
+                        }
+                        openStudentWorkPostModalView(entryData, entry);
+                    });
+                    entry.addEventListener('keydown', event => {
+                        if (event.target.closest('.data-entry-delete') || event.target.closest('a')) {
+                            return;
+                        }
+                        if (event.key !== 'Enter' && event.key !== ' ') {
+                            return;
+                        }
+                        event.preventDefault();
+                        openStudentWorkPostModalView(entryData, entry);
+                    });
+                }
+
                 return entry;
             }
 
@@ -2252,6 +2308,7 @@
             stopTemplateNotificationListeners();
             if (!user) {
               initTemplateNotificationState(null);
+              closeStudentWorkPostModalView();
               userProfile = { className: '', gender: '', gems: 0, avatarOutfit: 'default', redShirtUnlocked: false, redBlueShirtUnlocked: false };
               updateGemDisplay(0);
               setStudentWorkOutfit(STUDENT_OUTFIT_DEFAULT);
@@ -2368,6 +2425,14 @@
           const studentWorkShopStatus = document.getElementById('student-work-shop-status');
           const studentWorkGenderButtons = document.querySelectorAll('.student-work-gender-button');
           const studentWorkSendButton = document.querySelector('#student-work .student-work-icon-btn.is-send');
+          studentWorkPostModal = document.getElementById('student-work-post-modal');
+          studentWorkPostClose = document.getElementById('student-work-post-close');
+          studentWorkPostPreview = document.getElementById('student-work-post-preview');
+          studentWorkPostCommentsList = document.getElementById('student-work-post-comments-list');
+          studentWorkPostCommentsEmpty = document.getElementById('student-work-post-comments-empty');
+          studentWorkPostCommentInput = document.getElementById('student-work-post-comment-input');
+          studentWorkPostCommentSend = document.getElementById('student-work-post-comment-send');
+          studentWorkPostCommentStatus = document.getElementById('student-work-post-comment-status');
           const studentReflectPanel = document.getElementById('student-reflect-panel');
           const studentReflectClose = document.getElementById('student-reflect-close');
           const studentReflectSave = document.getElementById('student-reflect-save');
@@ -2916,6 +2981,7 @@
             if (!studentWorkStage) {
               return;
             }
+            closeStudentWorkPostModalView();
             studentWorkStage.classList.remove('is-active');
             studentWorkStage.classList.remove('is-add-active');
             setStudentWorkShopVisible(false);
@@ -3674,6 +3740,261 @@
             clearCheckboxGroup(studentWorkPillar);
             setStudentWorkMoods([]);
             clearStudentWorkFiles();
+          }
+
+          function detachStudentWorkCommentsListener() {
+            if (!studentWorkCommentsUnsubscribe) {
+              return;
+            }
+            studentWorkCommentsUnsubscribe();
+            studentWorkCommentsUnsubscribe = null;
+          }
+
+          function setStudentWorkPostModalVisible(isVisible) {
+            if (!studentWorkPostModal) {
+              return;
+            }
+            const isOpen = Boolean(isVisible);
+            studentWorkPostModal.hidden = !isOpen;
+            studentWorkPostModal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+            document.body.classList.toggle('is-student-work-post-open', isOpen);
+          }
+
+          function setStudentWorkPostCommentStatus(message, isError) {
+            if (!studentWorkPostCommentStatus) {
+              return;
+            }
+            studentWorkPostCommentStatus.textContent = String(message || '');
+            studentWorkPostCommentStatus.classList.toggle('is-error', Boolean(isError));
+          }
+
+          function setStudentWorkCommentSending(isSending) {
+            studentWorkCommentSending = Boolean(isSending);
+            const disableInput = studentWorkCommentSending || !studentWorkActiveDetailEntryId;
+            if (studentWorkPostCommentInput) {
+              studentWorkPostCommentInput.disabled = disableInput;
+            }
+            if (studentWorkPostCommentSend) {
+              studentWorkPostCommentSend.disabled = disableInput;
+            }
+          }
+
+          function parseStudentWorkTimestamp(value) {
+            if (!value) {
+              return null;
+            }
+            if (value instanceof Date) {
+              return Number.isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value.toDate === 'function') {
+              const parsed = value.toDate();
+              return parsed instanceof Date && !Number.isNaN(parsed.getTime()) ? parsed : null;
+            }
+            const millis = Number(value);
+            if (Number.isFinite(millis)) {
+              const parsed = new Date(millis);
+              return Number.isNaN(parsed.getTime()) ? null : parsed;
+            }
+            return null;
+          }
+
+          function formatStudentWorkCommentDate(value) {
+            const parsed = parseStudentWorkTimestamp(value);
+            if (!parsed) {
+              return '';
+            }
+            try {
+              return parsed.toLocaleString('cs-CZ', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+            } catch (error) {
+              return '';
+            }
+          }
+
+          function renderStudentWorkComments(comments) {
+            if (!studentWorkPostCommentsList || !studentWorkPostCommentsEmpty) {
+              return;
+            }
+            studentWorkPostCommentsList.innerHTML = '';
+            const items = Array.isArray(comments) ? comments : [];
+            if (!items.length) {
+              studentWorkPostCommentsEmpty.hidden = false;
+              return;
+            }
+            studentWorkPostCommentsEmpty.hidden = true;
+            items.forEach(comment => {
+              const item = document.createElement('article');
+              item.className = 'student-work-post-comment';
+
+              const head = document.createElement('div');
+              head.className = 'student-work-post-comment-head';
+
+              const author = document.createElement('strong');
+              author.className = 'student-work-post-comment-author';
+              author.textContent = String(comment.authorEmail || 'Uzivatel');
+              head.appendChild(author);
+
+              const dateText = formatStudentWorkCommentDate(comment.createdAt);
+              if (dateText) {
+                const date = document.createElement('time');
+                date.className = 'student-work-post-comment-time';
+                date.textContent = dateText;
+                head.appendChild(date);
+              }
+
+              const body = document.createElement('p');
+              body.className = 'student-work-post-comment-text';
+              appendEmojiText(body, String(comment.text || ''));
+
+              item.appendChild(head);
+              item.appendChild(body);
+              studentWorkPostCommentsList.appendChild(item);
+            });
+          }
+
+          function subscribeStudentWorkComments(entryId) {
+            detachStudentWorkCommentsListener();
+            const user = firebase.auth().currentUser;
+            if (!user || !entryId) {
+              renderStudentWorkComments([]);
+              return;
+            }
+            const commentsRef = db.collection('users')
+              .doc(user.uid)
+              .collection('data')
+              .doc(entryId)
+              .collection('comments');
+            studentWorkCommentsUnsubscribe = commentsRef
+              .orderBy('createdAt', 'asc')
+              .limit(120)
+              .onSnapshot(snapshot => {
+                const comments = snapshot.docs
+                  .map(doc => {
+                    const data = doc.data() || {};
+                    return {
+                      id: doc.id,
+                      text: String(data.text || '').trim(),
+                      authorEmail: String(data.authorEmail || '').trim(),
+                      createdAt: data.createdAt || null
+                    };
+                  })
+                  .filter(item => item.text);
+                renderStudentWorkComments(comments);
+              }, error => {
+                console.error('Error loading student work comments:', error);
+                renderStudentWorkComments([]);
+                setStudentWorkPostCommentStatus('Komentare se nepodarilo nacist.', true);
+              });
+          }
+
+          function closeStudentWorkPostModalView() {
+            detachStudentWorkCommentsListener();
+            studentWorkActiveDetailEntryId = '';
+            setStudentWorkCommentSending(false);
+            if (studentWorkPostCommentInput) {
+              studentWorkPostCommentInput.value = '';
+            }
+            if (studentWorkPostPreview) {
+              studentWorkPostPreview.innerHTML = '';
+            }
+            renderStudentWorkComments([]);
+            setStudentWorkPostCommentStatus('', false);
+            setStudentWorkPostModalVisible(false);
+          }
+
+          function openStudentWorkPostModalView(entryData, entryElement) {
+            if (!studentWorkPostModal || !studentWorkPostPreview || !entryElement) {
+              return;
+            }
+            const entryId = entryData && entryData.id ? String(entryData.id) : '';
+            studentWorkActiveDetailEntryId = entryId;
+            detachStudentWorkCommentsListener();
+
+            studentWorkPostPreview.innerHTML = '';
+            const entryClone = entryElement.cloneNode(true);
+            entryClone.classList.remove('data-entry--interactive');
+            entryClone.classList.add('data-entry--detail');
+            entryClone.removeAttribute('role');
+            entryClone.removeAttribute('tabindex');
+            entryClone.querySelectorAll('.data-entry-delete').forEach(button => {
+              button.remove();
+            });
+            studentWorkPostPreview.appendChild(entryClone);
+            renderStudentWorkComments([]);
+
+            setStudentWorkCommentSending(false);
+            setStudentWorkPostCommentStatus(entryId ? '' : 'Komentare jsou dostupne jen u ulozenych prispevku.', !entryId);
+            if (studentWorkPostCommentInput) {
+              studentWorkPostCommentInput.value = '';
+            }
+
+            setStudentWorkPostModalVisible(true);
+            if (entryId) {
+              subscribeStudentWorkComments(entryId);
+            }
+            setTimeout(() => {
+              if (entryId && studentWorkPostCommentInput) {
+                studentWorkPostCommentInput.focus();
+                return;
+              }
+              if (studentWorkPostClose) {
+                studentWorkPostClose.focus();
+              }
+            }, 0);
+          }
+
+          async function submitStudentWorkComment() {
+            if (studentWorkCommentSending) {
+              return;
+            }
+            const user = firebase.auth().currentUser;
+            const entryId = studentWorkActiveDetailEntryId;
+            const commentText = studentWorkPostCommentInput
+              ? String(studentWorkPostCommentInput.value || '').trim()
+              : '';
+            if (!user || !entryId) {
+              return;
+            }
+            if (!commentText) {
+              setStudentWorkPostCommentStatus('Napis nejdriv komentar.', true);
+              if (studentWorkPostCommentInput) {
+                studentWorkPostCommentInput.focus();
+              }
+              return;
+            }
+
+            setStudentWorkCommentSending(true);
+            setStudentWorkPostCommentStatus('Ukladam komentar...', false);
+            try {
+              await db.collection('users')
+                .doc(user.uid)
+                .collection('data')
+                .doc(entryId)
+                .collection('comments')
+                .add({
+                  text: commentText,
+                  authorEmail: String(user.email || '').trim(),
+                  authorUid: user.uid,
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              if (studentWorkPostCommentInput) {
+                studentWorkPostCommentInput.value = '';
+              }
+              setStudentWorkPostCommentStatus('Komentar ulozen.', false);
+            } catch (error) {
+              console.error('Error saving student work comment:', error);
+              setStudentWorkPostCommentStatus('Komentar se nepodarilo ulozit.', true);
+            } finally {
+              setStudentWorkCommentSending(false);
+              if (studentWorkPostCommentInput && !studentWorkPostCommentInput.disabled) {
+                studentWorkPostCommentInput.focus();
+              }
+            }
           }
 
           async function sendStudentWorkMessage() {
@@ -5018,6 +5339,31 @@
             });
           }
 
+          if (studentWorkPostClose) {
+            studentWorkPostClose.addEventListener('click', closeStudentWorkPostModalView);
+          }
+
+          if (studentWorkPostModal) {
+            studentWorkPostModal.addEventListener('click', function(event) {
+              if (event.target === studentWorkPostModal) {
+                closeStudentWorkPostModalView();
+              }
+            });
+          }
+
+          if (studentWorkPostCommentSend) {
+            studentWorkPostCommentSend.addEventListener('click', submitStudentWorkComment);
+          }
+
+          if (studentWorkPostCommentInput) {
+            studentWorkPostCommentInput.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                submitStudentWorkComment();
+              }
+            });
+          }
+
           if (studentWorkAddButton) {
             studentWorkAddButton.addEventListener('click', async () => {
               studentWorkFilterPillar = '';
@@ -5341,6 +5687,10 @@
 
           document.addEventListener('keydown', function(event) {
             if (event.key !== 'Escape') {
+              return;
+            }
+            if (studentWorkPostModal && !studentWorkPostModal.hidden) {
+              closeStudentWorkPostModalView();
               return;
             }
             if (studentReflectPanel && studentReflectPanel.classList.contains('open')) {
