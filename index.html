@@ -2118,6 +2118,9 @@
 
                 const entry = document.createElement('article');
                 entry.className = 'data-entry';
+                if (entryData && typeof entryData === 'object' && entryData.id) {
+                    entry.dataset.entryId = String(entryData.id);
+                }
                 const pillarLabels = collectPillars(entryData)
                     .map(label => formatPillarLabel(String(label || '').trim()))
                     .filter(Boolean);
@@ -3935,6 +3938,20 @@
             setStudentWorkPostModalVisible(false);
           }
 
+          function openStudentWorkDetailByEntryId(entryId) {
+            const normalizedId = String(entryId || '').trim();
+            if (!normalizedId || !studentWorkPostModal) {
+              return false;
+            }
+            const entryElement = Array.from(document.querySelectorAll('.data-entry[data-entry-id]'))
+              .find(item => String(item.dataset.entryId || '') === normalizedId);
+            if (!entryElement) {
+              return false;
+            }
+            openStudentWorkPostModalView({ id: normalizedId }, entryElement);
+            return true;
+          }
+
           function openStudentWorkPostModalView(entryData, entryElement) {
             if (!studentWorkPostModal || !studentWorkPostPreview || !entryElement) {
               return;
@@ -4066,7 +4083,7 @@
               valueParts.push(messageBody);
               const value = valueParts.join(' ');
 
-              await db.collection('users').doc(user.uid).collection('data').add({
+              const createdEntryRef = await db.collection('users').doc(user.uid).collection('data').add({
                 value,
                 title: titleValue,
                 note: cleanedValue,
@@ -4082,6 +4099,7 @@
               await incrementUserGems(user);
               await renderData();
               clearStudentWorkComposer();
+              openStudentWorkDetailByEntryId(createdEntryRef.id);
             } catch (error) {
               console.error('Error saving data:', error);
             }
