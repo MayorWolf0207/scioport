@@ -3282,8 +3282,24 @@ body.theme-dark .student-reflect-moods button {
     color: var(--text-muted);
 }
 
-.ai-chat-panel {
-    width: min(560px, 92vw);
+.student-work-ai-panel {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 14px;
+}
+
+.student-work-ai-panel[hidden] {
+    display: none;
+}
+
+.student-work-ai-intro {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.96rem;
+}
+
+.student-work-button[aria-expanded="true"] {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.38), 0 18px 26px rgba(16, 24, 38, 0.22);
 }
 
 .ai-chat-log {

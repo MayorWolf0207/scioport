@@ -35,7 +35,6 @@
                 </div>
                 <h1 class="site-logo">Scioport</h1>
                 <div class="site-header-right">
-                    <button class="help-toggle" id="ai-chat-toggle" type="button" aria-label="Otevrit AI asistenta" title="AI asistent">?</button>
                     <div class="gem-indicator" id="gem-indicator" role="status" aria-live="polite" aria-atomic="true">
                         <span class="gem-indicator-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -184,7 +183,7 @@
                                 </svg>
                             </div>
                             <div class="student-work-stack student-work-stack--right">
-                                <button class="student-work-button is-blue" type="button" data-title="Prace 4" aria-label="Prace 4">
+                                <button class="student-work-button is-blue" id="ai-chat-toggle" type="button" data-title="AI asistent" aria-label="Otevrit AI asistenta" aria-expanded="false" aria-controls="student-work-ai" aria-haspopup="dialog" title="AI asistent">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4"></path>
                                         <circle cx="12" cy="18" r="1.4"></circle>
@@ -266,6 +265,23 @@
                                         <span class="student-work-shop-gems">Mas <strong id="student-work-shop-gems">0</strong> gemu</span>
                                     </div>
                                     <p class="student-work-shop-status" id="student-work-shop-status"></p>
+                                </section>
+                                <section class="student-work-ai-panel" id="student-work-ai" hidden aria-hidden="true">
+                                    <p class="student-work-ai-intro">Basic chat pro rychle dotazy k aplikaci a sablonam.</p>
+                                    <div class="template-field">
+                                        <label for="ai-chat-api-key">Gemini API klic</label>
+                                        <div class="template-inline">
+                                            <input type="password" id="ai-chat-api-key" placeholder="AIza...">
+                                            <button class="secondary" id="ai-chat-api-key-save" type="button">Ulozit lokalne</button>
+                                        </div>
+                                        <p class="template-note" id="ai-chat-api-key-note">Klic se uklada jen v tomto prohlizeci.</p>
+                                    </div>
+                                    <div class="ai-chat-log" id="ai-chat-log" role="log" aria-live="polite" aria-atomic="false"></div>
+                                    <div class="ai-chat-input-row">
+                                        <textarea id="ai-chat-input" rows="3" placeholder="Napis dotaz..."></textarea>
+                                        <button class="template-submit ai-chat-send" id="ai-chat-send" type="button">Odeslat</button>
+                                    </div>
+                                    <p class="template-note ai-chat-status" id="ai-chat-status"></p>
                                 </section>
                                 <div class="student-work-field student-work-field--title">
                                     <label class="student-work-label" for="student-work-title-input">Nazev</label>
@@ -639,27 +655,6 @@
             <div class="template-list" id="sent-templates-list"></div>
             <p class="template-empty" id="sent-templates-empty">Zatim zadne odeslane sablony.</p>
         </section>
-        <section class="template-panel ai-chat-panel" id="ai-chat-panel" aria-hidden="true">
-            <div class="template-header">
-                <h2>AI asistent</h2>
-                <button class="template-close" id="ai-chat-close" type="button">Zavrit</button>
-            </div>
-            <p class="template-hint">Basic chat pro rychle dotazy k aplikaci a sablonam.</p>
-            <div class="template-field">
-                <label for="ai-chat-api-key">Gemini API klic</label>
-                <div class="template-inline">
-                    <input type="password" id="ai-chat-api-key" placeholder="AIza...">
-                    <button class="secondary" id="ai-chat-api-key-save" type="button">Ulozit lokalne</button>
-                </div>
-                <p class="template-note" id="ai-chat-api-key-note">Klic se uklada jen v tomto prohlizeci.</p>
-            </div>
-            <div class="ai-chat-log" id="ai-chat-log" role="log" aria-live="polite" aria-atomic="false"></div>
-            <div class="ai-chat-input-row">
-                <textarea id="ai-chat-input" rows="3" placeholder="Napis dotaz..."></textarea>
-                <button class="template-submit ai-chat-send" id="ai-chat-send" type="button">Odeslat</button>
-            </div>
-            <p class="template-note ai-chat-status" id="ai-chat-status"></p>
-        </section>
         <section class="template-panel" id="subject-panel" aria-hidden="true">
             <div class="template-header">
                 <h2>Předměty</h2>
@@ -803,6 +798,7 @@
         const STUDENT_OUTFIT_RED_BLUE_SHIRT_COST = 3;
         const STUDENT_WORK_SUBTITLE_DEFAULT = 'Vloz, co se ti dnes povedlo nebo co jsi objevila/objevil.';
         const STUDENT_WORK_SUBTITLE_SHOP = 'Kup a prepinej outfit postavicky primo tady.';
+        const STUDENT_WORK_SUBTITLE_AI = 'Basic chat pro rychle dotazy k aplikaci a sablonam.';
 
         function isAdminUser(user) {
             const email = user && user.email ? user.email.toLowerCase() : '';
@@ -2367,8 +2363,7 @@
           const sentTemplatesEmpty = document.getElementById('sent-templates-empty');
           const sentTemplatesClose = document.getElementById('sent-templates-close');
           const aiChatToggle = document.getElementById('ai-chat-toggle');
-          const aiChatPanel = document.getElementById('ai-chat-panel');
-          const aiChatClose = document.getElementById('ai-chat-close');
+          const aiChatPanel = document.getElementById('student-work-ai');
           const aiChatApiKeyInput = document.getElementById('ai-chat-api-key');
           const aiChatApiKeySave = document.getElementById('ai-chat-api-key-save');
           const aiChatApiKeyNote = document.getElementById('ai-chat-api-key-note');
@@ -2422,6 +2417,7 @@
           const studentWorkEmojiToggle = document.getElementById('student-work-emoji-toggle');
           const studentWorkEmojiPicker = document.getElementById('student-work-emoji-picker');
           const studentWorkShopPanel = document.getElementById('student-work-shop');
+          const studentWorkAiPanel = document.getElementById('student-work-ai');
           const studentWorkShopState = document.getElementById('student-work-shop-state');
           const studentWorkShopItems = Array.from(document.querySelectorAll('.student-work-shop-item'));
           const studentWorkShopGems = document.getElementById('student-work-shop-gems');
@@ -2567,11 +2563,19 @@
           }
 
           function closeAiChatPanel() {
-            if (!aiChatPanel) {
+            if (!aiChatPanel || aiChatPanel.hidden) {
+              if (aiChatToggle) {
+                aiChatToggle.setAttribute('aria-expanded', 'false');
+              }
               return;
             }
-            aiChatPanel.classList.remove('open');
-            aiChatPanel.setAttribute('aria-hidden', 'true');
+            setStudentWorkAiVisible(false);
+            if (aiChatToggle) {
+              aiChatToggle.setAttribute('aria-expanded', 'false');
+            }
+            if (studentWorkStage && studentWorkStage.classList.contains('is-active')) {
+              closeStudentWork();
+            }
           }
 
           function openAiChatPanel() {
@@ -2595,8 +2599,15 @@
             if (menuToggleEl) {
               menuToggleEl.setAttribute('aria-expanded', 'false');
             }
-            aiChatPanel.classList.add('open');
-            aiChatPanel.setAttribute('aria-hidden', 'false');
+            setStudentWorkReadOnly(true);
+            setStudentWorkLogVisible(false);
+            setStudentWorkShopVisible(false);
+            setStudentWorkAiVisible(true);
+            setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_AI);
+            openStudentWork(aiChatToggle ? (aiChatToggle.getAttribute('data-title') || 'AI asistent') : 'AI asistent');
+            if (aiChatToggle) {
+              aiChatToggle.setAttribute('aria-expanded', 'true');
+            }
             renderAiChatMessages();
             setTimeout(() => {
               if (aiChatInput) {
@@ -2987,6 +2998,7 @@
             closeStudentWorkPostModalView();
             studentWorkStage.classList.remove('is-active');
             studentWorkStage.classList.remove('is-add-active');
+            setStudentWorkAiVisible(false);
             setStudentWorkShopVisible(false);
             setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
             scheduleStudentWorkStageHeightSync();
@@ -3192,6 +3204,18 @@
             scheduleStudentWorkStageHeightSync();
           }
 
+          function setStudentWorkAiVisible(isVisible) {
+            if (!studentWorkAiPanel) {
+              return;
+            }
+            studentWorkAiPanel.hidden = !isVisible;
+            studentWorkAiPanel.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+            if (aiChatToggle) {
+              aiChatToggle.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+            }
+            scheduleStudentWorkStageHeightSync();
+          }
+
           function setStudentWorkShopStatus(message, isError) {
             if (!studentWorkShopStatus) {
               return;
@@ -3263,6 +3287,7 @@
             setStudentWorkReadOnly(true);
             setStudentWorkLogVisible(false);
             setStudentWorkShopVisible(true);
+            setStudentWorkAiVisible(false);
             setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_SHOP);
             const title = studentWorkShopButton
               ? (studentWorkShopButton.getAttribute('data-title') || 'Obchod')
@@ -5356,11 +5381,13 @@
           }
 
           if (aiChatToggle) {
-            aiChatToggle.addEventListener('click', openAiChatPanel);
-          }
-
-          if (aiChatClose) {
-            aiChatClose.addEventListener('click', closeAiChatPanel);
+            aiChatToggle.addEventListener('click', () => {
+              if (studentWorkAiPanel && !studentWorkAiPanel.hidden) {
+                closeAiChatPanel();
+                return;
+              }
+              openAiChatPanel();
+            });
           }
 
           if (aiChatApiKeySave) {
@@ -5422,6 +5449,7 @@
               setStudentWorkReadOnly(false);
               setStudentWorkLogVisible(false);
               setStudentWorkShopVisible(false);
+              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               clearStudentWorkComposer();
               const title = studentWorkAddButton.getAttribute('data-title') || 'Prace';
@@ -5497,6 +5525,7 @@
               setStudentWorkReadOnly(true);
               setStudentWorkLogVisible(true);
               setStudentWorkShopVisible(false);
+              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               const title = studentWorkPillarFilterButton.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
@@ -5510,6 +5539,7 @@
               setStudentWorkReadOnly(true);
               setStudentWorkLogVisible(true);
               setStudentWorkShopVisible(false);
+              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               const title = studentWorkPillarFilterButtonTwo.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
@@ -5523,6 +5553,7 @@
               setStudentWorkReadOnly(true);
               setStudentWorkLogVisible(true);
               setStudentWorkShopVisible(false);
+              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               const title = studentWorkPillarFilterButtonThree.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
@@ -6019,12 +6050,6 @@
               subjectPanel.setAttribute('aria-hidden', 'true');
             });
           }
-
-          document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && aiChatPanel && aiChatPanel.classList.contains('open')) {
-              closeAiChatPanel();
-            }
-          });
 
           initGooglePicker();
           window.addEventListener('load', initGoogleAuth);
