@@ -1563,11 +1563,13 @@ body.theme-dark .student-work[data-outfit="red-blue-shirt"] {
 }
 
 .student-work-orbit {
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
     display: grid;
     align-items: center;
-    grid-template-columns: minmax(70px, 1fr) auto minmax(70px, 1fr);
-    gap: 18px;
+    grid-template-columns: auto auto auto;
+    justify-content: center;
+    gap: 10px;
 }
 
 .student-work-avatar-actions {
@@ -1644,6 +1646,15 @@ body.theme-dark .student-work[data-outfit="red-blue-shirt"] {
     display: grid;
     gap: 14px;
     justify-items: center;
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+}
+
+.student-work-stack--left {
+    margin-right: -22px;
+}
+
+.student-work-stack--right {
+    margin-left: -22px;
 }
 
 .student-work-center {
@@ -1655,7 +1666,7 @@ body.theme-dark .student-work[data-outfit="red-blue-shirt"] {
 }
 
 .student-work-illustration {
-    width: min(280px, 60vw);
+    width: min(440px, 74vw);
     height: auto;
     display: block;
     filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.12));
@@ -1664,6 +1675,30 @@ body.theme-dark .student-work[data-outfit="red-blue-shirt"] {
 .student-work-stage.is-add-active .student-work-center {
     transform: translateX(-120%) translateY(-28%) rotate(-8deg);
     opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .student-work-orbit .student-work-stack {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .student-work-orbit .student-work-stack--left {
+        transform: translateX(18px) scale(0.94);
+    }
+
+    .student-work-orbit .student-work-stack--right {
+        transform: translateX(-18px) scale(0.94);
+    }
+
+    .student-work-orbit:hover .student-work-stack,
+    .student-work-orbit:focus-within .student-work-stack {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateX(0) scale(1);
+    }
 }
 
 .student-blob {
@@ -3637,6 +3672,7 @@ body.theme-dark .ai-chat-status.is-error {
 
     .student-work-stack--left {
         order: 1;
+        margin-right: 0;
     }
 
     .student-work-center {
@@ -3645,6 +3681,7 @@ body.theme-dark .ai-chat-status.is-error {
 
     .student-work-stack--right {
         order: 3;
+        margin-left: 0;
     }
 
     .student-work-button {
@@ -3668,7 +3705,7 @@ body.theme-dark .ai-chat-status.is-error {
     }
 
     .student-work-illustration {
-        width: min(240px, 72vw);
+        width: min(360px, 88vw);
     }
 }
 
