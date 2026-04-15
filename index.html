@@ -183,12 +183,6 @@
                                 </svg>
                             </div>
                             <div class="student-work-stack student-work-stack--right">
-                                <button class="student-work-button is-blue" id="ai-chat-toggle" type="button" data-title="AI asistent" aria-label="Otevrit AI asistenta" aria-expanded="false" aria-controls="student-work-ai" aria-haspopup="dialog" title="AI asistent">
-                                    <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                        <path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4"></path>
-                                        <circle cx="12" cy="18" r="1.4"></circle>
-                                    </svg>
-                                </button>
                                 <button class="student-work-button is-blue-2" type="button" data-title="Prace 5" aria-label="Prace 5">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M7 10h10a4 4 0 0 1 4 4v2a3 3 0 0 1-3 3h-3l-2-2h-2l-2 2H6a3 3 0 0 1-3-3v-2a4 4 0 0 1 4-4z"></path>
@@ -265,23 +259,6 @@
                                         <span class="student-work-shop-gems">Mas <strong id="student-work-shop-gems">0</strong> gemu</span>
                                     </div>
                                     <p class="student-work-shop-status" id="student-work-shop-status"></p>
-                                </section>
-                                <section class="student-work-ai-panel" id="student-work-ai" hidden aria-hidden="true">
-                                    <p class="student-work-ai-intro">Basic chat pro rychle dotazy k aplikaci a sablonam.</p>
-                                    <div class="template-field">
-                                        <label for="ai-chat-api-key">Gemini API klic</label>
-                                        <div class="template-inline">
-                                            <input type="password" id="ai-chat-api-key" placeholder="AIza...">
-                                            <button class="secondary" id="ai-chat-api-key-save" type="button">Ulozit lokalne</button>
-                                        </div>
-                                        <p class="template-note" id="ai-chat-api-key-note">Klic se uklada jen v tomto prohlizeci.</p>
-                                    </div>
-                                    <div class="ai-chat-log" id="ai-chat-log" role="log" aria-live="polite" aria-atomic="false"></div>
-                                    <div class="ai-chat-input-row">
-                                        <textarea id="ai-chat-input" rows="3" placeholder="Napis dotaz..."></textarea>
-                                        <button class="template-submit ai-chat-send" id="ai-chat-send" type="button">Odeslat</button>
-                                    </div>
-                                    <p class="template-note ai-chat-status" id="ai-chat-status"></p>
                                 </section>
                                 <div class="student-work-field student-work-field--title">
                                     <label class="student-work-label" for="student-work-title-input">Nazev</label>
@@ -726,9 +703,6 @@
         const GOOGLE_APP_ID = 'zaznamy-zrhomazdeni';
         const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         const ADMIN_EMAILS = ['oliver.bocko@scioskola.cz', 'tobias.pokorny@scioskola.cz', 'jiri.prevorovsky@scioskola.cz'];
-        const AI_CHAT_MODEL = 'gemini-1.5-flash';
-        const AI_CHAT_STORAGE_KEY = 'scioport-gemini-api-key';
-        const AI_CHAT_MAX_HISTORY = 12;
         const EMOJI_DEFS = [];
         let EMOJI_CODE_MAP = new Map();
         let EMOJI_CODE_PATTERN = null;
@@ -775,8 +749,6 @@
         let subjectOptions = [];
         const userEmailCache = new Map();
         let adminStudentSuggestions = [];
-        let aiChatMessages = [];
-        let aiChatSending = false;
         let studentReflectMood = '';
         let studentReflectSaving = false;
         let studentReflectTodaySaved = false;
@@ -798,8 +770,6 @@
         const STUDENT_OUTFIT_RED_BLUE_SHIRT_COST = 3;
         const STUDENT_WORK_SUBTITLE_DEFAULT = 'Vloz, co se ti dnes povedlo nebo co jsi objevila/objevil.';
         const STUDENT_WORK_SUBTITLE_SHOP = 'Kup a prepinej outfit postavicky primo tady.';
-        const STUDENT_WORK_SUBTITLE_AI = 'Basic chat pro rychle dotazy k aplikaci a sablonam.';
-
         function isAdminUser(user) {
             const email = user && user.email ? user.email.toLowerCase() : '';
             return ADMIN_EMAILS.includes(email);
@@ -2362,15 +2332,6 @@
           const sentTemplatesList = document.getElementById('sent-templates-list');
           const sentTemplatesEmpty = document.getElementById('sent-templates-empty');
           const sentTemplatesClose = document.getElementById('sent-templates-close');
-          const aiChatToggle = document.getElementById('ai-chat-toggle');
-          const aiChatPanel = document.getElementById('student-work-ai');
-          const aiChatApiKeyInput = document.getElementById('ai-chat-api-key');
-          const aiChatApiKeySave = document.getElementById('ai-chat-api-key-save');
-          const aiChatApiKeyNote = document.getElementById('ai-chat-api-key-note');
-          const aiChatLog = document.getElementById('ai-chat-log');
-          const aiChatInput = document.getElementById('ai-chat-input');
-          const aiChatSend = document.getElementById('ai-chat-send');
-          const aiChatStatus = document.getElementById('ai-chat-status');
           const templateToastStack = document.getElementById('template-toast-stack');
           const studentWorkToastStack = document.getElementById('student-work-toast-stack');
           const studentClassField = document.getElementById('student-class-field');
@@ -2417,7 +2378,6 @@
           const studentWorkEmojiToggle = document.getElementById('student-work-emoji-toggle');
           const studentWorkEmojiPicker = document.getElementById('student-work-emoji-picker');
           const studentWorkShopPanel = document.getElementById('student-work-shop');
-          const studentWorkAiPanel = document.getElementById('student-work-ai');
           const studentWorkShopState = document.getElementById('student-work-shop-state');
           const studentWorkShopItems = Array.from(document.querySelectorAll('.student-work-shop-item'));
           const studentWorkShopGems = document.getElementById('student-work-shop-gems');
@@ -2455,298 +2415,6 @@
           }
           renderStudentWorkFiles();
           updateStudentReflectRangeLabels();
-
-          function getStoredAiApiKey() {
-            try {
-              return String(localStorage.getItem(AI_CHAT_STORAGE_KEY) || '').trim();
-            } catch (error) {
-              return '';
-            }
-          }
-
-          function storeAiApiKey(value) {
-            const normalized = String(value || '').trim();
-            try {
-              if (normalized) {
-                localStorage.setItem(AI_CHAT_STORAGE_KEY, normalized);
-              } else {
-                localStorage.removeItem(AI_CHAT_STORAGE_KEY);
-              }
-            } catch (error) {
-              console.warn('Unable to persist AI API key:', error);
-            }
-            return normalized;
-          }
-
-          function setAiChatStatus(message, isError) {
-            if (!aiChatStatus) {
-              return;
-            }
-            aiChatStatus.textContent = message || '';
-            aiChatStatus.classList.toggle('is-error', Boolean(isError));
-          }
-
-          function setAiChatSending(isSending) {
-            aiChatSending = Boolean(isSending);
-            if (aiChatSend) {
-              aiChatSend.disabled = aiChatSending;
-            }
-            if (aiChatInput) {
-              aiChatInput.disabled = aiChatSending;
-            }
-            if (aiChatApiKeyInput) {
-              aiChatApiKeyInput.disabled = aiChatSending;
-            }
-            if (aiChatApiKeySave) {
-              aiChatApiKeySave.disabled = aiChatSending;
-            }
-          }
-
-          function renderAiChatMessages() {
-            if (!aiChatLog) {
-              return;
-            }
-            aiChatLog.innerHTML = '';
-            if (!aiChatMessages.length) {
-              const empty = document.createElement('p');
-              empty.className = 'ai-chat-empty';
-              empty.textContent = 'Zeptej se treba na sablony, predmety nebo jak neco v appce funguje.';
-              aiChatLog.appendChild(empty);
-              return;
-            }
-            aiChatMessages.forEach(item => {
-              const role = item && item.role === 'user' ? 'user' : 'assistant';
-              const text = item && item.text ? String(item.text) : '';
-              if (!text) {
-                return;
-              }
-              const bubble = document.createElement('article');
-              bubble.className = `ai-chat-msg ai-chat-msg--${role}`;
-              const body = document.createElement('p');
-              body.textContent = text;
-              bubble.appendChild(body);
-              aiChatLog.appendChild(bubble);
-            });
-            aiChatLog.scrollTop = aiChatLog.scrollHeight;
-          }
-
-          function pushAiChatMessage(role, text) {
-            const normalizedRole = role === 'assistant' ? 'assistant' : 'user';
-            const normalizedText = String(text || '').trim();
-            if (!normalizedText) {
-              return;
-            }
-            aiChatMessages.push({
-              role: normalizedRole,
-              text: normalizedText
-            });
-            if (aiChatMessages.length > AI_CHAT_MAX_HISTORY * 2) {
-              aiChatMessages = aiChatMessages.slice(-AI_CHAT_MAX_HISTORY * 2);
-            }
-            renderAiChatMessages();
-          }
-
-          function getAiChatContextPrompt() {
-            const role = isAdmin ? 'admin/pruvodce' : 'zak';
-            const className = userProfile && userProfile.className ? String(userProfile.className).trim() : '';
-            const subjects = (Array.isArray(subjectOptions) ? subjectOptions : [])
-              .map(item => getSubjectLabel(item))
-              .filter(Boolean)
-              .slice(0, 18)
-              .join(', ');
-            return [
-              'Scioport context:',
-              `role=${role};`,
-              `trida=${className || 'neuvedena'};`,
-              `predmety=${subjects || 'nenacteny seznam'};`
-            ].join(' ');
-          }
-
-          function closeAiChatPanel() {
-            if (!aiChatPanel || aiChatPanel.hidden) {
-              if (aiChatToggle) {
-                aiChatToggle.setAttribute('aria-expanded', 'false');
-              }
-              return;
-            }
-            setStudentWorkAiVisible(false);
-            if (aiChatToggle) {
-              aiChatToggle.setAttribute('aria-expanded', 'false');
-            }
-            if (studentWorkStage && studentWorkStage.classList.contains('is-active')) {
-              closeStudentWork();
-            }
-          }
-
-          function openAiChatPanel() {
-            if (!aiChatPanel) {
-              return;
-            }
-            const panelIds = ['template-panel', 'template-fill-panel', 'subject-panel', 'sent-templates-panel'];
-            panelIds.forEach(panelId => {
-              const panel = document.getElementById(panelId);
-              if (!panel) {
-                return;
-              }
-              panel.classList.remove('open');
-              panel.setAttribute('aria-hidden', 'true');
-            });
-            const menuPanelEl = document.getElementById('menu-panel');
-            const menuToggleEl = document.getElementById('menu-toggle');
-            if (menuPanelEl) {
-              menuPanelEl.classList.remove('open');
-            }
-            if (menuToggleEl) {
-              menuToggleEl.setAttribute('aria-expanded', 'false');
-            }
-            setStudentWorkReadOnly(true);
-            setStudentWorkLogVisible(false);
-            setStudentWorkShopVisible(false);
-            setStudentWorkAiVisible(true);
-            setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_AI);
-            openStudentWork(aiChatToggle ? (aiChatToggle.getAttribute('data-title') || 'AI asistent') : 'AI asistent');
-            if (aiChatToggle) {
-              aiChatToggle.setAttribute('aria-expanded', 'true');
-            }
-            renderAiChatMessages();
-            setTimeout(() => {
-              if (aiChatInput) {
-                aiChatInput.focus();
-              }
-            }, 0);
-          }
-
-          async function requestAiChatCompletion(apiKey) {
-            const history = aiChatMessages.slice(-AI_CHAT_MAX_HISTORY).map(item => ({
-              role: item.role === 'assistant' ? 'model' : 'user',
-              parts: [{ text: item.text }]
-            }));
-            const payload = {
-              systemInstruction: {
-                parts: [{
-                  text: [
-                    'Jsi Scioport AI asistent. Odpovidej cesky, vecne a kratce. Pokud nevis, rekni to narovinu.',
-                    getAiChatContextPrompt()
-                  ].join(' ')
-                }]
-              },
-              contents: history,
-              generationConfig: {
-                temperature: 0.4
-              }
-            };
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(AI_CHAT_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-            const response = await fetch(endpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(payload)
-            });
-            let data = null;
-            try {
-              data = await response.json();
-            } catch (error) {
-              data = null;
-            }
-            if (!response.ok) {
-              const errorMessage = data && data.error && data.error.message
-                ? data.error.message
-                : `HTTP ${response.status}`;
-              throw new Error(errorMessage);
-            }
-            const parts = data && data.candidates && data.candidates[0]
-              && data.candidates[0].content && Array.isArray(data.candidates[0].content.parts)
-              ? data.candidates[0].content.parts
-              : [];
-            const normalized = parts
-              .map(part => (part && part.text ? String(part.text) : ''))
-              .filter(Boolean)
-              .join('\n')
-              .trim();
-            if (!normalized) {
-              throw new Error('AI vratilo prazdnou odpoved.');
-            }
-            return normalized;
-          }
-
-          async function sendAiChatMessage() {
-            if (aiChatSending) {
-              return;
-            }
-            const message = aiChatInput ? String(aiChatInput.value || '').trim() : '';
-            if (!message) {
-              setAiChatStatus('Napis nejdriv dotaz.', true);
-              return;
-            }
-            const apiKey = aiChatApiKeyInput
-              ? String(aiChatApiKeyInput.value || '').trim()
-              : '';
-            if (!apiKey) {
-              setAiChatStatus('Nejdriv vloz Gemini API klic.', true);
-              if (aiChatApiKeyInput) {
-                aiChatApiKeyInput.focus();
-              }
-              return;
-            }
-            pushAiChatMessage('user', message);
-            if (aiChatInput) {
-              aiChatInput.value = '';
-            }
-            setAiChatStatus('AI premysli...', false);
-            setAiChatSending(true);
-            try {
-              const answer = await requestAiChatCompletion(apiKey);
-              pushAiChatMessage('assistant', answer);
-              setAiChatStatus('Odpoved dorazila.', false);
-            } catch (error) {
-              console.error('AI chat request failed:', error);
-              const errorText = error && error.message ? error.message : 'Neznama chyba';
-              pushAiChatMessage('assistant', `Nepodarilo se odpovedet: ${errorText}`);
-              setAiChatStatus('Nepodarilo se zavolat AI API.', true);
-            } finally {
-              setAiChatSending(false);
-              if (aiChatInput) {
-                aiChatInput.focus();
-              }
-            }
-          }
-
-          function saveAiChatApiKeyFromInput() {
-            if (!aiChatApiKeyInput) {
-              return;
-            }
-            const key = storeAiApiKey(aiChatApiKeyInput.value);
-            if (aiChatApiKeyNote) {
-              aiChatApiKeyNote.textContent = key
-                ? 'Klic je ulozeny lokalne v tomto prohlizeci.'
-                : 'Klic se uklada jen v tomto prohlizeci.';
-            }
-            if (!key) {
-              setAiChatStatus('API klic byl smazan z lokalniho uloziste.', false);
-              return;
-            }
-            setAiChatStatus('API klic ulozen lokalne v tomto prohlizeci.', false);
-          }
-
-          function initAiChat() {
-            const storedKey = getStoredAiApiKey();
-            if (aiChatApiKeyInput && storedKey) {
-              aiChatApiKeyInput.value = storedKey;
-            }
-            if (aiChatApiKeyNote) {
-              aiChatApiKeyNote.textContent = storedKey
-                ? 'Klic je nacteny z tohoto prohlizece.'
-                : 'Klic se uklada jen v tomto prohlizeci.';
-            }
-            aiChatMessages = [{
-              role: 'assistant',
-              text: 'Ahoj, jsem basic AI asistent. Napis dotaz a odpovim.'
-            }];
-            renderAiChatMessages();
-            setAiChatStatus(storedKey ? 'Gemini API klic je pripraven.' : 'Vloz Gemini API klic a napis dotaz.', false);
-            setAiChatSending(false);
-          }
 
           function getStoredTheme() {
             try {
@@ -2998,7 +2666,6 @@
             closeStudentWorkPostModalView();
             studentWorkStage.classList.remove('is-active');
             studentWorkStage.classList.remove('is-add-active');
-            setStudentWorkAiVisible(false);
             setStudentWorkShopVisible(false);
             setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
             scheduleStudentWorkStageHeightSync();
@@ -3204,18 +2871,6 @@
             scheduleStudentWorkStageHeightSync();
           }
 
-          function setStudentWorkAiVisible(isVisible) {
-            if (!studentWorkAiPanel) {
-              return;
-            }
-            studentWorkAiPanel.hidden = !isVisible;
-            studentWorkAiPanel.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
-            if (aiChatToggle) {
-              aiChatToggle.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
-            }
-            scheduleStudentWorkStageHeightSync();
-          }
-
           function setStudentWorkShopStatus(message, isError) {
             if (!studentWorkShopStatus) {
               return;
@@ -3287,7 +2942,6 @@
             setStudentWorkReadOnly(true);
             setStudentWorkLogVisible(false);
             setStudentWorkShopVisible(true);
-            setStudentWorkAiVisible(false);
             setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_SHOP);
             const title = studentWorkShopButton
               ? (studentWorkShopButton.getAttribute('data-title') || 'Obchod')
@@ -4711,7 +4365,6 @@
             if (!templateFillPanel) {
               return [];
             }
-            closeAiChatPanel();
             const templatePanelEl = document.getElementById('template-panel');
             const subjectPanelEl = document.getElementById('subject-panel');
             const sentTemplatesPanelEl = document.getElementById('sent-templates-panel');
@@ -5343,8 +4996,6 @@
           applyAdminUi();
           updateTemplateRecipient();
           updateTemplateSaveState();
-          initAiChat();
-
           if (uploadButton) {
             uploadButton.addEventListener('click', handleDriveButton);
           }
@@ -5377,42 +5028,6 @@
           if (themeToggle) {
             themeToggle.addEventListener('click', () => {
               setTheme(!document.body.classList.contains('theme-dark'));
-            });
-          }
-
-          if (aiChatToggle) {
-            aiChatToggle.addEventListener('click', () => {
-              if (studentWorkAiPanel && !studentWorkAiPanel.hidden) {
-                closeAiChatPanel();
-                return;
-              }
-              openAiChatPanel();
-            });
-          }
-
-          if (aiChatApiKeySave) {
-            aiChatApiKeySave.addEventListener('click', saveAiChatApiKeyFromInput);
-          }
-
-          if (aiChatApiKeyInput) {
-            aiChatApiKeyInput.addEventListener('keydown', function(event) {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                saveAiChatApiKeyFromInput();
-              }
-            });
-          }
-
-          if (aiChatSend) {
-            aiChatSend.addEventListener('click', sendAiChatMessage);
-          }
-
-          if (aiChatInput) {
-            aiChatInput.addEventListener('keydown', function(event) {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendAiChatMessage();
-              }
             });
           }
 
@@ -5449,7 +5064,6 @@
               setStudentWorkReadOnly(false);
               setStudentWorkLogVisible(false);
               setStudentWorkShopVisible(false);
-              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               clearStudentWorkComposer();
               const title = studentWorkAddButton.getAttribute('data-title') || 'Prace';
@@ -5525,7 +5139,6 @@
               setStudentWorkReadOnly(true);
               setStudentWorkLogVisible(true);
               setStudentWorkShopVisible(false);
-              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               const title = studentWorkPillarFilterButton.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
@@ -5539,7 +5152,6 @@
               setStudentWorkReadOnly(true);
               setStudentWorkLogVisible(true);
               setStudentWorkShopVisible(false);
-              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               const title = studentWorkPillarFilterButtonTwo.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
@@ -5553,7 +5165,6 @@
               setStudentWorkReadOnly(true);
               setStudentWorkLogVisible(true);
               setStudentWorkShopVisible(false);
-              setStudentWorkAiVisible(false);
               setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
               const title = studentWorkPillarFilterButtonThree.getAttribute('data-title') || 'Prace';
               openStudentWork(title);
@@ -5907,7 +5518,6 @@
 
           if (menuTemplates && templatePanel) {
             menuTemplates.addEventListener('click', () => {
-              closeAiChatPanel();
               templatePanel.classList.add('open');
               templatePanel.setAttribute('aria-hidden', 'false');
               if (subjectPanel) {
@@ -5940,7 +5550,6 @@
 
           if (menuChangeGender) {
             menuChangeGender.addEventListener('click', () => {
-              closeAiChatPanel();
               studentWorkGenderSelectionLocked = false;
               setStudentWorkGenderButtonsVisible(true);
               if (menuPanel) {
@@ -5957,7 +5566,6 @@
 
           if (menuFillTemplate) {
             menuFillTemplate.addEventListener('click', async () => {
-              closeAiChatPanel();
               await openTemplateFillPanel();
             });
           }
@@ -5974,7 +5582,6 @@
 
           if (menuSubjects) {
             menuSubjects.addEventListener('click', () => {
-              closeAiChatPanel();
               if (!subjectPanel) {
                 return;
               }
@@ -6003,7 +5610,6 @@
 
           if (menuSentTemplates) {
             menuSentTemplates.addEventListener('click', async () => {
-              closeAiChatPanel();
               if (!sentTemplatesPanel) {
                 return;
               }
