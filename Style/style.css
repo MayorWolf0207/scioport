@@ -2285,15 +2285,28 @@ body.theme-dark .student-work-input {
     transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.student-work-icon-btn:hover {
+.student-work-icon-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
+}
+
+.student-work-icon-btn:disabled {
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 1;
 }
 
 .student-work-icon-btn.is-send {
     background: linear-gradient(135deg, var(--accent-2), var(--blue-22));
     border-color: transparent;
     color: var(--text);
+}
+
+.student-work-icon-btn.is-send:disabled {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.72), rgba(100, 116, 139, 0.82));
+    border-color: rgba(100, 116, 139, 0.42);
+    color: rgba(248, 250, 252, 0.9);
 }
 
 .student-work-input-icon {
@@ -2675,8 +2688,13 @@ body.theme-dark .student-work-input {
 
 .student-work-field--note .student-work-icon-btn.is-send {
     align-self: flex-end;
-    background: linear-gradient(180deg, rgba(251, 146, 60, 0.32), rgba(245, 158, 11, 0.3));
-    border: 1px solid rgba(245, 158, 11, 0.36);
+    background: linear-gradient(135deg, var(--accent-2), var(--blue-22));
+    border: 1px solid transparent;
+}
+
+.student-work-field--note .student-work-icon-btn.is-send:disabled {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.72), rgba(100, 116, 139, 0.82));
+    border-color: rgba(100, 116, 139, 0.42);
 }
 
 .student-work-drop {

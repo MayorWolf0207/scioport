@@ -443,7 +443,7 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <button class="student-work-icon-btn is-send" type="button" aria-label="Odeslat">
+                                    <button class="student-work-icon-btn is-send" type="button" aria-label="Odeslat" disabled aria-disabled="true">
                                         <svg class="student-work-input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                             <path d="M5 12h14"></path>
                                             <path d="M13 6l6 6-6 6"></path>
@@ -1479,6 +1479,7 @@
                 option.appendChild(text);
                 studentWorkSubject.appendChild(option);
             });
+            updateStudentWorkSendState();
         }
 
         function createTemplateChipField(config) {
@@ -2756,6 +2757,7 @@
                 button.disabled = studentWorkReadOnly;
               });
             }
+            updateStudentWorkSendState();
             scheduleStudentWorkStageHeightSync();
           }
 
@@ -2763,6 +2765,7 @@
             const next = Array.isArray(codes) ? codes : [];
             studentWorkMoodSelection = new Set(next.filter(Boolean));
             if (!studentWorkMood) {
+              updateStudentWorkSendState();
               return;
             }
             studentWorkMood.querySelectorAll('.student-work-emoji-btn').forEach(button => {
@@ -2771,6 +2774,7 @@
               button.classList.toggle('is-selected', isSelected);
               button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
             });
+            updateStudentWorkSendState();
           }
 
           function toggleStudentWorkMood(code) {
@@ -3425,6 +3429,52 @@
           setStudentWorkFormSubtitle(STUDENT_WORK_SUBTITLE_DEFAULT);
           setStudentWorkShopVisible(false);
 
+          function getStudentWorkComposeState() {
+            const titleValue = studentWorkTitleInput ? String(studentWorkTitleInput.value || '').trim() : '';
+            const inputValue = studentWorkInput ? getEmojiInputValue(studentWorkInput).trim() : '';
+            const subjectValues = getCheckedValues(studentWorkSubject);
+            const pillarValues = getCheckedValues(studentWorkPillar);
+            const moodCodes = Array.from(studentWorkMoodSelection || []).filter(Boolean);
+            const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
+            const subjectTokens = subjectValues.map(ensureSubjectPrefix).filter(Boolean);
+            const subjectLabels = subjectTokens.map(label => formatSubjectLabel(label)).filter(Boolean);
+            const pillarLabels = pillarValues.map(label => String(label || '').trim()).filter(Boolean);
+            const attachments = (studentWorkFiles || []).map(file => ({
+              name: String(file && file.name ? file.name : ''),
+              size: Number(file && Number.isFinite(file.size) ? file.size : 0),
+              type: String(file && file.type ? file.type : ''),
+              lastModified: Number(file && Number.isFinite(file.lastModified) ? file.lastModified : 0)
+            })).filter(item => item.name);
+            const messageBody = titleValue && cleanedValue
+              ? `${titleValue}\n${cleanedValue}`
+              : (titleValue || cleanedValue);
+
+            return {
+              titleValue,
+              inputValue,
+              subjectValues,
+              pillarValues,
+              moodCodes,
+              cleanedValue,
+              subjectTokens,
+              subjectLabels,
+              pillarLabels,
+              attachments,
+              messageBody,
+              canSend: Boolean(messageBody && subjectTokens.length && pillarLabels.length)
+            };
+          }
+
+          function updateStudentWorkSendState() {
+            if (!studentWorkSendButton) {
+              return;
+            }
+            const composeState = getStudentWorkComposeState();
+            const isDisabled = studentWorkReadOnly || !composeState.canSend;
+            studentWorkSendButton.disabled = isDisabled;
+            studentWorkSendButton.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+          }
+
           function clearStudentWorkComposer() {
             if (studentWorkTitleInput) {
               studentWorkTitleInput.value = '';
@@ -3436,6 +3486,7 @@
             clearCheckboxGroup(studentWorkPillar);
             setStudentWorkMoods([]);
             clearStudentWorkFiles();
+            updateStudentWorkSendState();
           }
 
           function detachStudentWorkCommentsListener() {
@@ -3748,26 +3799,20 @@
               return;
             }
 
-            const titleValue = studentWorkTitleInput ? String(studentWorkTitleInput.value || '').trim() : '';
-            const inputValue = getEmojiInputValue(studentWorkInput).trim();
-            const subjectValues = getCheckedValues(studentWorkSubject);
-            const pillarValues = getCheckedValues(studentWorkPillar);
-            const moodCodes = Array.from(studentWorkMoodSelection || []).filter(Boolean);
-            const cleanedValue = inputValue.replace(/^@\S+\s*/, '').trim();
-            const subjectTokens = subjectValues.map(ensureSubjectPrefix).filter(Boolean);
-            const subjectLabels = subjectTokens.map(label => formatSubjectLabel(label)).filter(Boolean);
-            const pillarLabels = pillarValues.map(label => String(label || '').trim()).filter(Boolean);
-            const attachments = (studentWorkFiles || []).map(file => ({
-              name: String(file && file.name ? file.name : ''),
-              size: Number(file && Number.isFinite(file.size) ? file.size : 0),
-              type: String(file && file.type ? file.type : ''),
-              lastModified: Number(file && Number.isFinite(file.lastModified) ? file.lastModified : 0)
-            })).filter(item => item.name);
-            const messageBody = titleValue && cleanedValue
-              ? `${titleValue}\n${cleanedValue}`
-              : (titleValue || cleanedValue);
+            const composeState = getStudentWorkComposeState();
+            const {
+              titleValue,
+              moodCodes,
+              cleanedValue,
+              subjectTokens,
+              subjectLabels,
+              pillarLabels,
+              attachments,
+              messageBody,
+              canSend
+            } = composeState;
 
-            if (!messageBody || !subjectTokens.length || !pillarLabels.length) {
+            if (!canSend) {
               return;
             }
 
@@ -5268,6 +5313,18 @@
             studentWorkClearButton.addEventListener('click', clearStudentWorkComposer);
           }
 
+          if (studentWorkTitleInput) {
+            studentWorkTitleInput.addEventListener('input', updateStudentWorkSendState);
+          }
+
+          if (studentWorkSubject) {
+            studentWorkSubject.addEventListener('change', updateStudentWorkSendState);
+          }
+
+          if (studentWorkPillar) {
+            studentWorkPillar.addEventListener('change', updateStudentWorkSendState);
+          }
+
           if (studentWorkInput) {
             studentWorkInput.addEventListener('keydown', function(event) {
               if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
@@ -5277,6 +5334,7 @@
             });
             studentWorkInput.addEventListener('input', function() {
               if (studentWorkEmojiUpdating || !shouldReplaceEmojiCodes(studentWorkInput)) {
+                updateStudentWorkSendState();
                 return;
               }
               studentWorkEmojiUpdating = true;
@@ -5284,6 +5342,7 @@
               renderEmojiContent(studentWorkInput, value);
               placeCaretAtEnd(studentWorkInput);
               studentWorkEmojiUpdating = false;
+              updateStudentWorkSendState();
             });
           }
 
@@ -5373,8 +5432,11 @@
               refreshEmojiLookup(studentWorkEmojiBar);
               insertEmojiAtCaret(studentWorkInput, code);
               setEmojiPickerOpen(false);
+              updateStudentWorkSendState();
             });
           }
+
+          updateStudentWorkSendState();
 
           document.addEventListener('click', function(event) {
             if (!studentWorkEmojiPicker || !studentWorkEmojiPicker.classList.contains('is-open')) {
