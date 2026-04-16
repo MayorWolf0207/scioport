@@ -189,7 +189,7 @@
                                         <path d="M9 13h2M10 12v2M15 13h.01"></path>
                                     </svg>
                                 </button>
-                                <button class="student-work-button is-purple" type="button" data-action="shop-red-shirt" data-title="Obchod" aria-label="Obchod - cervene tricko">
+                                <button class="student-work-button is-purple" type="button" data-action="shop-outfits" data-title="Obchod" aria-label="Obchod s outfity">
                                     <svg class="student-work-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path d="M6 6h2l2.5 9h7.5l2-6H9"></path>
                                         <circle cx="12" cy="19" r="1.4"></circle>
@@ -216,12 +216,30 @@
                                         <span class="student-work-shop-price">Outfit plati pro holku i kluka.</span>
                                     </div>
                                     <h4>Obchod obleceni</h4>
-                                    <p>Vyber outfit a kup ho za gemy. Odemceny outfit muzes kdykoliv prepnout.</p>
+                                    <p>Vyber outfit podle ceny a stylu. Odemceny outfit muzes kdykoliv prepnout.</p>
                                     <div class="student-work-shop-list">
+                                        <article class="student-work-shop-item" data-outfit="green-shirt">
+                                            <div class="student-work-shop-item-head">
+                                                <h5>Zelene tricko</h5>
+                                                <span>1 gem</span>
+                                            </div>
+                                            <div class="student-work-shop-preview" data-outfit="green-shirt">
+                                                <div class="student-work-shop-avatar">
+                                                    <img src="Media/emoji/scio_holka_usmev.png" alt="Holka avatar">
+                                                    <span class="student-work-shop-shirt">Holka</span>
+                                                </div>
+                                                <div class="student-work-shop-avatar">
+                                                    <img src="Media/emoji/scio_kluk_usmev.png" alt="Kluk avatar">
+                                                    <span class="student-work-shop-shirt">Kluk</span>
+                                                </div>
+                                            </div>
+                                            <p class="student-work-shop-item-status" data-role="status"></p>
+                                            <button class="student-work-shop-action" data-role="action" data-outfit="green-shirt" type="button">Koupit za 1 gem</button>
+                                        </article>
                                         <article class="student-work-shop-item" data-outfit="red-shirt">
                                             <div class="student-work-shop-item-head">
                                                 <h5>Cervene tricko</h5>
-                                                <span>1 gem</span>
+                                                <span>2 gemy</span>
                                             </div>
                                             <div class="student-work-shop-preview" data-outfit="red-shirt">
                                                 <div class="student-work-shop-avatar">
@@ -234,12 +252,12 @@
                                                 </div>
                                             </div>
                                             <p class="student-work-shop-item-status" data-role="status"></p>
-                                            <button class="student-work-shop-action" data-role="action" data-outfit="red-shirt" type="button">Koupit za 1 gem</button>
+                                            <button class="student-work-shop-action" data-role="action" data-outfit="red-shirt" type="button">Koupit za 2 gemy</button>
                                         </article>
                                         <article class="student-work-shop-item" data-outfit="red-blue-shirt">
                                             <div class="student-work-shop-item-head">
                                                 <h5>Cerveno-modre tricko</h5>
-                                                <span>3 gemy</span>
+                                                <span>4 gemy</span>
                                             </div>
                                             <div class="student-work-shop-preview" data-outfit="red-blue-shirt">
                                                 <div class="student-work-shop-avatar">
@@ -252,7 +270,7 @@
                                                 </div>
                                             </div>
                                             <p class="student-work-shop-item-status" data-role="status"></p>
-                                            <button class="student-work-shop-action" data-role="action" data-outfit="red-blue-shirt" type="button">Koupit za 3 gemy</button>
+                                            <button class="student-work-shop-action" data-role="action" data-outfit="red-blue-shirt" type="button">Koupit za 4 gemy</button>
                                         </article>
                                     </div>
                                     <div class="student-work-shop-footer">
@@ -309,22 +327,12 @@
                                 <div class="student-work-field student-work-field--note">
                                     <span class="student-work-label">Anotace</span>
                                     <div class="student-work-input">
-                                    <button class="student-work-icon-btn" id="student-work-attach-button" type="button" aria-label="Nahrat">
-                                        <svg class="student-work-input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                            <path d="M12 16V6"></path>
-                                            <path d="M8 10l4-4 4 4"></path>
-                                            <path d="M4 18h16"></path>
-                                        </svg>
-                                    </button>
-                                    <button class="student-work-icon-btn" type="button" aria-label="Zminit">
-                                        <span class="student-work-at">@</span>
-                                    </button>
-                                    <div id="student-work-input" class="student-work-input-area" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Kratce popis, co se povedlo..." aria-label="Text"></div>
-                                    <div class="student-work-emoji-bar" id="student-work-emoji-bar">
-                                        <button class="student-work-icon-btn student-work-emoji-toggle" id="student-work-emoji-toggle" type="button" aria-label="Emoji" aria-expanded="false" aria-controls="student-work-emoji-picker">
-                                            <img class="student-work-emoji" src="Media/emoji/scio_decko_happy.png" alt="">
-                                        </button>
-                                        <div class="student-work-emoji-picker" id="student-work-emoji-picker" aria-hidden="true">
+                                        <div id="student-work-input" class="student-work-input-area" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Kratce popis, co se povedlo..." aria-label="Text"></div>
+                                        <div class="student-work-emoji-bar" id="student-work-emoji-bar">
+                                            <button class="student-work-icon-btn student-work-emoji-toggle" id="student-work-emoji-toggle" type="button" aria-label="Emoji" aria-expanded="false" aria-controls="student-work-emoji-picker">
+                                                <img class="student-work-emoji" src="Media/emoji/scio_decko_happy.png" alt="">
+                                            </button>
+                                            <div class="student-work-emoji-picker" id="student-work-emoji-picker" aria-hidden="true">
                                             <button class="student-work-emoji-btn" type="button" aria-label="scio_decko_happy">
                                                 <img class="student-work-emoji" src="Media/emoji/scio_decko_happy.png" alt="">
                                             </button>
@@ -714,7 +722,7 @@
         let gisReady = false;
         let isAdmin = false;
         let currentUser = null;
-        let userProfile = { className: '', gender: '', gems: 0, avatarOutfit: 'default', redShirtUnlocked: false, redBlueShirtUnlocked: false };
+        let userProfile = { className: '', gender: '', gems: 0, avatarOutfit: 'default', greenShirtUnlocked: false, redShirtUnlocked: false, redBlueShirtUnlocked: false };
         let studentWorkFilterPillar = '';
         let studentWorkReadOnly = false;
         let studentWorkEmojiUpdating = false;
@@ -764,10 +772,32 @@
             }
         };
         const STUDENT_OUTFIT_DEFAULT = 'default';
+        const STUDENT_OUTFIT_GREEN_SHIRT = 'green-shirt';
         const STUDENT_OUTFIT_RED_SHIRT = 'red-shirt';
         const STUDENT_OUTFIT_RED_BLUE_SHIRT = 'red-blue-shirt';
-        const STUDENT_OUTFIT_RED_SHIRT_COST = 1;
-        const STUDENT_OUTFIT_RED_BLUE_SHIRT_COST = 3;
+        const STUDENT_OUTFIT_GREEN_SHIRT_COST = 1;
+        const STUDENT_OUTFIT_RED_SHIRT_COST = 2;
+        const STUDENT_OUTFIT_RED_BLUE_SHIRT_COST = 4;
+        const STUDENT_OUTFIT_OPTIONS = [
+          {
+            key: STUDENT_OUTFIT_GREEN_SHIRT,
+            label: 'Zelene tricko',
+            cost: STUDENT_OUTFIT_GREEN_SHIRT_COST,
+            unlockField: 'greenShirtUnlocked'
+          },
+          {
+            key: STUDENT_OUTFIT_RED_SHIRT,
+            label: 'Cervene tricko',
+            cost: STUDENT_OUTFIT_RED_SHIRT_COST,
+            unlockField: 'redShirtUnlocked'
+          },
+          {
+            key: STUDENT_OUTFIT_RED_BLUE_SHIRT,
+            label: 'Cerveno-modre tricko',
+            cost: STUDENT_OUTFIT_RED_BLUE_SHIRT_COST,
+            unlockField: 'redBlueShirtUnlocked'
+          }
+        ];
         const STUDENT_WORK_SUBTITLE_DEFAULT = 'Vloz, co se ti dnes povedlo nebo co jsi objevila/objevil.';
         const STUDENT_WORK_SUBTITLE_SHOP = 'Kup a prepinej outfit postavicky primo tady.';
         function isAdminUser(user) {
@@ -2278,7 +2308,7 @@
             if (!user) {
               initTemplateNotificationState(null);
               closeStudentWorkPostModalView();
-              userProfile = { className: '', gender: '', gems: 0, avatarOutfit: 'default', redShirtUnlocked: false, redBlueShirtUnlocked: false };
+              userProfile = { className: '', gender: '', gems: 0, avatarOutfit: 'default', greenShirtUnlocked: false, redShirtUnlocked: false, redBlueShirtUnlocked: false };
               updateGemDisplay(0);
               setStudentWorkOutfit(STUDENT_OUTFIT_DEFAULT);
               studentWorkGenderSelectionLocked = false;
@@ -2357,7 +2387,7 @@
           const studentWorkLog = document.getElementById('student-work-log');
           const studentWorkAddButton = document.querySelector('.student-work-button[data-action="add-entry"]');
           const studentWorkReflectButton = document.querySelector('.student-work-button[data-action="reflect-daily"]');
-          const studentWorkShopButton = document.querySelector('.student-work-button[data-action="shop-red-shirt"]');
+          const studentWorkShopButton = document.querySelector('.student-work-button[data-action="shop-outfits"]');
           const studentWorkPillarFilterButton = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-1"]');
           const studentWorkPillarFilterButtonTwo = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-2"]');
           const studentWorkPillarFilterButtonThree = document.querySelector('.student-work-avatar-button[data-action="filter-pillar-3"]');
@@ -2366,7 +2396,6 @@
           const studentWorkFormSubtitle = document.getElementById('student-work-form-subtitle');
           const studentWorkTitleInput = document.getElementById('student-work-title-input');
           const studentWorkInput = document.getElementById('student-work-input');
-          const studentWorkAttachButton = document.getElementById('student-work-attach-button');
           const studentWorkSubject = document.getElementById('student-work-subject');
           const studentWorkPillar = document.getElementById('student-work-pillar');
           const studentWorkMood = document.getElementById('student-work-mood');
@@ -2909,11 +2938,11 @@
               item.classList.toggle('is-equipped', equipped);
 
               if (!unlocked) {
-                actionEl.textContent = `Koupit za ${meta.cost} ${meta.cost === 1 ? 'gem' : 'gemy'}`;
+                actionEl.textContent = `Koupit za ${formatGemAmount(meta.cost)}`;
                 actionEl.disabled = !canAfford;
                 actionEl.dataset.mode = 'buy';
                 if (statusEl) {
-                  statusEl.textContent = canAfford ? 'Pripraveno k nakupu.' : `Chybi ${meta.cost - gems} ${meta.cost - gems === 1 ? 'gem' : 'gemy'}.`;
+                  statusEl.textContent = canAfford ? 'Pripraveno k nakupu.' : `Chybi ${formatGemAmount(meta.cost - gems)}.`;
                   statusEl.classList.toggle('is-error', !canAfford);
                 }
                 return;
@@ -2978,25 +3007,20 @@
             updateStudentWorkShopButton();
           }
 
+          function formatGemAmount(value) {
+            const amount = Math.max(0, Number(value) || 0);
+            if (amount === 1) {
+              return '1 gem';
+            }
+            if (amount >= 2 && amount <= 4) {
+              return `${amount} gemy`;
+            }
+            return `${amount} gemu`;
+          }
+
           function getStudentOutfitMeta(value) {
             const normalized = String(value || '').trim();
-            if (normalized === STUDENT_OUTFIT_RED_SHIRT) {
-              return {
-                key: STUDENT_OUTFIT_RED_SHIRT,
-                label: 'Cervene tricko',
-                cost: STUDENT_OUTFIT_RED_SHIRT_COST,
-                unlockField: 'redShirtUnlocked'
-              };
-            }
-            if (normalized === STUDENT_OUTFIT_RED_BLUE_SHIRT) {
-              return {
-                key: STUDENT_OUTFIT_RED_BLUE_SHIRT,
-                label: 'Cerveno-modre tricko',
-                cost: STUDENT_OUTFIT_RED_BLUE_SHIRT_COST,
-                unlockField: 'redBlueShirtUnlocked'
-              };
-            }
-            return null;
+            return STUDENT_OUTFIT_OPTIONS.find(option => option.key === normalized) || null;
           }
 
           function getStudentOutfitLabel(value) {
@@ -3006,13 +3030,7 @@
 
           function getNormalizedStudentWorkOutfit(value) {
             const normalized = String(value || '').trim();
-            if (normalized === STUDENT_OUTFIT_RED_SHIRT) {
-              return STUDENT_OUTFIT_RED_SHIRT;
-            }
-            if (normalized === STUDENT_OUTFIT_RED_BLUE_SHIRT) {
-              return STUDENT_OUTFIT_RED_BLUE_SHIRT;
-            }
-            return STUDENT_OUTFIT_DEFAULT;
+            return getStudentOutfitMeta(normalized) ? normalized : STUDENT_OUTFIT_DEFAULT;
           }
 
           function isStudentOutfitUnlocked(value) {
@@ -3020,23 +3038,15 @@
             if (normalized === STUDENT_OUTFIT_DEFAULT) {
               return true;
             }
-            if (normalized === STUDENT_OUTFIT_RED_SHIRT) {
-              return Boolean(userProfile.redShirtUnlocked);
-            }
-            if (normalized === STUDENT_OUTFIT_RED_BLUE_SHIRT) {
-              return Boolean(userProfile.redBlueShirtUnlocked);
-            }
-            return false;
+            const meta = getStudentOutfitMeta(normalized);
+            return meta ? Boolean(userProfile[meta.unlockField]) : false;
           }
 
           function setStudentOutfitUnlocked(value, isUnlocked) {
             const normalized = getNormalizedStudentWorkOutfit(value);
-            if (normalized === STUDENT_OUTFIT_RED_SHIRT) {
-              userProfile.redShirtUnlocked = Boolean(isUnlocked);
-              return;
-            }
-            if (normalized === STUDENT_OUTFIT_RED_BLUE_SHIRT) {
-              userProfile.redBlueShirtUnlocked = Boolean(isUnlocked);
+            const meta = getStudentOutfitMeta(normalized);
+            if (meta) {
+              userProfile[meta.unlockField] = Boolean(isUnlocked);
             }
           }
 
@@ -3054,9 +3064,13 @@
             if (!studentWorkShopButton) {
               return;
             }
-            const hasAnyUnlocked = Boolean(userProfile.redShirtUnlocked) || Boolean(userProfile.redBlueShirtUnlocked);
+            const hasAnyUnlocked = STUDENT_OUTFIT_OPTIONS.some(option => Boolean(userProfile[option.unlockField]));
             const equippedCustom = studentWorkOutfit !== STUDENT_OUTFIT_DEFAULT;
-            const canAffordAny = (Number(userProfile.gems) || 0) >= STUDENT_OUTFIT_RED_SHIRT_COST;
+            const gems = Number(userProfile.gems) || 0;
+            const cheapestLockedCost = STUDENT_OUTFIT_OPTIONS
+              .filter(option => !Boolean(userProfile[option.unlockField]))
+              .reduce((lowest, option) => Math.min(lowest, option.cost), Number.POSITIVE_INFINITY);
+            const canAffordAny = Number.isFinite(cheapestLockedCost) ? gems >= cheapestLockedCost : false;
             const title = equippedCustom
               ? `Obchod (${getStudentOutfitLabel(studentWorkOutfit)})`
               : 'Obchod';
@@ -3262,7 +3276,7 @@
             if (currentGems < meta.cost) {
               return {
                 ok: false,
-                message: `Na ${meta.label.toLowerCase()} potrebujes ${meta.cost} ${meta.cost === 1 ? 'gem' : 'gemy'}.`,
+                message: `Na ${meta.label.toLowerCase()} potrebujes ${formatGemAmount(meta.cost)}.`,
                 isError: true
               };
             }
@@ -3306,7 +3320,7 @@
               return {
                 ok: true,
                 message: result === 'purchased'
-                  ? `Koupeno! ${meta.label} je tvoje za ${meta.cost} ${meta.cost === 1 ? 'gem' : 'gemy'}.`
+                  ? `Koupeno! ${meta.label} je tvoje za ${formatGemAmount(meta.cost)}.`
                   : `${meta.label} uz mas odemcene, jen se nasadilo.`,
                 isError: false
               };
@@ -3314,7 +3328,7 @@
               if (error && error.message === 'not-enough-gems') {
                 return {
                   ok: false,
-                  message: `Na ${meta.label.toLowerCase()} potrebujes ${meta.cost} ${meta.cost === 1 ? 'gem' : 'gemy'}.`,
+                  message: `Na ${meta.label.toLowerCase()} potrebujes ${formatGemAmount(meta.cost)}.`,
                   isError: true
                 };
               }
@@ -3941,19 +3955,21 @@
             const snapshot = await userRef.get();
             const data = snapshot.data() || {};
             const normalizedOutfit = getNormalizedStudentWorkOutfit(data.avatarOutfit);
-            const redShirtUnlocked = Boolean(data.redShirtUnlocked) || normalizedOutfit === STUDENT_OUTFIT_RED_SHIRT;
-            const redBlueShirtUnlocked = Boolean(data.redBlueShirtUnlocked) || normalizedOutfit === STUDENT_OUTFIT_RED_BLUE_SHIRT;
-            const hasPreferredOutfit = (
-              (normalizedOutfit === STUDENT_OUTFIT_RED_SHIRT && redShirtUnlocked) ||
-              (normalizedOutfit === STUDENT_OUTFIT_RED_BLUE_SHIRT && redBlueShirtUnlocked)
+            const unlockedState = STUDENT_OUTFIT_OPTIONS.reduce((result, option) => {
+              result[option.unlockField] = Boolean(data[option.unlockField]) || normalizedOutfit === option.key;
+              return result;
+            }, {});
+            const preferredMeta = getStudentOutfitMeta(normalizedOutfit);
+            const hasPreferredOutfit = Boolean(
+              preferredMeta
+              && unlockedState[preferredMeta.unlockField]
             );
             userProfile = {
               className: data.className || '',
               gender: data.gender || '',
               gems: Number(data.gems) || 0,
               avatarOutfit: hasPreferredOutfit ? normalizedOutfit : STUDENT_OUTFIT_DEFAULT,
-              redShirtUnlocked,
-              redBlueShirtUnlocked
+              ...unlockedState
             };
             updateGemDisplay(userProfile.gems);
 
@@ -5274,15 +5290,6 @@
           if (studentWorkFileInput) {
             studentWorkFileInput.addEventListener('change', function(event) {
               addStudentWorkFiles(event.target ? event.target.files : null);
-            });
-          }
-
-          if (studentWorkAttachButton) {
-            studentWorkAttachButton.addEventListener('click', function() {
-              if (studentWorkReadOnly || !studentWorkFileInput) {
-                return;
-              }
-              studentWorkFileInput.click();
             });
           }
 

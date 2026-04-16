@@ -1466,6 +1466,22 @@ body.theme-dark .student-work[data-gender="kluk"] {
     --student-blush: rgba(0, 0, 0, 0);
 }
 
+.student-work[data-outfit="green-shirt"] {
+    --student-shirt: #2f9e57;
+    --student-shirt-inner: #eafff0;
+    --student-boy-shirt-base: #2a8f50;
+    --student-boy-shirt: #2a8f50;
+    --student-boy-collar: #f3fff7;
+}
+
+body.theme-dark .student-work[data-outfit="green-shirt"] {
+    --student-shirt: #2a8549;
+    --student-shirt-inner: #dcf4e4;
+    --student-boy-shirt-base: #257843;
+    --student-boy-shirt: #257843;
+    --student-boy-collar: #eaf8ef;
+}
+
 .student-work[data-outfit="red-shirt"] {
     --student-shirt: #c7353b;
     --student-shirt-inner: #ffecee;
@@ -2280,11 +2296,6 @@ body.theme-dark .student-work-input {
     color: var(--text);
 }
 
-.student-work-at {
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
 .student-work-input-icon {
     width: 18px;
     height: 18px;
@@ -2511,6 +2522,10 @@ body.theme-dark .student-work-input {
 
 .student-work-shop-preview[data-outfit="red-shirt"] .student-work-shop-shirt {
     background: linear-gradient(140deg, #db4a50, #c12e34);
+}
+
+.student-work-shop-preview[data-outfit="green-shirt"] .student-work-shop-shirt {
+    background: linear-gradient(140deg, #48bf78, #2f9e57);
 }
 
 .student-work-shop-preview[data-outfit="red-blue-shirt"] .student-work-shop-shirt {
