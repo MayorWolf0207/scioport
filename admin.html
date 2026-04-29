@@ -1670,6 +1670,22 @@
       padding:8px 10px;
       transition:background .14s ease;
     }
+    .composeCheckLabel{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+      color:var(--fg);
+      font-size:13px;
+      line-height:1.3;
+    }
+    .composeCheckEmoji{
+      flex-shrink:0;
+      font-size:16px;
+    }
+    .composeCheckText{
+      min-width:0;
+    }
     .composeCheckItem:hover{
       background:rgba(255,154,60,.08);
     }
@@ -1922,6 +1938,323 @@
         justify-content:flex-start;
       }
     }
+
+    /* Admin blue-purple tuning */
+    :root{
+      --bg:#f2f5ff;
+      --bg-soft:#fafbff;
+      --panel:#edf2ff;
+      --panel2:#6d5efc;
+      --text:#232846;
+      --fg:#232846;
+      --muted:#6a7594;
+      --border:rgba(99,102,241,.18);
+      --accent:#5b7cff;
+      --accent2:#8b5cf6;
+      --accent3:#7dd3fc;
+      --ok:#2fa76d;
+      --warn:#d9912f;
+      --danger:#da6552;
+      --glass:rgba(255,255,255,.74);
+      --shadow:0 28px 60px rgba(79,70,229,.14);
+    }
+    body{
+      background:
+        radial-gradient(780px 420px at 8% -8%, rgba(96,165,250,.28), transparent 55%),
+        radial-gradient(760px 480px at 95% 4%, rgba(139,92,246,.18), transparent 58%),
+        linear-gradient(180deg, #f5f7ff 0%, #eef3ff 48%, #fafbff 100%);
+      color:var(--fg);
+    }
+    body::before{
+      background:rgba(91,124,255,.15);
+    }
+    body::after{
+      background:rgba(139,92,246,.14);
+    }
+    body[data-theme="dark"]{
+      --bg:#0c1020;
+      --bg-soft:#131935;
+      --panel:#131935;
+      --panel2:#7c5cff;
+      --text:#eef2ff;
+      --fg:#eef2ff;
+      --muted:#aab4d6;
+      --border:rgba(129,140,248,.18);
+      --glass:rgba(17,24,39,.78);
+      --shadow:0 28px 60px rgba(0,0,0,.42);
+      background:
+        radial-gradient(820px 500px at 8% -8%, rgba(96,165,250,.14), transparent 54%),
+        radial-gradient(740px 440px at 100% 0, rgba(139,92,246,.14), transparent 58%),
+        linear-gradient(180deg, #050816 0%, #0a1022 46%, #121935 100%);
+      color:var(--fg);
+    }
+    .sidebar{
+      background:
+        radial-gradient(240px 190px at 12% 0, rgba(255,255,255,.22), transparent 72%),
+        linear-gradient(180deg, rgba(91,124,255,.96), rgba(108,77,242,.96));
+      box-shadow:0 28px 60px rgba(78,63,196,.24);
+      color:#f7f8ff;
+    }
+    .brand{
+      background:rgba(255,255,255,.14);
+      border-color:rgba(255,255,255,.18);
+    }
+    .sidebarHint{
+      color:rgba(243,245,255,.88);
+    }
+    .nav button{
+      background:rgba(255,255,255,.12);
+      box-shadow:0 14px 28px rgba(45,35,136,.18);
+    }
+    .nav button:hover{
+      box-shadow:0 18px 30px rgba(45,35,136,.22);
+    }
+    .nav button.active{
+      background:linear-gradient(135deg, rgba(255,255,255,.24), rgba(191,219,254,.14));
+      box-shadow:0 20px 36px rgba(45,35,136,.24);
+    }
+    .navIcon,
+    .pill{
+      background:rgba(255,255,255,.18);
+    }
+    .main{
+      box-shadow:var(--shadow);
+    }
+    .topbar{
+      border-bottom:1px solid rgba(99,102,241,.14);
+      background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(243,245,255,.62));
+    }
+    .statusBubble{
+      background:rgba(91,124,255,.12);
+      color:#4858cb;
+      border:1px solid rgba(91,124,255,.2);
+    }
+    .card,
+    .dashWrap,
+    .notifPanel,
+    .notifIntro,
+    .composeWrap,
+    .studentOverviewPostDialog,
+    .sectionIntro,
+    .classCard,
+    .libraryCard{
+      border:1px solid rgba(99,102,241,.16);
+      background:rgba(255,255,255,.78);
+      box-shadow:0 20px 42px rgba(79,70,229,.1);
+    }
+    .card h3,
+    .dashHead,
+    .notifPanelHead,
+    .studentOverviewPostHead{
+      background:linear-gradient(180deg, rgba(167,139,250,.18), rgba(255,255,255,.02));
+      border-bottom:1px solid rgba(99,102,241,.14);
+    }
+    .btn,
+    .dashActionBtn,
+    .dashGhostBtn,
+    .dashOpenBtn{
+      background:#f2f4ff;
+      color:#39436f;
+      box-shadow:0 12px 22px rgba(79,70,229,.1);
+    }
+    .btn:hover,
+    .dashActionBtn:hover,
+    .dashGhostBtn:hover,
+    .dashOpenBtn:hover{
+      box-shadow:0 16px 28px rgba(79,70,229,.14);
+    }
+    .btn.primary,
+    .dashActionBtn{
+      background:linear-gradient(135deg, #5b7cff, #8b5cf6);
+      color:#f8f9ff;
+    }
+    .dashActionBtn.neutral,
+    .dashGhostBtn{
+      background:#ffffff;
+      color:var(--fg);
+    }
+    .badge,
+    .dashChip,
+    .dashWeekChip,
+    .dashKey{
+      background:#f1f3ff;
+      color:#4d5886;
+      box-shadow:inset 0 0 0 1px rgba(99,102,241,.12);
+    }
+    .badge.unread,
+    .libraryState{
+      background:rgba(91,124,255,.14);
+      color:#4256c8;
+    }
+    input,
+    textarea,
+    select,
+    .composeCheckList,
+    .notifSearch{
+      background:rgba(255,255,255,.92);
+      box-shadow:inset 0 0 0 1px rgba(99,102,241,.14);
+    }
+    input:focus,
+    textarea:focus,
+    select:focus{
+      box-shadow:inset 0 0 0 2px rgba(91,124,255,.34), 0 0 0 4px rgba(167,139,250,.14);
+    }
+    .empty,
+    .composeCheckEmpty{
+      border-color:rgba(99,102,241,.24);
+      background:rgba(243,245,255,.76);
+    }
+    .item,
+    .dashMetric,
+    .dashNotifItem,
+    .dashActionItem,
+    .notifItem,
+    .classBtn{
+      background:rgba(255,255,255,.9);
+      box-shadow:0 16px 28px rgba(79,70,229,.08);
+    }
+    .heroEyebrow{
+      background:rgba(91,124,255,.12);
+      color:#4b5dc7;
+    }
+    .heroChip{
+      background:rgba(255,255,255,.9);
+      color:#4a5788;
+      box-shadow:0 10px 20px rgba(79,70,229,.08);
+    }
+    .dashHero{
+      background:
+        radial-gradient(420px 220px at 0 0, rgba(96,165,250,.22), transparent 60%),
+        radial-gradient(320px 180px at 100% 0, rgba(167,139,250,.18), transparent 62%),
+        linear-gradient(135deg, rgba(255,255,255,.76), rgba(241,243,255,.82));
+      border:1px solid rgba(99,102,241,.16);
+      box-shadow:0 22px 42px rgba(79,70,229,.12);
+    }
+    .pillarOrbit{
+      box-shadow:0 18px 32px rgba(79,70,229,.16);
+    }
+    .pillarOrbit.curiosity{
+      background:linear-gradient(180deg, #74b7ff, #4f7cff);
+    }
+    .pillarOrbit.values{
+      background:linear-gradient(180deg, #a78bfa, #7c3aed);
+    }
+    .pillarOrbit.independence{
+      background:linear-gradient(180deg, #7dd3fc, #4f46e5);
+    }
+    .dashMetric{
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(241,243,255,.9));
+    }
+    .dashState{
+      background:#eef2ff;
+      color:#545f97;
+    }
+    .dashShortcut{
+      border-top:1px solid rgba(99,102,241,.14);
+    }
+    .composeHero{
+      background:
+        radial-gradient(320px 180px at 0 0, rgba(96,165,250,.2), transparent 62%),
+        radial-gradient(260px 160px at 100% 0, rgba(167,139,250,.14), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.82), rgba(241,243,255,.8));
+      border:1px solid rgba(99,102,241,.16);
+      box-shadow:0 18px 34px rgba(79,70,229,.1);
+    }
+    .composeCheckItem:hover{
+      background:rgba(91,124,255,.08);
+    }
+    .composeCheckItem input{
+      accent-color:#5b7cff;
+    }
+    .classBtn.active{
+      background:linear-gradient(135deg, rgba(96,165,250,.18), rgba(139,92,246,.14));
+      box-shadow:0 18px 30px rgba(79,70,229,.14);
+    }
+    .studentOverviewPostModal{
+      background:rgba(24,30,68,.42);
+    }
+    body[data-theme="dark"] .sidebar{
+      background:
+        radial-gradient(240px 190px at 12% 0, rgba(255,255,255,.08), transparent 72%),
+        linear-gradient(180deg, rgba(42,57,124,.96), rgba(85,55,179,.96));
+      box-shadow:0 28px 60px rgba(0,0,0,.34);
+    }
+    body[data-theme="dark"] .card,
+    body[data-theme="dark"] .dashWrap,
+    body[data-theme="dark"] .notifPanel,
+    body[data-theme="dark"] .notifIntro,
+    body[data-theme="dark"] .composeWrap,
+    body[data-theme="dark"] .studentOverviewPostDialog,
+    body[data-theme="dark"] .main,
+    body[data-theme="dark"] .topbar,
+    body[data-theme="dark"] .item,
+    body[data-theme="dark"] .dashMetric,
+    body[data-theme="dark"] .dashNotifItem,
+    body[data-theme="dark"] .dashActionItem,
+    body[data-theme="dark"] .notifItem,
+    body[data-theme="dark"] .classBtn,
+    body[data-theme="dark"] .classCard,
+    body[data-theme="dark"] .libraryCard,
+    body[data-theme="dark"] .sectionIntro,
+    body[data-theme="dark"] .dashHero,
+    body[data-theme="dark"] .composeHero{
+      background:rgba(19,27,54,.88);
+      box-shadow:0 18px 34px rgba(0,0,0,.24);
+    }
+    body[data-theme="dark"] .card h3,
+    body[data-theme="dark"] .dashHead,
+    body[data-theme="dark"] .notifPanelHead,
+    body[data-theme="dark"] .studentOverviewPostHead{
+      background:linear-gradient(180deg, rgba(91,124,255,.2), rgba(19,27,54,.3));
+      border-bottom-color:rgba(129,140,248,.18);
+    }
+    body[data-theme="dark"] .statusBubble,
+    body[data-theme="dark"] .heroEyebrow{
+      background:rgba(91,124,255,.18);
+      color:#dce5ff;
+      border-color:rgba(129,140,248,.28);
+    }
+    body[data-theme="dark"] .heroChip,
+    body[data-theme="dark"] .badge,
+    body[data-theme="dark"] .dashChip,
+    body[data-theme="dark"] .dashWeekChip,
+    body[data-theme="dark"] .dashKey{
+      background:rgba(29,40,77,.88);
+      color:#d7ddff;
+      box-shadow:inset 0 0 0 1px rgba(129,140,248,.14);
+    }
+    body[data-theme="dark"] .btn,
+    body[data-theme="dark"] .dashGhostBtn,
+    body[data-theme="dark"] .dashOpenBtn{
+      background:rgba(28,39,74,.94);
+      color:#eef2ff;
+    }
+    body[data-theme="dark"] .btn.primary,
+    body[data-theme="dark"] .dashActionBtn{
+      background:linear-gradient(135deg, #5b7cff, #8b5cf6);
+      color:#f8f9ff;
+    }
+    body[data-theme="dark"] input,
+    body[data-theme="dark"] textarea,
+    body[data-theme="dark"] select,
+    body[data-theme="dark"] .composeCheckList,
+    body[data-theme="dark"] .notifSearch{
+      background:rgba(17,24,39,.92);
+      border-color:rgba(129,140,248,.18);
+      color:#eef2ff;
+      box-shadow:inset 0 0 0 1px rgba(129,140,248,.14);
+    }
+    body[data-theme="dark"] .empty,
+    body[data-theme="dark"] .composeCheckEmpty{
+      background:rgba(22,32,60,.76);
+      color:#b9c4ea;
+      border-color:rgba(129,140,248,.22);
+    }
+    body[data-theme="dark"] .libraryState,
+    body[data-theme="dark"] .badge.unread{
+      background:rgba(91,124,255,.22);
+      color:#deebff;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -1938,7 +2271,7 @@
         </div>
         <div class="brandOrbit">💎</div>
       </div>
-      <p class="sidebarHint">Správa šablon, tříd, portfolií a odpovědí v teplejším vizuálním stylu navázaném na dětskou aplikaci.</p>
+      <p class="sidebarHint">Správa šablon, tříd, portfolií a odpovědí v modro-fialovém vizuálním stylu navázaném na dětskou aplikaci.</p>
       <div class="nav" id="nav">
         <button class="active" data-view="dashboard" title="Dashboard" aria-label="Dashboard"><span class="navItem"><span class="navIcon">🏠</span><span class="navText"><strong>Nástěnka</strong><small>Dnešní přehled</small></span></span><span class="pill" id="pillDay">..</span></button>
         <button data-view="newTemplate" title="Nová šablona" aria-label="Nová šablona"><span class="navItem"><span class="navIcon">📝</span><span class="navText"><strong>Nová šablona</strong><small>Vytvoření zadání</small></span></span><span class="pill">Form</span></button>
@@ -2176,20 +2509,20 @@
   }
 
   const CATEGORY_EMOJI_MAP = {
-    matematika: "🧮",
-    cestina: "📚",
-    ceskyjazyk: "📚",
-    "cesky-jazyk": "📚",
-    anglictina: "🌐",
-    samorost: "🌱",
+    matematika: "🧮 Matematika",
+    cestina: "📚 Cestina",
+    ceskyjazyk: "📚 Český jazyk",
+    "cesky-jazyk": "📚 Český jazyk",
+    anglictina: "🌐 Angličtina",
+    samorost: "🌱 Samorost",
     vlastni: "✨",
-    zvdavost: "💡",
-    zvidavost: "💡",
-    zvedavost: "💡",
-    hodnoty: "❤️",
-    moralnihodnoty: "❤️",
-    "moralni-hodnoty": "❤️",
-    samostatnost: "💪"
+    zvdavost: "💡 Zvídavost",
+    zvidavost: "💡 Zvídavost",
+    zvedavost: "💡 Zvídavost",
+    hodnoty: "❤️ Hodnoty",
+    moralnihodnoty: "❤️ Hodnoty",
+    "moralni-hodnoty": "❤️ Hodnoty",
+    samostatnost: "💪 Samostatnost"
   };
 
   function formatCategoryEmoji(value) {
@@ -2230,9 +2563,9 @@
       '<p class="composeLead">Vyplň anotaci, očekávaný výstup, pilíře a příjemce. Odeslání založí assignment všem vybraným žákům a třídám bez změny současné logiky aplikace.</p>' +
       '</div>' +
       '<div class="composeBadgeRow">' +
-      '<span class="heroChip">💡 Zvídavost</span>' +
-      '<span class="heroChip">❤️ Hodnoty</span>' +
-      '<span class="heroChip">💪 Samostatnost</span>' +
+      '<span class="heroChip">💡 Zvídavost Zvídavost</span>' +
+      '<span class="heroChip">❤️ Hodnoty Hodnoty</span>' +
+      '<span class="heroChip">💪 Samostatnost Samostatnost</span>' +
       '<span class="heroChip">👥 ' + String(students.length) + ' žáků</span>' +
       '<span class="heroChip">🏫 ' + String(classes.length) + ' tříd</span>' +
       '</div>' +
@@ -2260,7 +2593,7 @@
       defaultSubjects.map(function (subject, index) {
         const checked = index === 0 ? ' checked' : '';
         const subjectEmoji = formatCategoryEmoji(subject);
-        return '<label class="composeCheckItem"><input class="tpl-subject" type="checkbox" value="' + esc(subject) + '"' + checked + '><span title="' + esc(subject) + '">' + esc(subjectEmoji) + '</span></label>';
+        return '<label class="composeCheckItem"><input class="tpl-subject" type="checkbox" value="' + esc(subject) + '"' + checked + '><span class="composeCheckLabel" title="' + esc(subject) + '"><span class="composeCheckEmoji">' + esc(subjectEmoji) + '</span><span class="composeCheckText">' + esc(subject) + '</span></span></label>';
       }).join("") +
       '</div>' +
       '<input id="tplSubjectsCustom" type="text" placeholder="Vlastní předměty odděl čárkou">' +
@@ -2272,7 +2605,7 @@
       pillars.map(function (pillar) {
         const checked = pillar === "Zvídavost" ? ' checked' : '';
         const pillarEmoji = formatCategoryEmoji(pillar);
-        return '<label class="composeCheckItem"><input class="tpl-pillar" type="checkbox" value="' + esc(pillar) + '"' + checked + '><span title="' + esc(pillar) + '">' + esc(pillarEmoji) + '</span></label>';
+        return '<label class="composeCheckItem"><input class="tpl-pillar" type="checkbox" value="' + esc(pillar) + '"' + checked + '><span class="composeCheckLabel" title="' + esc(pillar) + '"><span class="composeCheckEmoji">' + esc(pillarEmoji) + '</span><span class="composeCheckText">' + esc(pillar) + '</span></span></label>';
       }).join("") +
       '</div>' +
       '<p class="composeHint">Můžeš vybrat více pilířů.</p>' +
