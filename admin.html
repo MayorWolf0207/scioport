@@ -4150,6 +4150,32 @@
     return "Neznámý žák";
   }
 
+  function formatStudentFillCount(count) {
+    const value = Number(count) || 0;
+    if (value === 1) {
+      return "1 dítě";
+    }
+    if (value >= 2 && value <= 4) {
+      return String(value) + " děti";
+    }
+    return String(value) + " dětí";
+  }
+
+  function renderStudentLabelChips(labels, maxVisible, chipClassName) {
+    const items = Array.isArray(labels) ? labels.filter(Boolean) : [];
+    const chipClass = chipClassName || "dashChip";
+    const limit = Number.isFinite(maxVisible) && maxVisible > 0 ? Math.max(1, Math.floor(maxVisible)) : items.length;
+    const visible = items.slice(0, limit);
+    const parts = visible.map(function (label) {
+      return '<span class="' + esc(chipClass) + '">' + esc(label) + '</span>';
+    });
+    const remaining = items.length - visible.length;
+    if (remaining > 0) {
+      parts.push('<span class="' + esc(chipClass) + '">+' + String(remaining) + ' dalších</span>');
+    }
+    return parts.join("");
+  }
+
   function pickMostFrequentLabel(sourceValues, fallback) {
     const counts = new Map();
     (Array.isArray(sourceValues) ? sourceValues : []).forEach(function (value) {
@@ -4279,10 +4305,6 @@
       return toMillis(group && group.createdAtMillis ? group.createdAtMillis : 0) >= weekStartMillis;
     }).length;
 
-    const unreadNotificationsTotal = responsesNormalized.reduce(function (sum, item) {
-      return sum + (seenSet.has(item.responseKey) ? 0 : 1);
-    }, 0);
-
     const pillarCandidatesFromResponses = [];
     responsesNormalized.forEach(function (item) {
       (Array.isArray(item.pillars) ? item.pillars : []).forEach(function (pillar) {
@@ -4320,18 +4342,11 @@
       "—"
     );
 
-    const notifications = responsesNormalized.slice(0, 4).map(function (item) {
-      const studentLabel = resolveStudentLabelFromEmail(item.userEmail, studentByEmail);
-      const unread = !seenSet.has(item.responseKey);
-      return {
-        responseKey: item.responseKey,
-        templateId: item.templateId,
-        templateTitle: item.templateTitle,
-        studentLabel: studentLabel,
-        dateLabel: formatDateTime(item.updatedAtMillis),
-        unread: unread
-      };
-    });
+    const notificationEntries = buildNotificationEntries(safeTemplates, responsesNormalized, seenSet);
+    const unreadNotificationsTotal = notificationEntries.reduce(function (sum, item) {
+      return sum + (item && item.unread ? 1 : 0);
+    }, 0);
+    const notifications = notificationEntries.slice(0, 4);
 
     return {
       weekStartMillis: weekStartMillis,
@@ -4435,19 +4450,20 @@
           items.map(function (item) {
             const statusLabel = item.unread ? "Nepřečteno" : "Přečteno";
             const statusClass = item.unread ? "dashState" : "dashState read";
+            const studentChips = renderStudentLabelChips(item.studentLabels, 4, "dashChip");
             return (
               '<article class="dashNotifItem">' +
               '<div>' +
-              '<p class="dashNotifTitle">Dítě vyplnilo šablonu: „' + esc(item.templateTitle) + '“.</p>' +
+              '<p class="dashNotifTitle">Šablonu „' + esc(item.templateTitle) + '“ vyplnilo ' + esc(formatStudentFillCount(item.studentCount)) + '.</p>' +
               '<div class="dashChips">' +
-              '<span class="dashChip">' + esc(item.studentLabel) + '</span>' +
+              studentChips +
               '<span class="dashChip">' + esc(item.templateTitle) + '</span>' +
               (item.dateLabel ? '<span class="dashChip">' + esc(item.dateLabel) + '</span>' : '') +
               '</div>' +
               '</div>' +
               '<div class="row">' +
               '<span class="' + statusClass + '">' + statusLabel + '</span>' +
-              '<button class="dashOpenBtn dashNotifOpen" type="button" data-response-key="' + esc(item.responseKey) + '" data-template-id="' + esc(item.templateId) + '">Otevřít</button>' +
+              '<button class="dashOpenBtn dashNotifOpen" type="button" data-notification-key="' + esc(item.notificationKey) + '" data-template-id="' + esc(item.templateId) + '">Otevřít</button>' +
               '</div>' +
               '</article>'
             );
@@ -4531,7 +4547,7 @@
       const unreadKeys = new Set(
         (Array.isArray(stats && stats.notifications) ? stats.notifications : [])
           .filter(function (item) { return item && item.unread; })
-          .map(function (item) { return String(item.responseKey || "").trim(); })
+          .map(function (item) { return String(item.notificationKey || "").trim(); })
           .filter(Boolean)
       );
       let nextValue = Number(stats && stats.unreadNotificationsTotal ? stats.unreadNotificationsTotal : 0) || 0;
@@ -4549,11 +4565,11 @@
     const goNotifications = $("#dashOpenNotifications");
     if (goNotifications) {
       goNotifications.addEventListener("click", function () {
-        const responseKeys = Array.isArray(stats && stats.notifications)
-          ? stats.notifications.map(function (item) { return item.responseKey; }).filter(Boolean)
+        const notificationKeys = Array.isArray(stats && stats.notifications)
+          ? stats.notifications.map(function (item) { return item.notificationKey; }).filter(Boolean)
           : [];
-        markDashboardNotificationsSeen(responseKeys);
-        updateUnreadPillAfterMark(responseKeys);
+        markDashboardNotificationsSeen(notificationKeys);
+        updateUnreadPillAfterMark(notificationKeys);
         setView("notifications");
       });
     }
@@ -4562,10 +4578,10 @@
     for (let i = 0; i < notifButtons.length; i += 1) {
       const button = notifButtons[i];
       button.addEventListener("click", function () {
-        const responseKey = String(button.dataset && button.dataset.responseKey ? button.dataset.responseKey : "").trim();
-        if (responseKey) {
-          markDashboardNotificationsSeen([responseKey]);
-          updateUnreadPillAfterMark([responseKey]);
+        const notificationKey = String(button.dataset && button.dataset.notificationKey ? button.dataset.notificationKey : "").trim();
+        if (notificationKey) {
+          markDashboardNotificationsSeen([notificationKey]);
+          updateUnreadPillAfterMark([notificationKey]);
         }
         setView("myTemplates");
       });
@@ -4661,7 +4677,7 @@
       }
     });
 
-    const entries = sourceResponses.map(function (response) {
+    const normalizedResponses = sourceResponses.map(function (response) {
       const templateId = String(response && response.templateId ? response.templateId : "").trim();
       const fallbackTitle = templateId ? templateTitleById.get(templateId) : "";
       const templateTitle = String(response && response.templateTitle ? response.templateTitle : "").trim() || fallbackTitle || "Bez názvu";
@@ -4669,17 +4685,83 @@
       const updatedAtMillis = toMillis(response && response.updatedAtMillis ? response.updatedAtMillis : 0);
       const responseKey = String(response && response.responseKey ? response.responseKey : "").trim()
         || [userEmail || "user", templateId || "template", String(updatedAtMillis || 0)].join("|");
-      const studentLabel = resolveStudentLabelFromEmail(userEmail, studentByEmail);
-      const dateLabel = formatDateTime(updatedAtMillis);
-      const unread = !seen.has(responseKey);
-      const searchText = normalizeSearchText(studentLabel + " " + templateTitle + " " + dateLabel);
       return {
         responseKey: responseKey,
         templateId: templateId,
         templateTitle: templateTitle,
-        studentLabel: studentLabel,
+        userEmail: userEmail,
+        updatedAtMillis: updatedAtMillis,
+        studentLabel: resolveStudentLabelFromEmail(userEmail, studentByEmail)
+      };
+    });
+
+    normalizedResponses.sort(function (a, b) {
+      return (b.updatedAtMillis || 0) - (a.updatedAtMillis || 0);
+    });
+
+    const grouped = new Map();
+    normalizedResponses.forEach(function (item) {
+      const templateId = String(item && item.templateId ? item.templateId : "").trim();
+      const templateTitle = String(item && item.templateTitle ? item.templateTitle : "").trim() || "Bez názvu";
+      const fallbackGroupKey = normalizeCategorySlug(templateTitle) || String(item && item.responseKey ? item.responseKey : "").trim() || "template";
+      const groupKey = templateId ? "template|" + templateId : "title|" + fallbackGroupKey;
+      let entry = grouped.get(groupKey);
+
+      if (!entry) {
+        entry = {
+          groupKey: groupKey,
+          templateId: templateId,
+          templateTitle: templateTitle,
+          updatedAtMillis: 0,
+          latestResponseKey: "",
+          responseKeys: [],
+          studentLabels: [],
+          studentLabelSet: new Set()
+        };
+        grouped.set(groupKey, entry);
+      }
+
+      const updatedAtMillis = toMillis(item && item.updatedAtMillis ? item.updatedAtMillis : 0);
+      if (updatedAtMillis >= (entry.updatedAtMillis || 0)) {
+        entry.updatedAtMillis = updatedAtMillis;
+        entry.latestResponseKey = String(item && item.responseKey ? item.responseKey : "").trim();
+        if (!entry.templateTitle && templateTitle) {
+          entry.templateTitle = templateTitle;
+        }
+      }
+
+      const responseKey = String(item && item.responseKey ? item.responseKey : "").trim();
+      if (responseKey && entry.responseKeys.indexOf(responseKey) < 0) {
+        entry.responseKeys.push(responseKey);
+      }
+
+      const studentLabel = String(item && item.studentLabel ? item.studentLabel : "").trim() || "Neznámý žák";
+      const studentKey = normalizeSearchText(studentLabel);
+      if (studentKey && !entry.studentLabelSet.has(studentKey)) {
+        entry.studentLabelSet.add(studentKey);
+        entry.studentLabels.push(studentLabel);
+      }
+    });
+
+    const entries = Array.from(grouped.values()).map(function (entry) {
+      const updatedAtMillis = toMillis(entry.updatedAtMillis || 0);
+      const notificationKey = [entry.groupKey, String(updatedAtMillis || 0)].join("|");
+      const dateLabel = formatDateTime(updatedAtMillis);
+      const studentLabels = Array.isArray(entry.studentLabels) ? entry.studentLabels.slice() : [];
+      const searchText = normalizeSearchText(
+        String(entry.templateTitle || "") + " " + studentLabels.join(" ") + " " + String(dateLabel || "")
+      );
+      return {
+        notificationKey: notificationKey,
+        responseKey: notificationKey,
+        latestResponseKey: String(entry.latestResponseKey || "").trim(),
+        responseKeys: Array.isArray(entry.responseKeys) ? entry.responseKeys.slice() : [],
+        templateId: String(entry.templateId || "").trim(),
+        templateTitle: String(entry.templateTitle || "").trim() || "Bez názvu",
+        studentLabels: studentLabels,
+        studentCount: studentLabels.length,
         dateLabel: dateLabel,
-        unread: unread,
+        unread: !seen.has(notificationKey),
         updatedAtMillis: updatedAtMillis,
         searchText: searchText
       };
@@ -4700,7 +4782,7 @@
       '<section class="notifIntro">' +
       '<div>' +
       '<h3 class="notifIntroTitle">Notifikace</h3>' +
-      '<p class="notifIntroSub">Zde vidíš, kdo co vyplnil. Kliknutím otevřeš detail.</p>' +
+      '<p class="notifIntroSub">Notifikace jsou seskupené po šablonách. U každé vidíš seznam žáků, kteří ji už vyplnili.</p>' +
       '</div>' +
       '<div class="notifIntroActions">' +
       '<span class="notifShortcut">🔔 Zobrazit <span class="dashKey">N</span></span>' +
@@ -4716,7 +4798,7 @@
     return (
       '<section class="notifPanel">' +
       '<div class="notifPanelHead">' +
-      '<div><strong class="notifPanelTitle">Notifikace</strong><span class="notifPanelHint">klikni pro detail</span></div>' +
+      '<div><strong class="notifPanelTitle">Notifikace</strong><span class="notifPanelHint">jedna notifikace pro jednu šablonu</span></div>' +
       '<div class="notifPanelControls">' +
       '<input id="notifSearch" class="notifSearch" type="text" placeholder="Hledat...">' +
       '<button class="dashGhostBtn" id="notifMarkAllRead" type="button">Označit vše jako přečtené</button>' +
@@ -4727,19 +4809,20 @@
           items.map(function (item) {
             const stateLabel = item.unread ? "Nepřečteno" : "Přečteno";
             const stateClass = item.unread ? "dashState" : "dashState read";
+            const studentChips = renderStudentLabelChips(item.studentLabels, item.studentLabels.length, "dashChip");
             return (
               '<article class="notifItem" data-search="' + esc(item.searchText) + '">' +
               '<div>' +
-              '<p class="notifItemTitle">Dítě vyplnilo šablonu: „' + esc(item.templateTitle) + '“.</p>' +
+              '<p class="notifItemTitle">Šablonu „' + esc(item.templateTitle) + '“ vyplnilo ' + esc(formatStudentFillCount(item.studentCount)) + '.</p>' +
               '<div class="dashChips">' +
-              '<span class="dashChip">' + esc(item.studentLabel) + '</span>' +
+              studentChips +
               '<span class="dashChip">' + esc(item.templateTitle) + '</span>' +
               (item.dateLabel ? '<span class="dashChip">' + esc(item.dateLabel) + '</span>' : '') +
               '</div>' +
               '</div>' +
               '<div class="row">' +
               '<span class="' + stateClass + '">' + stateLabel + '</span>' +
-              '<button class="dashOpenBtn notifOpen" type="button" data-response-key="' + esc(item.responseKey) + '" data-template-id="' + esc(item.templateId) + '">Otevřít</button>' +
+              '<button class="dashOpenBtn notifOpen" type="button" data-notification-key="' + esc(item.notificationKey) + '" data-template-id="' + esc(item.templateId) + '">Otevřít</button>' +
               '</div>' +
               '</article>'
             );
@@ -4797,7 +4880,7 @@
         const unreadKeys = (Array.isArray(entries) ? entries : []).filter(function (item) {
           return item && item.unread;
         }).map(function (item) {
-          return String(item.responseKey || "").trim();
+          return String(item.notificationKey || "").trim();
         }).filter(Boolean);
 
         if (!unreadKeys.length) {
@@ -4821,9 +4904,9 @@
     for (let i = 0; i < openButtons.length; i += 1) {
       const button = openButtons[i];
       button.addEventListener("click", function () {
-        const responseKey = String(button.dataset && button.dataset.responseKey ? button.dataset.responseKey : "").trim();
-        if (responseKey) {
-          markDashboardNotificationsSeen([responseKey]);
+        const notificationKey = String(button.dataset && button.dataset.notificationKey ? button.dataset.notificationKey : "").trim();
+        if (notificationKey) {
+          markDashboardNotificationsSeen([notificationKey]);
         }
         setView("myTemplates");
       });
@@ -5488,5 +5571,3 @@
 </script>
 </body>
 </html>
-
-
