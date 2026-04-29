@@ -2531,7 +2531,6 @@
         <button data-view="newTemplate" title="Nová šablona" aria-label="Nová šablona"><span class="navItem"><span class="navIcon">📝</span><span class="navText"><strong>Nová šablona</strong><small>Vytvoření zadání</small></span></span><span class="pill">Form</span></button>
         <button data-view="myTemplates" title="Moje šablony" aria-label="Moje šablony"><span class="navItem"><span class="navIcon">🗂️</span><span class="navText"><strong>Moje šablony</strong><small>Historie odeslání</small></span></span><span class="pill" id="pillTemplates">0</span></button>
         <button data-view="classes" title="Třídy" aria-label="Třídy"><span class="navItem"><span class="navIcon">👥</span><span class="navText"><strong>Třídy</strong><small>Skupiny a roster</small></span></span><span class="pill" id="pillClasses">0</span></button>
-        <button data-view="newClass" title="Nová třída" aria-label="Nová třída"><span class="navItem"><span class="navIcon">➕👥</span><span class="navText"><strong>Nová třída</strong><small>Vytvoření třídy</small></span></span><span class="pill">New</span></button>
         <button data-view="studentOverview" title="Přehled dítěte" aria-label="Přehled dítěte"><span class="navItem"><span class="navIcon">🔎</span><span class="navText"><strong>Přehled dítěte</strong><small>Portfolio a komentáře</small></span></span><span class="pill">Search</span></button>
         <button data-view="notifications" title="Notifikace" aria-label="Notifikace"><span class="navItem"><span class="navIcon">🔔</span><span class="navText"><strong>Notifikace</strong><small>Nové reakce dětí</small></span></span><span class="pill" id="pillUnread">0</span></button>
       </div>
@@ -4598,12 +4597,49 @@
       return sum + (group && group.studentCount ? group.studentCount : 0);
     }, 0);
 
+    const createClassForm = (
+      '<div class="card hidden" id="createClassFormCard" style="margin-top:16px">' +
+      '<h3>Vytvořit novou třídu</h3>' +
+      '<div class="cardBody">' +
+      '<div class="composeWrap">' +
+      '<div class="composeGrid">' +
+      '<div class="composeCol12">' +
+      '<label for="newClassName">Název třídy</label>' +
+      '<input id="newClassName" type="text" placeholder="Např. 1.A, Matematika 9, Angličtina 2024" maxlength="100" required>' +
+      '<div class="composeHint">Zadej jedinečný název pro třídu, kterou chceš vytvořit.</div>' +
+      '</div>' +
+      '<div class="composeCol12">' +
+      '<label for="newClassDescription">Popis (volitelné)</label>' +
+      '<textarea id="newClassDescription" placeholder="Popis třídy nebo skupiny…" maxlength="500"></textarea>' +
+      '<div class="composeHint">Přidej poznámku k třídě.</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="composeActions">' +
+      '<button class="btn" id="cancelNewClass" type="button">Zrušit</button>' +
+      '<button class="btn primary" id="submitNewClass" type="button">✅ Vytvořit třídu</button>' +
+      '</div>' +
+      '<p class="hint" id="newClassStatus"></p>' +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+
+    const addClassButton = (
+      '<div class="card" style="margin-top:16px">' +
+      '<div class="cardBody" style="text-align:center;padding:20px">' +
+      '<button class="btn primary" id="showCreateClassForm" type="button" style="padding:12px 20px;font-size:16px">➕ Přidat novou třídu</button>' +
+      '</div>' +
+      '</div>'
+    );
+
     if (!classGroups.length) {
       return (
         '<div class="card">' +
         '<h3>Třídy</h3>' +
         '<div class="cardBody empty">Zatím nejsou přiřazené žádné třídy ani žáci.</div>' +
-        '</div>'
+        '</div>' +
+        addClassButton +
+        createClassForm
       );
     }
 
@@ -4639,7 +4675,9 @@
           '</article>'
         );
       }).join("") +
-      '</div>'
+      '</div>' +
+      addClassButton +
+      createClassForm
     );
   }
 
@@ -4679,6 +4717,7 @@
       return;
     }
     content.innerHTML = renderClassesList(groups);
+    bindNewClassEvents();
     bindClassesEvents();
   }
 
@@ -6431,53 +6470,50 @@
     }
   }
 
-  function renderNewClassView() {
-    const content = $("#content");
-    if (!content) {
-      return;
-    }
 
-    content.innerHTML =
-      '<div class="card">' +
-      '<h3>Vytvoř novou třídu</h3>' +
-      '<div class="cardBody">' +
-      '<div class="composeWrap" id="newClassForm">' +
-      '<div class="composeGrid">' +
-      '<div class="composeCol12">' +
-      '<label for="newClassName">Název třídy</label>' +
-      '<input id="newClassName" type="text" placeholder="Např. 1.A, Matematika 9, Angličtina 2024" maxlength="100" required>' +
-      '<div class="composeHint">Zadej jedinečný název pro třídu, kterou chceš vytvořit.</div>' +
-      '</div>' +
-      '<div class="composeCol12">' +
-      '<label for="newClassDescription">Popis (volitelné)</label>' +
-      '<textarea id="newClassDescription" placeholder="Popis třídy nebo skupiny…" maxlength="500"></textarea>' +
-      '<div class="composeHint">Přidej poznámku k třídě.</div>' +
-      '</div>' +
-      '</div>' +
-      '<div class="composeActions">' +
-      '<button class="btn" id="cancelNewClass" type="button">Zrušit</button>' +
-      '<button class="btn primary" id="submitNewClass" type="button">✅ Vytvořit třídu</button>' +
-      '</div>' +
-      '<p class="hint" id="newClassStatus"></p>' +
-      '</div>' +
-      '</div>' +
-      '</div>';
-
-    bindNewClassEvents();
-  }
 
   function bindNewClassEvents() {
-    const cancelBtn = $("#cancelNewClass");
-    if (cancelBtn) {
-      cancelBtn.addEventListener("click", function () {
-        setView("classes");
-      });
-    }
-
     const submitBtn = $("#submitNewClass");
     if (submitBtn) {
       submitBtn.addEventListener("click", function () {
         handleNewClassSubmit();
+      });
+    }
+
+    const cancelBtn = $("#cancelNewClass");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", function () {
+        const formCard = $("#createClassFormCard");
+        if (formCard) {
+          formCard.classList.add("hidden");
+        }
+        const nameInput = $("#newClassName");
+        if (nameInput) {
+          nameInput.value = "";
+        }
+        const descInput = $("#newClassDescription");
+        if (descInput) {
+          descInput.value = "";
+        }
+        const statusEl = $("#newClassStatus");
+        if (statusEl) {
+          statusEl.textContent = "";
+          statusEl.classList.remove("error");
+        }
+      });
+    }
+
+    const showFormBtn = $("#showCreateClassForm");
+    if (showFormBtn) {
+      showFormBtn.addEventListener("click", function () {
+        const formCard = $("#createClassFormCard");
+        if (formCard) {
+          formCard.classList.remove("hidden");
+          const nameInput = $("#newClassName");
+          if (nameInput) {
+            nameInput.focus();
+          }
+        }
       });
     }
 
@@ -6526,9 +6562,12 @@
       if (descInput) {
         descInput.value = "";
       }
+      const formCard = $("#createClassFormCard");
+      if (formCard) {
+        formCard.classList.add("hidden");
+      }
       classesSelectedClassName = className;
       await renderClassesView();
-      setView("classes");
     } catch (error) {
       console.error("Create class failed:", error);
       const message = error && error.message ? error.message : "Nepodařilo se vytvořit třídu.";
@@ -6601,12 +6640,6 @@
     if (currentView === "classes") {
       setHeader("Třídy", "Otevři třídu a spravuj přiřazené žáky.");
       renderClassesView();
-      return;
-    }
-
-    if (currentView === "newClass") {
-      setHeader("Nová třída", "Vytvoř novou třídu.");
-      renderNewClassView();
       return;
     }
 
