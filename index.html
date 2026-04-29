@@ -1331,8 +1331,22 @@
             if (!text) {
                 return;
             }
+
+            const appendTextWithLineBreaks = (value) => {
+                const normalized = String(value || '');
+                const lines = normalized.split(/\r?\n/);
+                lines.forEach((line, index) => {
+                    if (index > 0) {
+                        container.appendChild(document.createElement('br'));
+                    }
+                    if (line) {
+                        container.appendChild(document.createTextNode(line));
+                    }
+                });
+            };
+
             if (!EMOJI_CODE_PATTERN) {
-                container.appendChild(document.createTextNode(text));
+                appendTextWithLineBreaks(text);
                 return;
             }
             EMOJI_CODE_PATTERN.lastIndex = 0;
@@ -1348,7 +1362,7 @@
                         return;
                     }
                 }
-                container.appendChild(document.createTextNode(part));
+                appendTextWithLineBreaks(part);
             });
         }
 
@@ -1848,6 +1862,19 @@
                 return trimmed.filter(segment => segment.text.length > 0);
             }
 
+            function trimTrailingWhitespace(segments) {
+                if (!segments.length) {
+                    return [];
+                }
+                const trimmed = segments.map(segment => ({ ...segment }));
+                const lastIndex = trimmed.length - 1;
+                const last = trimmed[lastIndex];
+                if (last && last.type === 'text') {
+                    last.text = last.text.replace(/\s+$/, '');
+                }
+                return trimmed.filter(segment => segment.text.length > 0);
+            }
+
             function trimLeadingSeparator(segments) {
                 if (!segments.length) {
                     return [];
@@ -1855,7 +1882,16 @@
                 const trimmed = segments.map(segment => ({ ...segment }));
                 const first = trimmed[0];
                 if (first && first.type === 'text') {
-                    first.text = first.text.replace(/^[\s\-:]+/, '');
+                    if (/^\r\n/.test(first.text)) {
+                        first.text = first.text.slice(2);
+                    } else if (/^[\r\n]/.test(first.text)) {
+                        first.text = first.text.slice(1);
+                    } else {
+                        const match = first.text.match(/^[\s\-:]+/);
+                        if (match) {
+                            first.text = first.text.slice(match[0].length);
+                        }
+                    }
                 }
                 return trimmed.filter(segment => segment.text.length > 0);
             }
@@ -1941,7 +1977,7 @@
                 const splitIndex = splitIndexTrimmed + leadingOffset;
                 const split = splitSegments(segments, splitIndex);
                 const titleSegments = trimSegments(split.titleSegments);
-                const descSegments = trimLeadingSeparator(trimSegments(split.descSegments));
+                const descSegments = trimTrailingWhitespace(trimLeadingSeparator(split.descSegments));
                 if (!segmentsToText(descSegments).trim()) {
                     return {
                         titleSegments: trimSegments(segments),
