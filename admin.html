@@ -2255,6 +2255,189 @@
       background:rgba(91,124,255,.22);
       color:#deebff;
     }
+    .templatePreviewModal{
+      position:fixed;
+      inset:0;
+      z-index:130;
+      background:rgba(24,30,68,.44);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      backdrop-filter:blur(8px);
+    }
+    .templatePreviewDialog{
+      width:min(940px,100%);
+      max-height:min(92vh,960px);
+      border-radius:30px;
+      border:1px solid rgba(99,102,241,.16);
+      background:rgba(255,255,255,.9);
+      box-shadow:0 28px 60px rgba(79,70,229,.18);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .templatePreviewHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      padding:18px 20px;
+      border-bottom:1px solid rgba(99,102,241,.14);
+      background:linear-gradient(180deg, rgba(167,139,250,.16), rgba(255,255,255,.06));
+    }
+    .templatePreviewHeadLabel{
+      margin:0 0 6px;
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .templatePreviewHead h3{
+      margin:0;
+      font-size:26px;
+      line-height:1.08;
+    }
+    .templatePreviewBody{
+      padding:20px;
+      overflow:auto;
+      display:grid;
+      gap:16px;
+    }
+    .templatePreviewHero,
+    .templatePreviewSection{
+      border:1px solid rgba(99,102,241,.14);
+      border-radius:26px;
+      background:rgba(255,255,255,.8);
+      box-shadow:0 16px 28px rgba(79,70,229,.08);
+    }
+    .templatePreviewHero{
+      padding:20px;
+      background:
+        radial-gradient(320px 160px at 0 0, rgba(96,165,250,.18), transparent 62%),
+        radial-gradient(240px 140px at 100% 0, rgba(167,139,250,.14), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.84), rgba(241,243,255,.8));
+    }
+    .templatePreviewEyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin:0 0 10px;
+      padding:7px 12px;
+      border-radius:999px;
+      background:rgba(91,124,255,.12);
+      color:#4b5dc7;
+      font-size:12px;
+    }
+    .templatePreviewHeroTitle{
+      margin:0;
+      font-size:34px;
+      line-height:1.02;
+      letter-spacing:-.03em;
+      color:var(--fg);
+    }
+    .templatePreviewHeroText{
+      margin:12px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+      max-width:720px;
+    }
+    .templatePreviewMeta,
+    .templatePreviewRecipients{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .templatePreviewMeta{
+      margin-top:14px;
+    }
+    .templatePreviewGrid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+    .templatePreviewSection{
+      padding:18px;
+    }
+    .templatePreviewSection h4{
+      margin:0 0 10px;
+      font-size:18px;
+      line-height:1.15;
+      color:var(--fg);
+    }
+    .templatePreviewText{
+      margin:0;
+      font-size:14px;
+      line-height:1.6;
+      color:var(--fg);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .templatePreviewHint{
+      margin:0 0 12px;
+      font-size:13px;
+      line-height:1.5;
+      color:var(--muted);
+    }
+    body[data-theme="dark"] .templatePreviewModal{
+      background:rgba(6,10,22,.62);
+    }
+    body[data-theme="dark"] .templatePreviewDialog{
+      border-color:rgba(129,140,248,.18);
+      background:rgba(19,27,54,.94);
+      box-shadow:0 28px 60px rgba(0,0,0,.34);
+    }
+    body[data-theme="dark"] .templatePreviewHead{
+      border-bottom-color:rgba(129,140,248,.18);
+      background:linear-gradient(180deg, rgba(91,124,255,.2), rgba(19,27,54,.3));
+    }
+    body[data-theme="dark"] .templatePreviewHero,
+    body[data-theme="dark"] .templatePreviewSection{
+      border-color:rgba(129,140,248,.16);
+      background:rgba(22,32,60,.82);
+      box-shadow:0 16px 28px rgba(0,0,0,.2);
+    }
+    body[data-theme="dark"] .templatePreviewHero{
+      background:
+        radial-gradient(320px 160px at 0 0, rgba(96,165,250,.16), transparent 62%),
+        radial-gradient(240px 140px at 100% 0, rgba(167,139,250,.12), transparent 60%),
+        linear-gradient(135deg, rgba(19,27,54,.96), rgba(24,34,67,.94));
+    }
+    body[data-theme="dark"] .templatePreviewEyebrow{
+      background:rgba(91,124,255,.18);
+      color:#dce5ff;
+    }
+    body[data-theme="dark"] .templatePreviewHeadLabel,
+    body[data-theme="dark"] .templatePreviewHeroText,
+    body[data-theme="dark"] .templatePreviewHint{
+      color:#aab4d6;
+    }
+    body[data-theme="dark"] .templatePreviewHeroTitle,
+    body[data-theme="dark"] .templatePreviewSection h4,
+    body[data-theme="dark"] .templatePreviewText{
+      color:#eef2ff;
+    }
+    @media (max-width:760px){
+      .templatePreviewModal{
+        padding:10px;
+      }
+      .templatePreviewGrid{
+        grid-template-columns:1fr;
+      }
+      .templatePreviewHead{
+        padding:16px;
+      }
+      .templatePreviewBody{
+        padding:16px;
+      }
+      .templatePreviewHead h3{
+        font-size:22px;
+      }
+      .templatePreviewHeroTitle{
+        font-size:28px;
+      }
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -2326,6 +2509,18 @@
         </div>
         <p class="hint studentOverviewCommentStatus" id="studentOverviewCommentStatus"></p>
       </section>
+    </div>
+  </section>
+  <section class="templatePreviewModal hidden" id="templatePreviewModal" aria-hidden="true">
+    <div class="templatePreviewDialog" role="dialog" aria-modal="true" aria-labelledby="templatePreviewTitle">
+      <header class="templatePreviewHead">
+        <div>
+          <p class="templatePreviewHeadLabel">Šablona</p>
+          <h3 id="templatePreviewTitle">Náhled šablony</h3>
+        </div>
+        <button class="btn" id="templatePreviewClose" type="button">Zavřít</button>
+      </header>
+      <div class="templatePreviewBody" id="templatePreviewBody"></div>
     </div>
   </section>
 
@@ -2403,6 +2598,7 @@
   let studentOverviewActiveEntry = null;
   let studentOverviewCommentUnsubscribe = null;
   let studentOverviewCommentSending = false;
+  let templatePreviewGroups = [];
 
   function hasGuideAccess(email) {
     return GUIDE_EMAILS.indexOf(String(email || "").toLowerCase()) >= 0;
@@ -2563,9 +2759,9 @@
       '<p class="composeLead">Vyplň anotaci, očekávaný výstup, pilíře a příjemce. Odeslání založí assignment všem vybraným žákům a třídám bez změny současné logiky aplikace.</p>' +
       '</div>' +
       '<div class="composeBadgeRow">' +
-      '<span class="heroChip">💡 Zvídavost Zvídavost</span>' +
-      '<span class="heroChip">❤️ Hodnoty Hodnoty</span>' +
-      '<span class="heroChip">💪 Samostatnost Samostatnost</span>' +
+      '<span class="heroChip">💡 Zvídavost</span>' +
+      '<span class="heroChip">❤️ Hodnoty</span>' +
+      '<span class="heroChip">💪 Samostatnost</span>' +
       '<span class="heroChip">👥 ' + String(students.length) + ' žáků</span>' +
       '<span class="heroChip">🏫 ' + String(classes.length) + ' tříd</span>' +
       '</div>' +
@@ -2644,6 +2840,7 @@
       '</div>' +
       '</div>' +
       '<div class="composeActions">' +
+      '<button class="btn" id="previewTpl" type="button">👁️ Náhled</button>' +
       '<button class="btn" id="saveTpl" type="button">Uložit lokálně</button>' +
       '<button class="btn primary" id="saveSendTpl" type="button">Odeslat šablonu</button>' +
       '</div>' +
@@ -3626,9 +3823,26 @@
   }
 
   function bindTemplateEvents() {
+    const previewButton = $("#previewTpl");
     const saveLocalButton = $("#saveTpl");
     const sendButton = $("#saveSendTpl");
     const studentFilterInput = $("#tplStudentFilter");
+
+    if (previewButton) {
+      previewButton.addEventListener("click", function () {
+        const data = getFormData();
+        const recipients = buildRecipientTargets(data);
+        openTemplatePreview({
+          title: data.title,
+          annotation: data.annotation,
+          output: data.output,
+          subjects: data.subjects,
+          pillars: data.pillars,
+          recipients: recipients,
+          recipientCount: recipients.length
+        });
+      });
+    }
 
     if (saveLocalButton) {
       saveLocalButton.addEventListener("click", function () {
@@ -3785,6 +3999,141 @@
     }
     const local = email.split("@")[0] || email;
     return local.trim() || email;
+  }
+
+  function buildTemplatePreviewStudentMap() {
+    const map = new Map();
+    (Array.isArray(recipientDirectory.students) ? recipientDirectory.students : []).forEach(function (student) {
+      const email = normalizeEmail(student && student.email ? student.email : "");
+      if (email) {
+        map.set(email, student);
+      }
+    });
+    return map;
+  }
+
+  function formatTemplatePreviewRecipientLabel(target, studentMap) {
+    const item = target || {};
+    const type = String(item.recipientType || item.type || "").trim().toLowerCase();
+    const rawValue = String(item.recipientValue || item.value || "").trim();
+    if (!rawValue) {
+      return "";
+    }
+    if (type === "student") {
+      const normalizedEmail = normalizeEmail(rawValue);
+      const student = studentMap instanceof Map ? studentMap.get(normalizedEmail) : null;
+      if (student) {
+        const name = getStudentDisplayName(student);
+        const className = normalizeClassName(student && student.className ? student.className : "");
+        return className ? name + " - " + className : name;
+      }
+      return normalizedEmail || rawValue;
+    }
+    if (type === "class") {
+      const className = normalizeClassName(rawValue);
+      return className ? "Třída " + className : rawValue;
+    }
+    return rawValue;
+  }
+
+  function buildTemplatePreviewData(source) {
+    const item = source && typeof source === "object" ? source : {};
+    const studentMap = buildTemplatePreviewStudentMap();
+    const rawRecipients = Array.isArray(item.recipients)
+      ? item.recipients
+      : (Array.isArray(item.recipientTargets) ? item.recipientTargets : []);
+    const recipientLabels = uniqueValues(rawRecipients.map(function (target) {
+      return formatTemplatePreviewRecipientLabel(target, studentMap);
+    }).filter(Boolean));
+    const subjects = uniqueValues((Array.isArray(item.subjects) ? item.subjects : []).map(function (subject) {
+      return String(subject || "").trim();
+    }).filter(Boolean));
+    const pillars = uniqueValues((Array.isArray(item.pillars) ? item.pillars : []).map(function (pillar) {
+      return String(pillar || "").trim();
+    }).filter(Boolean));
+    return {
+      title: String(item.title || "").trim() || "Bez názvu",
+      annotation: String(item.annotation || "").trim(),
+      output: String(item.output || "").trim(),
+      subjects: subjects,
+      pillars: pillars,
+      recipientLabels: recipientLabels,
+      recipientCount: Number(item.recipientCount) || recipientLabels.length || rawRecipients.length || 0,
+      createdAtMillis: toMillis(item.createdAtMillis || 0)
+    };
+  }
+
+  function setTemplatePreviewModalVisible(isVisible) {
+    const modal = $("#templatePreviewModal");
+    if (!modal) {
+      return;
+    }
+    const isOpen = Boolean(isVisible);
+    modal.classList.toggle("hidden", !isOpen);
+    modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+    document.body.classList.toggle("modal-open", isOpen);
+  }
+
+  function closeTemplatePreview() {
+    setTemplatePreviewModalVisible(false);
+  }
+
+  function openTemplatePreview(source) {
+    const modalTitle = $("#templatePreviewTitle");
+    const modalBody = $("#templatePreviewBody");
+    if (!modalTitle || !modalBody) {
+      return;
+    }
+
+    const data = buildTemplatePreviewData(source);
+    const subjectChips = data.subjects.length
+      ? data.subjects.map(function (subject) {
+        return '<span class="badge">' + esc(formatCategoryEmoji(subject)) + '</span>';
+      }).join("")
+      : '<span class="badge">Žádný předmět</span>';
+    const pillarChips = data.pillars.length
+      ? data.pillars.map(function (pillar) {
+        return '<span class="badge">' + esc(formatCategoryEmoji(pillar)) + '</span>';
+      }).join("")
+      : '<span class="badge">Žádný pilíř</span>';
+    const recipientChips = data.recipientLabels.length
+      ? data.recipientLabels.map(function (label) {
+        return '<span class="dashChip">' + esc(label) + '</span>';
+      }).join("")
+      : '<span class="dashChip">Zatím bez příjemců</span>';
+    const createdAtLabel = data.createdAtMillis ? formatDateTime(data.createdAtMillis) : "";
+    const annotationText = data.annotation || "Anotace zatím není vyplněná.";
+    const outputText = data.output || "Očekávaný výstup zatím není vyplněný.";
+
+    modalTitle.textContent = data.title;
+    modalBody.innerHTML =
+      '<section class="templatePreviewHero">' +
+      '<span class="templatePreviewEyebrow">Náhled šablony</span>' +
+      '<h4 class="templatePreviewHeroTitle">' + esc(data.title) + '</h4>' +
+      '<p class="templatePreviewHeroText">Tady vidíš rychlý souhrn šablony tak, jak je aktuálně vyplněná v adminu.</p>' +
+      '<div class="templatePreviewMeta">' +
+      subjectChips +
+      pillarChips +
+      (createdAtLabel ? '<span class="badge">🕒 ' + esc(createdAtLabel) + '</span>' : '') +
+      '</div>' +
+      '</section>' +
+      '<div class="templatePreviewGrid">' +
+      '<section class="templatePreviewSection">' +
+      '<h4>Anotace</h4>' +
+      '<p class="templatePreviewText">' + esc(annotationText) + '</p>' +
+      '</section>' +
+      '<section class="templatePreviewSection">' +
+      '<h4>Očekávaný výstup</h4>' +
+      '<p class="templatePreviewText">' + esc(outputText) + '</p>' +
+      '</section>' +
+      '</div>' +
+      '<section class="templatePreviewSection">' +
+      '<h4>Příjemci</h4>' +
+      '<p class="templatePreviewHint">Vybráno: ' + esc(String(data.recipientCount)) + ' příjemců podle aktuálního výběru.</p>' +
+      '<div class="templatePreviewRecipients">' + recipientChips + '</div>' +
+      '</section>';
+
+    setTemplatePreviewModalVisible(true);
   }
 
   function buildClassGroups(students) {
@@ -5096,7 +5445,7 @@
       '<div class="meta"><span class="badge ok">Odesláno: ' + String(groups.length) + '</span></div>' +
       '</section>' +
       '<div class="libraryGrid">' +
-      groups.map(function (group) {
+      groups.map(function (group, index) {
         const dateLabel = formatDateTime(group.createdAtMillis);
         const subjectBadges = (group.subjects || []).slice(0, 3).map(function (subject) {
           return '<span class="badge" title="' + esc(subject) + '">' + esc(formatCategoryEmoji(subject)) + '</span>';
@@ -5116,11 +5465,30 @@
           output +
           '<div class="meta">' + subjectBadges + pillarBadges + recipientBadge + dateBadge + '</div>' +
           '<div class="libraryState">✉️ Odesláno</div>' +
+          '<div class="composeActions" style="margin-top:14px;justify-content:flex-start">' +
+          '<button class="btn templatePreviewBtn" type="button" data-template-preview-index="' + String(index) + '">👁️ Náhled</button>' +
+          '</div>' +
           '</article>'
         );
       }).join("") +
       '</div>'
     );
+  }
+
+  function bindMyTemplatesEvents(groups) {
+    const safeGroups = Array.isArray(groups) ? groups : [];
+    const buttons = document.querySelectorAll(".templatePreviewBtn[data-template-preview-index]");
+    for (let i = 0; i < buttons.length; i += 1) {
+      const button = buttons[i];
+      button.addEventListener("click", function () {
+        const index = Number(button.dataset && button.dataset.templatePreviewIndex ? button.dataset.templatePreviewIndex : -1);
+        if (!Number.isInteger(index) || index < 0 || index >= safeGroups.length) {
+          toast("Náhled šablony se nepodařilo otevřít.");
+          return;
+        }
+        openTemplatePreview(safeGroups[index]);
+      });
+    }
   }
 
   async function renderMyTemplatesView() {
@@ -5159,7 +5527,9 @@
       return;
     }
 
+    templatePreviewGroups = groups.slice();
     content.innerHTML = renderMyTemplatesList(groups);
+    bindMyTemplatesEvents(templatePreviewGroups);
   }
 
   async function handleTemplateSave(sendNow) {
@@ -5438,6 +5808,22 @@
     if (postClose) {
       postClose.addEventListener("click", function () {
         closeStudentOverviewPostModal();
+      });
+    }
+
+    const templatePreviewModal = $("#templatePreviewModal");
+    if (templatePreviewModal) {
+      templatePreviewModal.addEventListener("click", function (event) {
+        if (event.target === templatePreviewModal) {
+          closeTemplatePreview();
+        }
+      });
+    }
+
+    const templatePreviewClose = $("#templatePreviewClose");
+    if (templatePreviewClose) {
+      templatePreviewClose.addEventListener("click", function () {
+        closeTemplatePreview();
       });
     }
 
