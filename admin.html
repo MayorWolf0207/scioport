@@ -587,6 +587,14 @@
       flex-wrap:wrap;
       margin-top:8px;
     }
+    .dashStudentList{
+      margin:10px 0 0;
+      padding:0 0 0 18px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .dashStudentList li{margin:2px 0}
     .dashChip{
       border:1px solid #c9d2dd;
       border-radius:999px;
@@ -821,6 +829,10 @@
     body[data-theme="dark"] .empty,
     body[data-theme="dark"] .composeCheckEmpty,
     body[data-theme="dark"] .toast small{
+      color:#94a3b8;
+    }
+    body[data-theme="dark"] .dashStudentList,
+    body[data-theme="dark"] .classRoster{
       color:#94a3b8;
     }
     body[data-theme="dark"] .btn{
@@ -1878,11 +1890,13 @@
       line-height:1.2;
     }
     .classRoster{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:12px;
+      margin:12px 0 0;
+      padding:0 0 0 18px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
     }
+    .classRoster li{margin:2px 0}
     .classCardActions{
       margin-top:14px;
       display:flex;
@@ -4658,17 +4672,15 @@
       renderClassManagementPanel(classGroups) +
       '<div class="classGrid">' +
       classGroups.map(function (group) {
-        const namesBadges = (group.names || []).map(function (name) {
-          return '<span class="badge">' + esc(name) + '</span>';
-        }).join("");
+        const namesList = renderStudentLabelList(group.names || [], (group.names || []).length, "classRoster");
         const normalizedClassName = normalizeClassName(group.className);
         const isActive = normalizedClassName && normalizedClassName === normalizeClassName(classesSelectedClassName);
         return (
           '<article class="classCard' + (isActive ? ' is-active' : '') + '">' +
           '<div class="classCardTitle">' + esc(group.className) + '</div>' +
           '<div class="meta"><span class="badge ok">' + String(group.studentCount) + " " + getStudentWord(group.studentCount) + '</span></div>' +
-          (namesBadges
-            ? '<div class="classRoster">' + namesBadges + '</div>'
+          (namesList
+            ? namesList
             : '<div class="hint">Třída zatím nemá přiřazená jména.</div>') +
           '<div class="classCardActions">' +
           '<button class="btn classOpenBtn" type="button" data-class-name="' + esc(group.className) + '">' + (isActive ? 'Otevřeno' : 'Otevřít třídu') + '</button>' +
@@ -5187,6 +5199,21 @@
     return parts.join("");
   }
 
+  function renderStudentLabelList(labels, maxVisible, listClassName) {
+    const items = Array.isArray(labels) ? labels.filter(Boolean) : [];
+    const listClass = listClassName || "dashStudentList";
+    const limit = Number.isFinite(maxVisible) && maxVisible > 0 ? Math.max(1, Math.floor(maxVisible)) : items.length;
+    const visible = items.slice(0, limit);
+    const parts = visible.map(function (label) {
+      return "<li>" + esc(label) + "</li>";
+    });
+    const remaining = items.length - visible.length;
+    if (remaining > 0) {
+      parts.push("<li>+" + String(remaining) + " dalších</li>");
+    }
+    return parts.length ? '<ul class="' + esc(listClass) + '">' + parts.join("") + "</ul>" : "";
+  }
+
   function pickMostFrequentLabel(sourceValues, fallback) {
     const counts = new Map();
     (Array.isArray(sourceValues) ? sourceValues : []).forEach(function (value) {
@@ -5461,16 +5488,16 @@
           items.map(function (item) {
             const statusLabel = item.unread ? "Nepřečteno" : "Přečteno";
             const statusClass = item.unread ? "dashState" : "dashState read";
-            const studentChips = renderStudentLabelChips(item.studentLabels, 4, "dashChip");
+            const studentList = renderStudentLabelList(item.studentLabels, 4, "dashStudentList");
             return (
               '<article class="dashNotifItem">' +
               '<div>' +
               '<p class="dashNotifTitle">Šablonu „' + esc(item.templateTitle) + '“ vyplnilo ' + esc(formatStudentFillCount(item.studentCount)) + '.</p>' +
               '<div class="dashChips">' +
-              studentChips +
               '<span class="dashChip">' + esc(item.templateTitle) + '</span>' +
               (item.dateLabel ? '<span class="dashChip">' + esc(item.dateLabel) + '</span>' : '') +
               '</div>' +
+              studentList +
               '</div>' +
               '<div class="row">' +
               '<span class="' + statusClass + '">' + statusLabel + '</span>' +
@@ -5820,16 +5847,16 @@
           items.map(function (item) {
             const stateLabel = item.unread ? "Nepřečteno" : "Přečteno";
             const stateClass = item.unread ? "dashState" : "dashState read";
-            const studentChips = renderStudentLabelChips(item.studentLabels, item.studentLabels.length, "dashChip");
+            const studentList = renderStudentLabelList(item.studentLabels, item.studentLabels.length, "dashStudentList");
             return (
               '<article class="notifItem" data-search="' + esc(item.searchText) + '">' +
               '<div>' +
               '<p class="notifItemTitle">Šablonu „' + esc(item.templateTitle) + '“ vyplnilo ' + esc(formatStudentFillCount(item.studentCount)) + '.</p>' +
               '<div class="dashChips">' +
-              studentChips +
               '<span class="dashChip">' + esc(item.templateTitle) + '</span>' +
               (item.dateLabel ? '<span class="dashChip">' + esc(item.dateLabel) + '</span>' : '') +
               '</div>' +
+              studentList +
               '</div>' +
               '<div class="row">' +
               '<span class="' + stateClass + '">' + stateLabel + '</span>' +
