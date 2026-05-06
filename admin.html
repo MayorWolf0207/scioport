@@ -2525,9 +2525,9 @@
       }
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase/config.js"></script>
+  <script src="supabase/client.js"></script>
 </head>
 <body>
   <div class="app">
@@ -2644,21 +2644,18 @@
     }, 3600);
   }
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBYQPQwKYJLxcdjHHMv8w1KbLIIX-HKaQA",
-    authDomain: "scioport.firebaseapp.com",
-    projectId: "scioport",
-    storageBucket: "scioport.appspot.com",
-    messagingSenderId: "612919891675",
-    appId: "1:612919891675:web:3adef562f38e26c80e5efe",
-    measurementId: "G-7BW8NQ1VKC"
-  };
+  const supabase = window.supabaseClient;
+  if (!supabase) {
+    console.error("Supabase client not available. Check supabase/config.js.");
+  }
 
-  const GUIDE_EMAILS = [
-    "oliver.bocko@scioskola.cz",
-    "tobias.pokorny@scioskola.cz",
-    "jiri.prevorovsky@scioskola.cz"
-  ];
+  const GUIDE_EMAILS = (Array.isArray(window.SCIO_GUIDE_EMAILS) && window.SCIO_GUIDE_EMAILS.length)
+    ? window.SCIO_GUIDE_EMAILS.map(function (item) { return String(item || "").trim().toLowerCase(); }).filter(Boolean)
+    : [
+      "oliver.bocko@scioskola.cz",
+      "tobias.pokorny@scioskola.cz",
+      "jiri.prevorovsky@scioskola.cz"
+    ];
 
   const loginUrl = new URL("login/index.html", window.location.href).toString();
   const homeUrl = new URL("index.html", window.location.href).toString();
@@ -2666,10 +2663,6 @@
   const DASHBOARD_NOTIF_SEEN_LIMIT = 800;
 
   let currentUser = null;
-  let db = null;
-  let templatesRef = null;
-  let usersRef = null;
-  let subjectsRef = null;
   let currentView = "newTemplate";
   let recipientDirectory = { students: [], classes: [] };
   let subjectDirectory = [];
@@ -3182,24 +3175,28 @@
   }
 
   async function resolveUserDocRefByStudent(student) {
-    if (!usersRef || !student) {
+    if (!supabase || !student) {
       return null;
     }
     const uid = String(student.uid || "").trim();
     if (uid) {
-      return usersRef.doc(uid);
+      return uid;
     }
     const email = normalizeEmail(student.email || "");
     if (!email) {
       return null;
     }
     try {
-      let snapshot = await usersRef.where("emailLower", "==", email).limit(1).get();
-      if (snapshot.empty) {
-        snapshot = await usersRef.where("email", "==", email).limit(1).get();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email_lower", email.toLowerCase())
+        .maybeSingle();
+      if (error) {
+        throw error;
       }
-      if (!snapshot.empty) {
-        return snapshot.docs[0].ref;
+      if (data && data.id) {
+        return data.id;
       }
     } catch (error) {
       console.warn("Student overview email lookup failed:", error);
@@ -3208,8 +3205,8 @@
   }
 
   async function loadStudentPortfolio(student) {
-    const userRef = await resolveUserDocRefByStudent(student);
-    if (!userRef) {
+    const userId = await resolveUserDocRefByStudent(student);
+    if (!userId || !supabase) {
       return { entries: [], responses: [] };
     }
 
@@ -3217,34 +3214,36 @@
     const responses = [];
 
     try {
-      let dataSnapshot;
-      try {
-        dataSnapshot = await userRef.collection("data").orderBy("timestamp", "desc").limit(200).get();
-      } catch (error) {
-        dataSnapshot = await userRef.collection("data").limit(200).get();
+      const { data: rows, error } = await supabase
+        .from("portfolio_entries")
+        .select("id,value,title,note,subjects,pillar,pillars,created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) {
+        throw error;
       }
-      dataSnapshot.forEach(function (doc) {
-        const data = doc.data() || {};
-        const rawValue = String(data.value || "").trim();
+      (Array.isArray(rows) ? rows : []).forEach(function (row) {
+        const rawValue = String(row.value || "").trim();
         const text = normalizePortfolioText(rawValue);
-        const title = String(data.title || "").trim();
-        const note = String(data.note || "").trim();
+        const title = String(row.title || "").trim();
+        const note = String(row.note || "").trim();
         const fullTextSource = title && note
           ? title + "\n" + note
           : (title || note || rawValue);
         const fullText = normalizePortfolioLongText(fullTextSource);
-        const subjects = collectTemplateValues(data, "subjects", "subject");
-        const pillars = collectTemplateValues(data, "pillars", "pillar");
+        const subjects = collectTemplateValues(row, "subjects", "");
+        const pillars = collectTemplateValues(row, "pillars", "pillar");
         const derivedSubjects = subjects.length ? subjects : extractSubjectsFromPortfolioValue(rawValue);
-        const timestampMillis = toMillis(data.timestamp || data.updatedAt || data.createdAt || 0);
+        const timestampMillis = toMillis(row.created_at || 0);
         entries.push({
-          id: doc.id,
+          id: row.id,
           text: text,
           fullText: fullText || text,
           subjects: derivedSubjects,
           pillars: pillars,
           timestampMillis: timestampMillis,
-          ownerUid: userRef.id
+          ownerUid: userId
         });
       });
     } catch (error) {
@@ -3252,21 +3251,23 @@
     }
 
     try {
-      let responseSnapshot;
-      try {
-        responseSnapshot = await userRef.collection("templateResponses").orderBy("updatedAt", "desc").limit(200).get();
-      } catch (error) {
-        responseSnapshot = await userRef.collection("templateResponses").limit(200).get();
+      const { data: rows, error } = await supabase
+        .from("template_responses")
+        .select("id,template_title,response,subjects,pillars,updated_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(200);
+      if (error) {
+        throw error;
       }
-      responseSnapshot.forEach(function (doc) {
-        const data = doc.data() || {};
+      (Array.isArray(rows) ? rows : []).forEach(function (row) {
         responses.push({
-          id: doc.id,
-          templateTitle: String(data.templateTitle || data.title || "Bez názvu").trim(),
-          response: String(data.response || data.value || "").trim(),
-          subjects: collectTemplateValues(data, "subjects", "subject"),
-          pillars: collectTemplateValues(data, "pillars", "pillar"),
-          updatedAtMillis: toMillis(data.updatedAt || data.timestamp || data.createdAt || 0)
+          id: row.id,
+          templateTitle: String(row.template_title || "Bez názvu").trim(),
+          response: String(row.response || "").trim(),
+          subjects: collectTemplateValues(row, "subjects", ""),
+          pillars: collectTemplateValues(row, "pillars", "pillar"),
+          updatedAtMillis: toMillis(row.updated_at || 0)
         });
       });
     } catch (error) {
@@ -3541,45 +3542,57 @@
 
   function subscribeStudentOverviewComments(entry) {
     detachStudentOverviewCommentListener();
-    if (!usersRef || !entry || !entry.ownerUid || !entry.id) {
+    if (!supabase || !entry || !entry.id) {
       renderStudentOverviewCommentList([]);
       return;
     }
-    const commentsRef = usersRef
-      .doc(String(entry.ownerUid))
-      .collection("data")
-      .doc(String(entry.id))
-      .collection("comments");
 
-    studentOverviewCommentUnsubscribe = commentsRef
-      .orderBy("createdAt", "asc")
-      .limit(200)
-      .onSnapshot(function (snapshot) {
-        const comments = [];
-        snapshot.forEach(function (doc) {
-          const data = doc.data() || {};
-          const text = String(data.text || "").trim();
-          if (!text) {
-            return;
-          }
-          comments.push({
-            id: doc.id,
+    let stopped = false;
+    let polling = false;
+    const entryId = String(entry.id);
+
+    const poll = async function () {
+      if (stopped || polling || !supabase) {
+        return;
+      }
+      polling = true;
+      try {
+        const { data: rows, error } = await supabase
+          .from("portfolio_comments")
+          .select("id,text,author_email,author_role,created_at")
+          .eq("entry_id", entryId)
+          .order("created_at", { ascending: true })
+          .limit(200);
+        if (error) {
+          throw error;
+        }
+        const comments = (Array.isArray(rows) ? rows : []).map(function (row) {
+          const text = String(row.text || "").trim();
+          return {
+            id: row.id,
             text: text,
-            authorEmail: String(data.authorEmail || "").trim(),
-            createdAtMillis: toMillis(data.createdAt || data.createdAtClient || 0),
-            isGuide: String(data.authorRole || "").trim().toLowerCase() === "guide"
-              || hasGuideAccess(data.authorEmail)
-          });
-        });
-        comments.sort(function (a, b) {
-          return (a.createdAtMillis || 0) - (b.createdAtMillis || 0);
-        });
+            authorEmail: String(row.author_email || "").trim(),
+            createdAtMillis: toMillis(row.created_at || 0),
+            isGuide: String(row.author_role || "").trim().toLowerCase() === "guide"
+              || hasGuideAccess(row.author_email)
+          };
+        }).filter(function (item) { return Boolean(item.text); });
         renderStudentOverviewCommentList(comments);
-      }, function (error) {
+      } catch (error) {
         console.error("Student overview comments load failed:", error);
         renderStudentOverviewCommentList([]);
         setStudentOverviewCommentStatus("Komentáře se nepodařilo načíst.", true);
-      });
+      } finally {
+        polling = false;
+      }
+    };
+
+    poll();
+    const timer = window.setInterval(poll, 8000);
+    studentOverviewCommentUnsubscribe = function () {
+      stopped = true;
+      window.clearInterval(timer);
+    };
   }
 
   function openStudentOverviewEntryComments(entryId) {
@@ -3648,7 +3661,7 @@
     if (studentOverviewCommentSending) {
       return;
     }
-    if (!currentUser || !usersRef || !studentOverviewActiveEntry || !studentOverviewActiveEntry.ownerUid || !studentOverviewActiveEntry.id) {
+    if (!currentUser || !supabase || !studentOverviewActiveEntry || !studentOverviewActiveEntry.id) {
       return;
     }
     const input = $("#studentOverviewCommentInput");
@@ -3664,23 +3677,24 @@
     setStudentOverviewCommentSending(true);
     setStudentOverviewCommentStatus("Ukládám komentář...", false);
     try {
-      await usersRef
-        .doc(String(studentOverviewActiveEntry.ownerUid))
-        .collection("data")
-        .doc(String(studentOverviewActiveEntry.id))
-        .collection("comments")
-        .add({
-          text: text,
-          authorEmail: String(currentUser.email || "").trim(),
-          authorUid: currentUser.uid,
-          authorRole: "guide",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          createdAtClient: Date.now()
-        });
+      const { error } = await supabase
+        .from("portfolio_comments")
+        .insert([{
+          entry_id: String(studentOverviewActiveEntry.id),
+          author_user_id: currentUser.uid,
+          author_email: String(currentUser.email || "").trim(),
+          author_role: "guide",
+          text: text
+        }]);
+      if (error) {
+        throw error;
+      }
       if (input) {
         input.value = "";
       }
       setStudentOverviewCommentStatus("Komentář uložen.", false);
+      // Refresh comments quickly after saving.
+      subscribeStudentOverviewComments(studentOverviewActiveEntry);
     } catch (error) {
       console.error("Student overview comment save failed:", error);
       setStudentOverviewCommentStatus("Komentář se nepodařilo uložit.", true);
@@ -4141,7 +4155,7 @@
   }
 
   async function sendTemplateAssignments(source, recipients) {
-    if (!currentUser || !templatesRef || !db) {
+    if (!currentUser || !supabase) {
       throw createUserFacingError("Není připraveno odeslání. Obnov stránku.");
     }
 
@@ -4186,32 +4200,35 @@
       subject: templateData.subject,
       subjects: templateData.subjects,
       instructions: instructions,
-      proofType: "text",
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      createdAtClient: createdAtClient,
-      createdBy: currentUser.uid,
-      createdByEmail: currentUser.email || "",
+      proof_type: "text",
+      created_at_client: createdAtClient,
+      created_by: currentUser.uid,
+      created_by_email: currentUser.email || "",
       annotation: templateData.annotation,
       output: templateData.output,
       pillar: templateData.pillar,
       pillars: templateData.pillars,
-      sentBatchId: sentBatchId
+      sent_batch_id: sentBatchId
     };
 
     const chunkSize = 400;
     for (let offset = 0; offset < normalizedRecipients.length; offset += chunkSize) {
-      const batch = db.batch();
       const chunk = normalizedRecipients.slice(offset, offset + chunkSize);
-      chunk.forEach(function (recipient) {
+      const rowsToInsert = chunk.map(function (recipient) {
         const recipientValueLower = String(recipient.recipientValue || "").toLowerCase();
-        const docRef = templatesRef.doc();
-        batch.set(docRef, Object.assign({}, basePayload, {
-          recipientType: recipient.recipientType,
-          recipientValue: recipient.recipientValue,
-          recipientValueLower: recipientValueLower
-        }));
+        return Object.assign({}, basePayload, {
+          recipient_type: recipient.recipientType,
+          recipient_value: recipient.recipientValue,
+          recipient_value_lower: recipientValueLower
+        });
       });
-      await batch.commit();
+
+      const { error } = await supabase
+        .from("templates")
+        .insert(rowsToInsert, { defaultToNull: false });
+      if (error) {
+        throw error;
+      }
     }
 
     incrementTemplateSendPills();
@@ -4379,8 +4396,17 @@
     setTemplatePreviewModalVisible(true);
   }
 
-  function buildClassGroups(students) {
+  function buildClassGroups(students, knownClasses) {
     const groups = new Map();
+
+    // Ensure empty classes (created without assigned students) are still listed.
+    (Array.isArray(knownClasses) ? knownClasses : []).forEach(function (className) {
+      const normalizedClassName = normalizeClassName(className);
+      if (normalizedClassName && !groups.has(normalizedClassName)) {
+        groups.set(normalizedClassName, []);
+      }
+    });
+
     const source = Array.isArray(students) ? students : [];
     source.forEach(function (student) {
       const className = normalizeClassName(student && student.className ? student.className : "");
@@ -4590,13 +4616,22 @@
   }
 
   async function updateStudentClassAssignment(student, nextClassName) {
-    if (!student || !student.uid || !usersRef) {
-      throw new Error("Student nebo usersRef není dostupný.");
+    if (!student || !student.uid || !supabase) {
+      throw new Error("Student nebo Supabase není dostupný.");
     }
     const normalizedClassName = normalizeClassName(nextClassName);
-    await usersRef.doc(String(student.uid)).set({
-      className: normalizedClassName
-    }, { merge: true });
+    const nextValue = normalizedClassName ? normalizedClassName : null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        class_name: nextValue,
+        class_name_lower: nextValue ? nextValue.toLowerCase() : null,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", String(student.uid));
+    if (error) {
+      throw error;
+    }
   }
 
   function findRecipientStudentByEmail(email) {
@@ -4715,7 +4750,7 @@
       classesTemplateGroupsLoadFailed = true;
       console.error("Class templates load failed:", error);
     }
-    const groups = buildClassGroups(recipientDirectory.students);
+    const groups = buildClassGroups(recipientDirectory.students, recipientDirectory.classes);
     const pillClasses = $("#pillClasses");
     if (pillClasses) {
       pillClasses.textContent = String(groups.length);
@@ -5016,132 +5051,73 @@
       seenIds.add(value);
       ids.push(value);
     });
-    if (!db) {
+    if (!supabase) {
       return [];
     }
 
-    const idSet = new Set(ids);
-
-    function normalizeResponseDocs(snapshot) {
-      const values = [];
-      snapshot.forEach(function (doc) {
-        const data = doc.data() || {};
-        const templateId = String(data.templateId || doc.id || "").trim();
-        if (!templateId) {
-          return;
-        }
-        const updatedAtMillis = toMillis(data.updatedAt);
-        let userId = String(data.userId || "").trim();
-        if (!userId && doc.ref && doc.ref.parent && doc.ref.parent.parent) {
-          userId = String(doc.ref.parent.parent.id || "").trim();
-        }
-        const userEmail = normalizeEmail(data.userEmail || "");
-        const subjects = Array.isArray(data.subjects)
-          ? data.subjects.map(function (item) { return String(item || "").trim(); }).filter(Boolean)
-          : (data.subject ? [String(data.subject || "").trim()].filter(Boolean) : []);
-        const pillars = Array.isArray(data.pillars)
-          ? data.pillars.map(function (item) { return String(item || "").trim(); }).filter(Boolean)
-          : (data.pillar ? [String(data.pillar || "").trim()] : []);
-        const responseKey = [userId || userEmail || "user", templateId, String(updatedAtMillis || 0)].join("|");
-        values.push({
-          responseKey: responseKey,
-          templateId: templateId,
-          templateTitle: String(data.templateTitle || "").trim(),
-          userId: userId,
-          userEmail: userEmail,
-          subjects: subjects,
-          pillars: pillars,
-          updatedAtMillis: updatedAtMillis
-        });
-      });
-      return values;
-    }
-
-    async function loadResponsesFromUsersSubcollections() {
-      if (!usersRef) {
-        return [];
-      }
-
-      const userSnapshot = await usersRef.get();
-      const userDocs = [];
-      userSnapshot.forEach(function (doc) {
-        userDocs.push(doc);
-      });
-
-      const values = [];
-      const chunkSize = 15;
-      for (let offset = 0; offset < userDocs.length; offset += chunkSize) {
-        const chunk = userDocs.slice(offset, offset + chunkSize);
-        const chunkValues = await Promise.all(chunk.map(async function (userDoc) {
-          try {
-            const responseSnapshot = await userDoc.ref.collection("templateResponses").get();
-            return normalizeResponseDocs(responseSnapshot);
-          } catch (error) {
-            return [];
-          }
-        }));
-        chunkValues.forEach(function (list) {
-          if (!Array.isArray(list) || !list.length) {
-            return;
-          }
-          for (let i = 0; i < list.length; i += 1) {
-            values.push(list[i]);
-          }
-        });
-      }
-
-      if (!idSet.size) {
-        return values;
-      }
-      return values.filter(function (item) {
-        return idSet.has(item.templateId);
-      });
-    }
-
-    const chunkSize = 10;
-    let responses = [];
+    const responseRows = [];
+    const columns = "id,templateId:template_id,templateTitle:template_title,userId:user_id,userEmail:user_email,subjects,pillars,updatedAt:updated_at";
 
     try {
       if (ids.length) {
+        const chunkSize = 100;
         for (let offset = 0; offset < ids.length; offset += chunkSize) {
           const chunk = ids.slice(offset, offset + chunkSize);
           if (!chunk.length) {
             continue;
           }
-          const snapshot = await db.collectionGroup("templateResponses").where("templateId", "in", chunk).get();
-          responses = responses.concat(normalizeResponseDocs(snapshot));
+          const { data, error } = await supabase
+            .from("template_responses")
+            .select(columns)
+            .in("template_id", chunk)
+            .order("updated_at", { ascending: false })
+            .limit(1000);
+          if (error) {
+            throw error;
+          }
+          (Array.isArray(data) ? data : []).forEach(function (row) {
+            responseRows.push(row);
+          });
         }
+      } else {
+        const { data, error } = await supabase
+          .from("template_responses")
+          .select(columns)
+          .order("updated_at", { ascending: false })
+          .limit(200);
+        if (error) {
+          throw error;
+        }
+        (Array.isArray(data) ? data : []).forEach(function (row) {
+          responseRows.push(row);
+        });
       }
     } catch (error) {
-      responses = [];
+      console.error("Dashboard responses load failed:", error);
+      return [];
     }
 
-    // Fallback 1: přímé čtení users/{uid}/templateResponses bez collectionGroup indexů.
-    if (!responses.length) {
-      try {
-        responses = await loadResponsesFromUsersSubcollections();
-      } catch (error) {
-        responses = [];
-      }
-    }
-
-    // Fallback 2: poslední odpovědi obecně.
-    if (!responses.length) {
-      try {
-        const fallbackSnapshot = await db.collectionGroup("templateResponses")
-          .orderBy("updatedAt", "desc")
-          .limit(200)
-          .get();
-        const fallbackResponses = normalizeResponseDocs(fallbackSnapshot);
-        responses = idSet.size
-          ? fallbackResponses.filter(function (item) {
-              return idSet.has(item.templateId);
-            })
-          : fallbackResponses;
-      } catch (error) {
-        responses = [];
-      }
-    }
+    let responses = responseRows.map(function (row) {
+      const templateId = String(row && row.templateId ? row.templateId : "").trim();
+      const updatedAtMillis = toMillis(row && row.updatedAt ? row.updatedAt : 0);
+      const userId = String(row && row.userId ? row.userId : "").trim();
+      const userEmail = normalizeEmail(row && row.userEmail ? row.userEmail : "");
+      const subjects = Array.isArray(row && row.subjects) ? row.subjects.map(function (item) { return String(item || "").trim(); }).filter(Boolean) : [];
+      const pillars = Array.isArray(row && row.pillars) ? row.pillars.map(function (item) { return String(item || "").trim(); }).filter(Boolean) : [];
+      const responseKey = [userId || userEmail || "user", templateId, String(updatedAtMillis || 0)].join("|");
+      return {
+        responseKey: responseKey,
+        templateId: templateId,
+        templateTitle: String(row && row.templateTitle ? row.templateTitle : "").trim(),
+        userId: userId,
+        userEmail: userEmail,
+        subjects: subjects,
+        pillars: pillars,
+        updatedAtMillis: updatedAtMillis
+      };
+    }).filter(function (item) {
+      return Boolean(item && item.templateId);
+    });
 
     const deduped = new Map();
     responses.forEach(function (item) {
@@ -5678,7 +5654,7 @@
       responses = [];
     }
 
-    const classGroups = buildClassGroups(recipientDirectory.students);
+    const classGroups = buildClassGroups(recipientDirectory.students, recipientDirectory.classes);
     const seenSet = loadDashboardNotificationSeenSet();
     const stats = computeDashboardStats(templateGroups, classGroups, responses, seenSet);
     updateDashboardPills(stats);
@@ -5982,7 +5958,7 @@
       responses = [];
     }
 
-    const classGroups = buildClassGroups(recipientDirectory.students);
+    const classGroups = buildClassGroups(recipientDirectory.students, recipientDirectory.classes);
     const seenSet = loadDashboardNotificationSeenSet();
     const stats = computeDashboardStats(templateGroups, classGroups, responses, seenSet);
     const entries = buildNotificationEntries(templateGroups, responses, seenSet);
@@ -6028,24 +6004,30 @@
   }
 
   async function loadMyTemplateGroups() {
-    if (!currentUser || !templatesRef) {
+    if (!currentUser || !supabase) {
       return [];
     }
 
-    const snapshot = await templatesRef.where("createdBy", "==", currentUser.uid).get();
     const grouped = new Map();
 
-    snapshot.forEach(function (doc) {
-      const data = doc.data() || {};
+    const { data: rows, error } = await supabase
+      .from("templates")
+      .select("id,title,subject,subjects,instructions,proofType:proof_type,createdAt:created_at,createdAtClient:created_at_client,createdBy:created_by,createdByEmail:created_by_email,annotation,output,pillar,pillars,sentBatchId:sent_batch_id,recipientType:recipient_type,recipientValue:recipient_value,recipientValueLower:recipient_value_lower")
+      .eq("created_by", currentUser.uid)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    if (error) {
+      throw error;
+    }
+
+    (Array.isArray(rows) ? rows : []).forEach(function (data) {
       const title = String(data.title || "Bez názvu").trim();
-      const createdAtMillis = data.createdAt && typeof data.createdAt.toMillis === "function"
-        ? data.createdAt.toMillis()
-        : 0;
+      const createdAtMillis = toMillis(data.createdAt || 0);
       const createdAtClient = Number(data.createdAtClient) || 0;
       const batchId = String(data.sentBatchId || "").trim();
       const fallbackKey = createdAtClient
         ? "client|" + createdAtClient
-        : (createdAtMillis ? "legacy|" + createdAtMillis + "|" + title.toLowerCase() : "doc|" + doc.id);
+        : (createdAtMillis ? "legacy|" + createdAtMillis + "|" + title.toLowerCase() : "doc|" + data.id);
       const key = batchId ? "batch|" + batchId : fallbackKey;
 
       if (!grouped.has(key)) {
@@ -6063,7 +6045,7 @@
       }
 
       const group = grouped.get(key);
-      group.templateIds.add(doc.id);
+      group.templateIds.add(data.id);
       if (createdAtMillis > group.createdAtMillis) {
         group.createdAtMillis = createdAtMillis;
       }
@@ -6416,7 +6398,7 @@
       return;
     }
 
-    if (!currentUser || !templatesRef || !db) {
+    if (!currentUser || !supabase) {
       toast("Není připraveno odeslání. Obnov stránku.");
       return;
     }
@@ -6433,7 +6415,7 @@
 
   async function loadRecipientDirectory() {
     recipientDirectory = { students: [], classes: [] };
-    if (!usersRef) {
+    if (!supabase) {
       return;
     }
 
@@ -6441,11 +6423,18 @@
     const studentMap = new Map();
 
     try {
-      const snapshot = await usersRef.get();
-      snapshot.forEach(function (doc) {
-        const data = doc.data() || {};
-        const email = normalizeEmail(data.email);
-        const className = normalizeClassName(data.className);
+      const { data: rows, error } = await supabase
+        .from("profiles")
+        .select("id,email,display_name,name,class_name,email_lower")
+        .order("email_lower", { ascending: true })
+        .limit(1000);
+      if (error) {
+        throw error;
+      }
+
+      (Array.isArray(rows) ? rows : []).forEach(function (row) {
+        const email = normalizeEmail(row.email);
+        const className = normalizeClassName(row.class_name);
 
         if (className) {
           classSet.add(className);
@@ -6456,12 +6445,33 @@
         }
 
         studentMap.set(email, {
-          uid: doc.id,
+          uid: row.id,
           email: email,
-          name: String(data.displayName || data.name || email.split("@")[0] || "").trim(),
+          name: String(row.display_name || row.name || email.split("@")[0] || "").trim(),
           className: className
         });
       });
+
+      // Merge explicitly created classes (can be empty / without students yet).
+      try {
+        const { data: classRows, error: classError } = await supabase
+          .from("classes")
+          .select("name,name_lower")
+          .order("name_lower", { ascending: true })
+          .limit(1000);
+        if (classError) {
+          console.warn("Class directory load failed:", classError);
+        } else {
+          (Array.isArray(classRows) ? classRows : []).forEach(function (row) {
+            const className = normalizeClassName(row && row.name ? row.name : "");
+            if (className) {
+              classSet.add(className);
+            }
+          });
+        }
+      } catch (error) {
+        console.warn("Class directory load failed:", error);
+      }
 
       recipientDirectory.students = Array.from(studentMap.values()).sort(function (a, b) {
         return a.email.localeCompare(b.email, "cs");
@@ -6477,20 +6487,29 @@
 
   async function loadSubjectDirectory() {
     subjectDirectory = [];
-    if (!subjectsRef) {
+    if (!supabase) {
       return;
     }
 
     try {
-      const snapshot = await subjectsRef.orderBy("nameLower").get();
       const values = [];
-      snapshot.forEach(function (doc) {
-        const data = doc.data() || {};
-        const name = normalizeSubjectName(data.name || data.value || "");
+
+      const { data: rows, error } = await supabase
+        .from("subjects")
+        .select("name,value,name_lower")
+        .order("name_lower", { ascending: true })
+        .limit(1000);
+      if (error) {
+        throw error;
+      }
+
+      (Array.isArray(rows) ? rows : []).forEach(function (row) {
+        const name = normalizeSubjectName(row.name || row.value || "");
         if (name) {
           values.push(name);
         }
       });
+
       subjectDirectory = uniqueValues(values);
     } catch (error) {
       console.error("Subject directory load failed:", error);
@@ -6614,35 +6633,43 @@
     if (!normalizedName) {
       throw new Error("Název třídy nesmí být prázdný.");
     }
+    if (!supabase) {
+      throw new Error("Supabase není dostupný. Zkontroluj supabase/config.js.");
+    }
 
     // Check if class already exists
     const existingClasses = recipientDirectory && Array.isArray(recipientDirectory.classes)
       ? recipientDirectory.classes
       : [];
+    const nextKey = normalizedName.toLowerCase();
     if (existingClasses.some(function (name) {
-      return normalizeClassName(name) === normalizedName;
+      return normalizeClassName(name).toLowerCase() === nextKey;
     })) {
       throw new Error("Třída s tímto názvem již existuje. Vyber jiný název.");
     }
 
-    // Since classes are created implicitly when students are assigned,
-    // we'll create a metadata document for the class
-    if (!db) {
-      throw new Error("Databáze není inicializovaná.");
-    }
-
     try {
-      // Create a class metadata doc (for future use and verification)
-      const classesRef = db.collection("classes");
-      await classesRef.doc(normalizedName).set({
-        name: normalizedName,
-        description: description || "",
-        createdAt: new Date(),
-        createdBy: currentUser ? currentUser.uid : "unknown"
-      }, { merge: true });
+      const { error } = await supabase
+        .from("classes")
+        .insert([{
+          name: normalizedName,
+          name_lower: nextKey,
+          description: description ? String(description).trim() : null,
+          created_by: currentUser ? currentUser.uid : null,
+          created_by_email: currentUser ? (currentUser.email || "") : null
+        }], { defaultToNull: true });
+      if (error) {
+        if (String(error.code || "") === "23505") {
+          throw new Error("Třída s tímto názvem již existuje. Vyber jiný název.");
+        }
+        throw error;
+      }
+
+      // Refresh local cache so empty classes show up immediately.
+      await loadRecipientDirectory();
     } catch (error) {
       console.error("Failed to create class metadata:", error);
-      throw new Error("Nepodařilo se uložit metadata třídy.");
+      throw error;
     }
   }
 
@@ -6703,8 +6730,8 @@
   async function denyGuideAccess() {
     alert("Přístup má pouze průvodce.");
     try {
-      if (window.firebase && firebase.auth) {
-        await firebase.auth().signOut();
+      if (supabase && supabase.auth) {
+        await supabase.auth.signOut();
       }
     } catch (error) {
       console.warn("Sign-out failed while denying access", error);
@@ -6867,28 +6894,19 @@
     applyTheme(getInitialTheme());
     wireStaticEvents();
 
-    if (!window.firebase || !firebase.auth || !firebase.firestore) {
-      showContentMessage("Admin přístup", "Firebase knihovny nejsou dostupné.");
+    if (!supabase || !supabase.auth) {
+      showContentMessage("Admin přístup", "Supabase klient není dostupný. Zkontroluj supabase/config.js.");
       return;
     }
 
-    try {
-      if (!firebase.apps || !firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      db = firebase.firestore();
-      templatesRef = db.collection("templates");
-      usersRef = db.collection("users");
-      subjectsRef = db.collection("subjects");
-    } catch (error) {
-      console.error("Firebase init failed:", error);
-      showContentMessage("Admin přístup", "Nepodařilo se inicializovat Firebase.");
-      return;
-    }
+    async function handleAuthSession(session) {
+      const user = session && session.user
+        ? { uid: session.user.id, email: session.user.email || "" }
+        : null;
 
-    firebase.auth().onAuthStateChanged(async function (user) {
-      if (!user) {
+      if (!user || !user.uid) {
         closeStudentOverviewPostModal();
+        currentUser = null;
         window.location.replace(loginUrl);
         return;
       }
@@ -6899,14 +6917,17 @@
       }
 
       currentUser = user;
+
       await Promise.all([loadRecipientDirectory(), loadSubjectDirectory()]);
-      const initialClassGroups = buildClassGroups(recipientDirectory.students);
+      const initialClassGroups = buildClassGroups(recipientDirectory.students, recipientDirectory.classes);
+
       let initialTemplateGroups = [];
       try {
         initialTemplateGroups = await loadMyTemplateGroups();
       } catch (error) {
         console.warn("Unable to preload my templates count", error);
       }
+
       let initialResponses = [];
       try {
         const initialTemplateIds = collectTemplateIdsFromGroups(initialTemplateGroups);
@@ -6914,11 +6935,25 @@
       } catch (error) {
         console.warn("Unable to preload notifications count", error);
       }
+
       const initialSeenSet = loadDashboardNotificationSeenSet();
       const initialStats = computeDashboardStats(initialTemplateGroups, initialClassGroups, initialResponses, initialSeenSet);
       updateDashboardPills(initialStats);
       setView("dashboard");
+    }
+
+    supabase.auth.onAuthStateChange(function (_event, session) {
+      handleAuthSession(session);
     });
+
+    try {
+      const result = await supabase.auth.getSession();
+      const session = result && result.data ? result.data.session : null;
+      await handleAuthSession(session);
+    } catch (error) {
+      console.error("Unable to read Supabase session:", error);
+      showContentMessage("Admin přístup", "Nepodařilo se ověřit přihlášení.");
+    }
   }
 
   init();

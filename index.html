@@ -9,11 +9,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ScioPort</title>
     <link rel="icon" href="Media/icons/sciokoly_logo.ico" type="image/x-icon">
-    <link rel="stylesheet" href="Style/style.css?v=2026-04-29-portfolio-refresh-2">
+    <link rel="stylesheet" href="Style/style.css?v=2026-05-06-avatar-motion">
 </head>
 <body>
     <main>
-        <button class="logout" onclick="firebase.auth().signOut()"><span>Log-out</span></button>
+        <button class="logout" onclick="signOut()"><span>Log-out</span></button>
 
         <header class="site-header">
             <div class="site-header-inner">
@@ -138,7 +138,8 @@
                                 </button>
                             </div>
                             <div class="student-work-center" aria-hidden="true">
-                                <svg class="student-work-illustration" viewBox="0 0 300 240" aria-hidden="true" focusable="false">
+                                <img class="student-work-illustration portfolio-girl-illustration" src="Media/avatar-girl.svg" alt="">
+                                <svg class="student-work-boy-illustration student-boy-only" viewBox="0 0 300 240" aria-hidden="true" focusable="false">
                                     <defs>
                                         <linearGradient id="student-hair-gradient" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="0%" style="stop-color: var(--student-hair);"></stop>
@@ -696,28 +697,27 @@
         </div>
     </section>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase/config.js?v=2026-05-06-auth2"></script>
+    <script src="supabase/client.js?v=2026-05-06-auth2"></script>
+    <script src="supabase/firebase-compat.js?v=2026-05-06-auth2"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
     <script>
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBYQPQwKYJLxcdjHHMv8w1KbLIIX-HKaQA",
-            authDomain: "scioport.firebaseapp.com",
-            projectId: "scioport",
-            storageBucket: "scioport.appspot.com",
-            messagingSenderId: "612919891675",
-            appId: "1:612919891675:web:3adef562f38e26c80e5efe",
-            measurementId: "G-7BW8NQ1VKC"
-        };
-        firebase.initializeApp(firebaseConfig);
-
         const db = firebase.firestore();
         const loginUrl = new URL('login/index.html', window.location.href).toString();
         const subjectsRef = db.collection('subjects');
         const templatesRef = db.collection('templates');
+        async function signOut() {
+            if (window.supabaseClient && window.supabaseClient.auth) {
+                try {
+                    await window.supabaseClient.auth.signOut();
+                } catch (error) {
+                    console.warn('Supabase sign-out failed.', error);
+                }
+            }
+            return firebase.auth().signOut();
+        }
         let subjectsUnsubscribe = null;
         let templateNotificationUnsubscribers = [];
         let templateNotificationSeen = new Set();
