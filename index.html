@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ScioPort</title>
     <link rel="icon" href="Media/icons/sciokoly_logo.ico" type="image/x-icon">
-    <link rel="stylesheet" href="Style/style.css?v=2026-05-06-avatar-motion">
+    <link rel="stylesheet" href="Style/style.css?v=2026-05-06-avatar-eye-tune">
 </head>
 <body>
     <main>
@@ -138,7 +138,9 @@
                                 </button>
                             </div>
                             <div class="student-work-center" aria-hidden="true">
-                                <img class="student-work-illustration portfolio-girl-illustration" src="Media/avatar-girl.svg" alt="">
+                                <div class="student-work-illustration portfolio-girl-illustration" data-svg-src="Media/avatar-girl.svg">
+                                    <img class="portfolio-girl-fallback" src="Media/avatar-girl.svg" alt="">
+                                </div>
                                 <svg class="student-work-boy-illustration student-boy-only" viewBox="0 0 300 240" aria-hidden="true" focusable="false">
                                     <defs>
                                         <linearGradient id="student-hair-gradient" x1="0" y1="0" x2="0" y2="1">
@@ -3528,6 +3530,38 @@
             setStudentWorkOutfit(STUDENT_OUTFIT_DEFAULT);
           }
 
+          async function hydrateStudentWorkAvatarSvg() {
+            if (!studentWorkIllustration || !studentWorkIllustration.dataset || !studentWorkIllustration.dataset.svgSrc) {
+              return;
+            }
+            if (studentWorkIllustration.querySelector('svg')) {
+              studentWorkIllustration.classList.add('is-svg-ready');
+              return;
+            }
+            try {
+              const response = await fetch(studentWorkIllustration.dataset.svgSrc, { cache: 'force-cache' });
+              if (!response.ok) {
+                throw new Error(`SVG load failed: ${response.status}`);
+              }
+              const source = await response.text();
+              const parsed = new DOMParser().parseFromString(source, 'image/svg+xml');
+              const svg = parsed.documentElement;
+              if (!svg || svg.tagName.toLowerCase() !== 'svg' || parsed.querySelector('parsererror')) {
+                throw new Error('Invalid avatar SVG.');
+              }
+              svg.classList.add('portfolio-girl-svg');
+              svg.setAttribute('aria-hidden', 'true');
+              svg.setAttribute('focusable', 'false');
+              studentWorkIllustration.innerHTML = '';
+              studentWorkIllustration.appendChild(svg);
+              studentWorkIllustration.classList.add('is-svg-ready');
+              setStudentWorkEyeOffset(0, 0);
+            } catch (error) {
+              console.error('Error loading interactive avatar SVG:', error);
+              studentWorkIllustration.classList.add('is-svg-fallback');
+            }
+          }
+
           let studentWorkEyeRaf = 0;
           let studentWorkEyeTarget = null;
 
@@ -3540,6 +3574,23 @@
             studentWork.style.setProperty('--avatar-shift-x', `${x * 1.2}px`);
             studentWork.style.setProperty('--avatar-shift-y', `${y * 0.8}px`);
             studentWork.style.setProperty('--avatar-tilt', `${x * 0.75}deg`);
+            studentWork.style.setProperty('--avatar-body-x', `${x * 0.18}px`);
+            studentWork.style.setProperty('--avatar-body-y', `${y * 0.12}px`);
+            studentWork.style.setProperty('--avatar-body-tilt', `${x * 0.22}deg`);
+            studentWork.style.setProperty('--avatar-head-x', `${x * 0.36}px`);
+            studentWork.style.setProperty('--avatar-head-y', `${y * 0.24}px`);
+            studentWork.style.setProperty('--avatar-head-tilt', `${x * 0.36}deg`);
+            studentWork.style.setProperty('--avatar-face-x', `${x * 0.48}px`);
+            studentWork.style.setProperty('--avatar-face-y', `${y * 0.34}px`);
+            studentWork.style.setProperty('--avatar-face-tilt', `${x * 0.08}deg`);
+            studentWork.style.setProperty('--avatar-inner-face-x', `${x * 0.64}px`);
+            studentWork.style.setProperty('--avatar-inner-face-y', `${y * 0.48}px`);
+            studentWork.style.setProperty('--avatar-eye-x', `${x * 0.62}px`);
+            studentWork.style.setProperty('--avatar-eye-y', `${y * 0.42}px`);
+            studentWork.style.setProperty('--avatar-hair-front-x', `${x * 0.22}px`);
+            studentWork.style.setProperty('--avatar-hair-front-y', `${y * 0.14}px`);
+            studentWork.style.setProperty('--avatar-back-x', `${x * -0.12}px`);
+            studentWork.style.setProperty('--avatar-back-y', `${y * -0.08}px`);
           }
 
           function scheduleStudentWorkEyeOffset(x, y) {
@@ -3570,9 +3621,11 @@
             const centerY = rect.top + rect.height / 2;
             const normalizedX = Math.max(-1, Math.min(1, (event.clientX - centerX) / (rect.width / 2)));
             const normalizedY = Math.max(-1, Math.min(1, (event.clientY - centerY) / (rect.height / 2)));
-            const maxOffset = 5;
+            const maxOffset = 6;
             scheduleStudentWorkEyeOffset(normalizedX * maxOffset, normalizedY * maxOffset);
           }
+
+          hydrateStudentWorkAvatarSvg();
 
           const defaultGender = studentWork ? studentWork.getAttribute('data-gender') : '';
           const defaultOutfit = studentWork ? studentWork.getAttribute('data-outfit') : '';

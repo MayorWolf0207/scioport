@@ -5658,16 +5658,79 @@ main {
 
 .portfolio-girl-illustration {
     display: block !important;
-    object-fit: contain;
-    transform:
-        translate(var(--avatar-shift-x, 0px), var(--avatar-shift-y, 0px))
-        rotate(var(--avatar-tilt, 0deg));
-    transform-origin: 50% 62%;
+    object-fit: initial;
+    transform: none;
+    animation: none;
+}
+
+.portfolio-girl-illustration svg,
+.portfolio-girl-fallback {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.portfolio-girl-illustration.is-svg-ready .portfolio-girl-fallback {
+    display: none;
+}
+
+.portfolio-girl-illustration svg .me,
+.portfolio-girl-illustration svg .head,
+.portfolio-girl-illustration svg .face,
+.portfolio-girl-illustration svg .inner-face,
+.portfolio-girl-illustration svg .eye-left,
+.portfolio-girl-illustration svg .eye-right,
+.portfolio-girl-illustration svg .hair-front,
+.portfolio-girl-illustration svg .hair-back,
+.portfolio-girl-illustration svg .ear {
+    transform-box: fill-box;
+    transition: transform 0.12s ease-out;
     will-change: transform;
-    animation: portfolioGirlFloat 4.8s ease-in-out infinite;
-    transition:
-        opacity 0.25s cubic-bezier(0.33, 0, 0.67, 1),
-        transform 0.12s ease-out;
+}
+
+.portfolio-girl-illustration svg .me {
+    transform-origin: 50% 86%;
+    transform:
+        translate(var(--avatar-body-x, 0px), var(--avatar-body-y, 0px))
+        rotate(var(--avatar-body-tilt, 0deg));
+    translate: 0 0;
+    animation: portfolioGirlBodyFloat 4.8s ease-in-out infinite;
+}
+
+.portfolio-girl-illustration svg .head {
+    transform-origin: 50% 74%;
+    transform:
+        translate(var(--avatar-head-x, 0px), var(--avatar-head-y, 0px))
+        rotate(var(--avatar-head-tilt, 0deg));
+}
+
+.portfolio-girl-illustration svg .face {
+    transform-origin: 50% 58%;
+    transform:
+        translate(var(--avatar-face-x, 0px), var(--avatar-face-y, 0px))
+        rotate(var(--avatar-face-tilt, 0deg));
+}
+
+.portfolio-girl-illustration svg .inner-face {
+    transform-origin: 50% 50%;
+    transform: translate(var(--avatar-inner-face-x, 0px), var(--avatar-inner-face-y, 0px));
+}
+
+.portfolio-girl-illustration svg .eye-left,
+.portfolio-girl-illustration svg .eye-right {
+    transform-origin: 50% 50%;
+    transform: translate(var(--avatar-eye-x, 0px), var(--avatar-eye-y, 0px));
+}
+
+.portfolio-girl-illustration svg .hair-front {
+    transform-origin: 50% 70%;
+    transform: translate(var(--avatar-hair-front-x, 0px), var(--avatar-hair-front-y, 0px));
+}
+
+.portfolio-girl-illustration svg .hair-back,
+.portfolio-girl-illustration svg .ear {
+    transform-origin: 50% 50%;
+    transform: translate(var(--avatar-back-x, 0px), var(--avatar-back-y, 0px));
 }
 
 .student-work-boy-illustration {
@@ -5791,12 +5854,12 @@ main {
     }
 }
 
-@keyframes portfolioGirlFloat {
+@keyframes portfolioGirlBodyFloat {
     0% {
         translate: 0 0;
     }
     50% {
-        translate: 0 -6px;
+        translate: 0 -4px;
     }
     100% {
         translate: 0 0;
